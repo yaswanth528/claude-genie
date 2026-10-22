@@ -30,7 +30,8 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
   const [notice, setNotice] = useState<string | null>(null);
 
   // The key lives in the URL fragment so it never reaches server logs.
-  useEffect(() => setKey(new URLSearchParams(window.location.hash.slice(1)).get("key")), []);
+  useEffect(() => setKey(new URLSearchParams(window.location.hash.slice(1)).get("key") ?? ""), []);
+  const [denied, setDenied] = useState(false);
   const onText = useCallback((t: string) => setRequest(t), []);
 
   const call = useCallback(
@@ -65,11 +66,14 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
   };
 
   useEffect(() => {
-    if (key) call(`/api/pages/${slug}`, "GET").then((d) => d && loaded(d));
-  }, [key, call, slug]);
+    if (key === undefined || key === null) return;
+    fetch(`/api/pages/${slug}`, { headers: { "x-edit-key": key } })
+      .then(async (r) => (r.ok ? loaded(await r.json()) : setDenied(true)))
+      .catch(() => setError("Network error. Try again."));
+  }, [key, slug]);
 
   useEffect(() => {
-    if (tab === "orders" && key) call(`/api/orders/${slug}`, "GET").then((d) => d && setOrders(d.orders));
+    if (tab === "orders" && key !== undefined && key !== null) call(`/api/orders/${slug}`, "GET").then((d) => d && setOrders(d.orders));
   }, [tab, key, call, slug]);
 
   async function previewEdit() {
@@ -117,12 +121,18 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
     }
   }
 
-  if (key === undefined) return null;
-  if (key === null)
+  if (key === undefined || key === null) return null;
+  if (denied)
     return (
       <main className="narrow">
         <Logo />
-        <p style={{ marginTop: 24 }}>Open this page using the private edit link you got when you published.</p>
+        <h1>Log in to edit</h1>
+        <p className="hint">Log in with the WhatsApp number on this website, or open the private edit link you got when you published.</p>
+        <div className="row">
+          <a className="btn" href="/login">
+            Log in with WhatsApp
+          </a>
+        </div>
       </main>
     );
 
@@ -294,7 +304,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
         </>
       )}
 
-      {tab === "insights" && current && key && (
+      {tab === "insights" && current && (
         <div style={{ marginTop: 16 }}>
           <Insights slug={slug} editKey={key} dynamic={current.siteType === "dynamic"} />
         </div>

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { getSite, keyMatches, listOrders, visitsByDay } from "@/lib/store";
+import { canEdit } from "@/lib/owner";
+import { getSite, listOrders, visitsByDay } from "@/lib/store";
 
 // The owner's numbers: visits per day for the last 14 days, and orders this week/month.
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const site = await getSite(slug);
   if (!site) return NextResponse.json({ error: "Website not found" }, { status: 404 });
-  if (!keyMatches(site, req.headers.get("x-edit-key"))) return NextResponse.json({ error: "This edit link isn't valid." }, { status: 403 });
+  if (!canEdit(req, site)) return NextResponse.json({ error: "Log in with WhatsApp or open your private edit link." }, { status: 403 });
 
   const [visits, orders] = await Promise.all([visitsByDay(slug, 14).catch(() => null), listOrders(slug).catch(() => [])]);
   const now = Date.now();

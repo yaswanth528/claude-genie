@@ -206,6 +206,27 @@ export async function listOrders(slug: string): Promise<Order[]> {
   return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+// ---------- Login codes (short-lived; stored with the other documents) ----------
+
+export type Challenge = { id: string; phone: string; hash: string; expires: number; attempts: number; sentAt: number };
+const challengePath = (id: string) => `catalogues/auth/${id}.json`;
+const lastSentPath = (phone: string) => `catalogues/auth/last-${phone}.json`;
+
+export async function saveChallenge(c: Challenge): Promise<void> {
+  await writeDoc(challengePath(c.id), c, "Login code");
+  await writeDoc(lastSentPath(c.phone), { at: c.sentAt }, "Login code");
+}
+export const getChallenge = (id: string) => (/^[a-z0-9-]{8,40}$/.test(id) ? readDoc<Challenge>(challengePath(id)) : Promise.resolve(null));
+export const updateChallenge = (c: Challenge) => writeDoc(challengePath(c.id), c, "Login attempt");
+export const deleteChallenge = (id: string) => deleteDoc(challengePath(id));
+export async function lastCodeSentAt(phone: string): Promise<number> {
+  return (await readDoc<{ at: number }>(lastSentPath(phone)))?.at ?? 0;
+}
+
+export async function sitesForPhone(phone: string): Promise<Site[]> {
+  return (await listSites()).filter((s) => s.whatsapp === phone);
+}
+
 // ---------- Visits (D1 or local only; a commit per visit on GitHub would be too much) ----------
 
 const today = () => new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10); // India date

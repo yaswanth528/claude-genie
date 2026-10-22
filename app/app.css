@@ -195,3 +195,8 @@
 .admin-table th { text-align: left; font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .admin-table tr:last-child td { border-bottom: 0; }
+
+/* My websites */
+.my-list { display: grid; gap: 10px; margin-top: 16px; }
+.my-site { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.my-site p { margin: 2px 0 4px; }

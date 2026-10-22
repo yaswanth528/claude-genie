@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { canEdit } from "@/lib/owner";
 import { orderTotal } from "@/lib/catalogue";
 import type { Order } from "@/lib/schema";
-import { getSite, keyMatches, listOrders, newId, saveOrder } from "@/lib/store";
+import { getSite, listOrders, newId, saveOrder } from "@/lib/store";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -67,6 +68,6 @@ export async function GET(req: Request, { params }: Ctx) {
   const { slug } = await params;
   const site = await getSite(slug);
   if (!site) return NextResponse.json({ error: "Website not found" }, { status: 404 });
-  if (!keyMatches(site, req.headers.get("x-edit-key"))) return NextResponse.json({ error: "This edit link isn't valid." }, { status: 403 });
+  if (!canEdit(req, site)) return NextResponse.json({ error: "Log in with WhatsApp or open your private edit link." }, { status: 403 });
   return NextResponse.json({ orders: await listOrders(slug) });
 }

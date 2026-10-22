@@ -22,9 +22,14 @@ export default function Home() {
     <>
       <header className="wrap nav">
         <Logo />
-        <Link href="/create" className="btn">
-          Make my website
-        </Link>
+        <div className="row tight" style={{ marginTop: 0 }}>
+          <Link href="/login" className="btn ghost sm">
+            Log in
+          </Link>
+          <Link href="/create" className="btn">
+            Make my website
+          </Link>
+        </div>
       </header>
 
       <main className="wrap">

@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
+import { canEdit } from "@/lib/owner";
 import { interpretEdit } from "@/lib/ai";
 import { applyPatch, contentOf, undoLast, validateItems, withChange } from "@/lib/catalogue";
 import { cleanContent } from "@/lib/draft";
 import { amountDue } from "@/lib/publish";
 import type { Patch, Site } from "@/lib/schema";
-import { getSite, keyMatches, saveSite } from "@/lib/store";
+import { getSite, saveSite } from "@/lib/store";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
 async function authorised(req: Request, slug: string) {
   const site = await getSite(slug);
   if (!site) return { error: NextResponse.json({ error: "Website not found" }, { status: 404 }) };
-  if (!keyMatches(site, req.headers.get("x-edit-key")))
-    return { error: NextResponse.json({ error: "This edit link isn't valid." }, { status: 403 }) };
+  if (!canEdit(req, site))
+    return { error: NextResponse.json({ error: "Log in with WhatsApp or open your private edit link." }, { status: 403 }) };
   return { site };
 }
 
