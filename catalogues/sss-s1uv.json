@@ -1,0 +1,17 @@
+{
+  "slug": "sss-s1uv",
+  "businessName": "sss",
+  "tagline": null,
+  "language": "English",
+  "whatsapp": "918977044041",
+  "items": [
+    {
+      "name": "saree",
+      "price": 1999,
+      "unit": null,
+      "lowConfidence": false
+    }
+  ],
+  "editKeyHash": "2121fa35ef331e12bb7fa6db35758a35188620c4f5e43e24cedc8e967c8cee10",
+  "updatedAt": "2026-10-22T09:15:29.728Z"
+}
