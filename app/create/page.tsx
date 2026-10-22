@@ -12,7 +12,8 @@ import { LANGUAGES } from "@/components/useSpeech";
 import { PRICES } from "@/lib/prices";
 import type { Draft, Live } from "@/lib/schema";
 
-type Stage = "speak" | "building" | "review" | "pay" | "done";
+type Stage = "speak" | "checking" | "ask" | "building" | "review" | "pay" | "done";
+type Question = { question: string; reason: string };
 type Result = { slug: string; editKey: string; whatsapp: string };
 
 const BUILD_STEPS = ["Understanding what you said", "Choosing a design for your business", "Placing your photos", "Creating pictures", "Writing your website"];
@@ -55,16 +56,50 @@ export default function CreatePage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
   const [live, setLive] = useState<Live | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const [recordings, setRecordings] = useState<string[]>([]);
   const onText = useCallback((t: string) => setTranscript((prev) => (prev.trim() ? `${prev.trim()} ${t}` : t)), []);
+  const onAudio = useCallback((b: Blob) => setRecordings((r) => [...r, URL.createObjectURL(b)].slice(-5)), []);
 
-  async function build() {
+  // Step 1: ask the AI what's missing (name, prices) before building.
+  async function check() {
+    setErrors([]);
+    setStage("checking");
+    try {
+      const res = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ transcript }) });
+      const data = (await res.json()) as { questions?: Question[] };
+      const qs = data.questions ?? [];
+      if (qs.length) {
+        setQuestions(qs);
+        setAnswers(qs.map(() => ""));
+        setStage("ask");
+        return;
+      }
+    } catch {
+      // If the check fails, just build.
+    }
+    build(transcript);
+  }
+
+  function buildWithAnswers() {
+    const extra = questions
+      .map((q, i) => (answers[i].trim() ? `${q.question} ${answers[i].trim()}` : ""))
+      .filter(Boolean)
+      .join("\n");
+    const full = extra ? `${transcript.trim()}\n${extra}` : transcript;
+    setTranscript(full);
+    build(full);
+  }
+
+  async function build(text: string) {
     setErrors([]);
     setStage("building");
     try {
       const res = await fetch("/api/build", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript, media, generateImages: aiImages }),
+        body: JSON.stringify({ transcript: text, media, generateImages: aiImages }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -135,7 +170,7 @@ export default function CreatePage() {
           <aside className={`review-edit ${pane === "edit" ? "show" : ""}`}>
             <h1>Your website is ready</h1>
             <p className="hint">This is a preview. Change anything you like, then continue to get your own website.</p>
-            <SiteEditor value={draft} onChange={setDraft} language={lang} showWhatsapp />
+            <SiteEditor value={draft} onChange={setDraft} language={lang} showWhatsapp recordings={recordings} />
             <div className="publish-bar">
               {errorBox}
               <div className="row">
@@ -176,7 +211,7 @@ export default function CreatePage() {
       <Logo />
       <div className="stepper-head" aria-hidden>
         {[0, 1, 2].map((i) => (
-          <span key={i} className={i <= { speak: 0, building: 1, review: 1, pay: 2, done: 2 }[stage] ? "done" : ""} />
+          <span key={i} className={i <= { speak: 0, checking: 0, ask: 0, building: 1, review: 1, pay: 2, done: 2 }[stage] ? "done" : ""} />
         ))}
       </div>
 
@@ -195,7 +230,7 @@ export default function CreatePage() {
               </option>
             ))}
           </select>
-          <MicButton language={lang} onText={onText} />
+          <MicButton language={lang} onText={onText} onAudio={onAudio} />
           <label htmlFor="transcript">What we heard (you can edit or type)</label>
           <textarea id="transcript" value={transcript} onChange={(e) => setTranscript(e.target.value)} />
 
@@ -209,8 +244,49 @@ export default function CreatePage() {
 
           {errorBox}
           <div className="row">
-            <button className="btn" onClick={build} disabled={transcript.trim().length < 5}>
+            <button className="btn" onClick={check} disabled={transcript.trim().length < 5}>
               Build my website
+            </button>
+          </div>
+        </>
+      )}
+
+      {stage === "checking" && (
+        <div className="building" aria-live="polite">
+          <div className="spinner" aria-hidden />
+          <h1>Checking what you said…</h1>
+        </div>
+      )}
+
+      {stage === "ask" && (
+        <>
+          <h1>A few quick questions</h1>
+          <p className="hint">So your website is right. Answer by voice or typing, or skip any you like.</p>
+          <div className="questions">
+            {questions.map((q, i) => (
+              <div key={i} className="card question">
+                <p className="q-text">{q.question}</p>
+                <MicButton
+                  language={lang}
+                  label="Answer by voice"
+                  onAudio={onAudio}
+                  onText={(t) => setAnswers((a) => a.map((x, j) => (j === i ? t : x)))}
+                />
+                <input
+                  aria-label={`Answer: ${q.question}`}
+                  placeholder="Or type the answer"
+                  value={answers[i] ?? ""}
+                  onChange={(e) => setAnswers((a) => a.map((x, j) => (j === i ? e.target.value : x)))}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="row">
+            <button className="btn" onClick={buildWithAnswers}>
+              Build my website
+            </button>
+            <button className="btn ghost" onClick={() => build(transcript)}>
+              Skip and build
             </button>
           </div>
         </>

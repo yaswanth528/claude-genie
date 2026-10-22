@@ -12,6 +12,7 @@ type Props<T extends SiteContent> = {
   onChange: (next: T) => void;
   language?: string;
   showWhatsapp?: boolean;
+  recordings?: string[]; // the owner's own voice recordings, to check prices by ear
 };
 
 function useUpload() {
@@ -54,7 +55,7 @@ function FileButton({ label, accept, disabled, onFile }: { label: string; accept
   );
 }
 
-export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ value: d, onChange, language = "English", showWhatsapp }: Props<T>) {
+export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ value: d, onChange, language = "English", showWhatsapp, recordings = [] }: Props<T>) {
   const set = (patch: Partial<SiteContent> & { whatsapp?: string }) => onChange({ ...d, ...patch });
   const setItem = (i: number, patch: Partial<Product>) => set({ items: d.items.map((it, j) => (j === i ? { ...it, ...patch } : it)) });
   const up = useUpload();
@@ -139,7 +140,17 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
       <details open>
         <summary>Products and prices</summary>
         <ReadBack businessName={d.businessName} items={d.items} language={language} />
-        <p className="hint">Check every price. Yellow ones might be misheard.</p>
+        <p className="hint">Check every price. Yellow ones might be misheard{recordings.length ? ". Play your recording to check by ear" : ""}.</p>
+        {recordings.length > 0 && (
+          <div className="recordings">
+            {recordings.map((url, i) => (
+              <div key={url} className="recording">
+                <span>▶ {recordings.length > 1 ? `Recording ${i + 1}` : "What you said"}</span>
+                <audio controls preload="metadata" src={url} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="prod-list">
           {d.items.map((it, i) => (
             <div key={i} className={`prod-row ${it.lowConfidence ? "low" : ""}`}>

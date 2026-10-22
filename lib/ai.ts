@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { mediaForModel } from "./media";
-import { PatchSchema, SitePlanSchema, type Patch, type Product, type SitePlan } from "./schema";
+import { GapCheckSchema, PatchSchema, SitePlanSchema, type GapCheck, type Patch, type Product, type SitePlan } from "./schema";
 
 // Created on first use so `next build` doesn't need an API key.
 let _client: GoogleGenAI | null = null;
@@ -77,6 +77,25 @@ Write exactly what was said, in the script of the language spoken. Write every p
     generation_config: thinking,
   });
   return (interaction.output_text ?? "").trim();
+}
+
+// ---------- Asking about gaps before building ----------
+
+const GAP_RULES = `A small shop owner described their business by voice (possibly mixed languages, possibly with speech-to-text errors).
+Before we build their website, list what is important and missing or unclear. Only ask about:
+- the shop/business name, if it was never said;
+- a product whose price was not said;
+- a price that may be misheard (e.g. "seventy nine" vs "seven ninety nine", or a number that looks wrong for that product);
+- a product name that is garbled.
+Do NOT ask about anything optional (address, hours, delivery, photos, WhatsApp number, descriptions).
+Ask at most 3 questions, in the language the owner spoke, short and friendly. If nothing important is missing, return no questions.`;
+
+export async function checkGaps(transcript: string): Promise<GapCheck> {
+  const result = await generateJson(GapCheckSchema, `${GAP_RULES}
+
+Transcript:
+${transcript}`);
+  return { questions: result.questions.slice(0, 3) };
 }
 
 // ---------- Planning the website ----------

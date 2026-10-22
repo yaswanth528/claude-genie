@@ -145,3 +145,13 @@
   .review-preview .s-header { position: relative; top: 0; }
   .review-preview .s-orderbar { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* Follow-up questions and recordings */
+.questions { display: grid; gap: 12px; margin-top: 12px; }
+.question { display: grid; gap: 6px; }
+.q-text { font-weight: 700; font-size: 1.08rem; }
+.question .mic-wrap { margin: 4px 0; }
+.recordings { display: grid; gap: 8px; margin: 8px 0 10px; }
+.recording { display: grid; gap: 4px; padding: 8px 10px; border-radius: 12px; background: var(--warn-bg); border: 1px solid var(--warn-line); }
+.recording span { font-size: 0.85rem; font-weight: 700; }
+.recording audio { width: 100%; height: 36px; }

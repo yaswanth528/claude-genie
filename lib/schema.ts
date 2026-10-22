@@ -41,6 +41,19 @@ export const SitePlanSchema = z.object({
   heroImageQuery: z.string().describe("2-4 English words to search a stock photo library for a banner, e.g. 'indian saree shop'"),
 });
 
+// Before building: what's missing or unclear in what the owner said.
+export const GapCheckSchema = z.object({
+  questions: z
+    .array(
+      z.object({
+        question: z.string().describe("A short, friendly question in the owner's language, e.g. 'What is the price of the silk saree?'"),
+        reason: z.enum(["missing_name", "missing_price", "unclear_price", "unclear_product", "other"]),
+      }),
+    )
+    .describe("At most 3 questions, most important first. Empty if nothing important is missing."),
+});
+export type GapCheck = z.infer<typeof GapCheckSchema>;
+
 // What the model returns from a voice edit: a patch, never a whole site.
 export const PatchSchema = z.object({
   ops: z.array(

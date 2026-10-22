@@ -11,7 +11,7 @@ function pickMimeType(): string | undefined {
   return candidates.find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t));
 }
 
-export function useSpeech(language: string, onText: (text: string) => void) {
+export function useSpeech(language: string, onText: (text: string) => void, onAudio?: (recording: Blob) => void) {
   const [supported, setSupported] = useState(false);
   const [state, setState] = useState<RecorderState>("idle");
   const [seconds, setSeconds] = useState(0);
@@ -68,7 +68,10 @@ export function useSpeech(language: string, onText: (text: string) => void) {
     rec.onstop = () => {
       stream.getTracks().forEach((t) => t.stop());
       const blob = new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" });
-      if (blob.size > 0) upload(blob);
+      if (blob.size > 0) {
+        onAudio?.(blob); // kept in the browser so the owner can replay it during review
+        upload(blob);
+      }
       else setState("idle");
     };
     recorder.current = rec;
@@ -81,7 +84,7 @@ export function useSpeech(language: string, onText: (text: string) => void) {
         return s + 1;
       });
     }, 1000);
-  }, [stop, upload]);
+  }, [stop, upload, onAudio]);
 
   return { supported, state, seconds, error, start, stop };
 }
