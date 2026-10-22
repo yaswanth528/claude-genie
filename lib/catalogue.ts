@@ -73,8 +73,8 @@ export function whatsappOrderLink(
   const total = lines.reduce((sum, l) => sum + (l.price ?? 0) * l.qty, 0);
   const text = [
     `Hi ${businessName}, I'd like to order:`,
-    ...lines.map((l) => `• ${l.name} × ${l.qty}${l.price !== null ? ` — ₹${l.price * l.qty}` : ""}`),
-    `Total: ₹${total}`,
+    ...lines.map((l) => `• ${l.name} × ${l.qty}${l.price !== null ? ` — ${formatPrice(l.price * l.qty)}` : ""}`),
+    `Total: ${formatPrice(total)}`,
   ].join("\n");
   return `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;
 }
