@@ -68,18 +68,6 @@ export default function AdminPage() {
     setRows((x) => x.filter((y) => y.slug !== r.slug));
   }
 
-  async function importGitHub() {
-    if (!window.confirm("Copy all shops and orders from GitHub into the current storage? Existing entries with the same name are overwritten.")) return;
-    setBusy(true);
-    setError(null);
-    const res = await fetch("/api/admin/import", { method: "POST" });
-    const data = await res.json();
-    setBusy(false);
-    if (!res.ok) return setError(data.error);
-    setNotice(`Imported ${data.sites} shops and ${data.orders} orders.`);
-    load();
-  }
-
   if (state === "loading") return <main className="narrow"><Logo /><p className="hint" style={{ marginTop: 24 }}>Loading…</p></main>;
 
   if (state === "login")
@@ -108,11 +96,6 @@ export default function AdminPage() {
         <Logo />
         <div className="row tight" style={{ marginTop: 0 }}>
           <span className="hint small">Storage: {storage === "d1" ? "Cloudflare D1" : storage === "github" ? "GitHub" : "local files"}</span>
-          {storage === "d1" && (
-            <button className="btn ghost sm" onClick={importGitHub} disabled={busy}>
-              Import from GitHub
-            </button>
-          )}
           <button
             className="btn ghost sm"
             onClick={async () => {

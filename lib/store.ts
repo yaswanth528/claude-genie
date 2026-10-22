@@ -272,26 +272,3 @@ export async function visitsByDay(slug: string, days: number): Promise<{ day: st
     return { day, count: map.get(day) ?? 0 };
   });
 }
-
-// ---------- One-time move from GitHub to the current backend ----------
-
-export async function importFromGitHub(): Promise<{ sites: number; orders: number }> {
-  if (!GITHUB_TOKEN || !GITHUB_REPO) throw new Error("GitHub isn't configured, so there's nothing to import.");
-  if (backend() === "github") throw new Error("Storage is already GitHub.");
-  let sites = 0;
-  let orders = 0;
-  for (const path of await listGitHub("catalogues")) {
-    const doc = await readGitHub<Site>(path);
-    if (!doc) continue;
-    await writeDoc(path, doc.doc, "import");
-    sites++;
-    for (const opath of await listGitHub(`catalogues/orders/${doc.doc.slug}`)) {
-      const o = await readGitHub(opath);
-      if (o) {
-        await writeDoc(opath, o.doc, "import");
-        orders++;
-      }
-    }
-  }
-  return { sites, orders };
-}
