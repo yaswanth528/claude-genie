@@ -45,7 +45,14 @@ export async function POST(req: Request) {
     const spoken = transcript.toLowerCase();
     const unitSaid = (unit: string | null) =>
       unit && unit.toLowerCase().replace(/\bper\b/g, "").split(/\W+/).filter(Boolean).some((w) => spoken.includes(w)) ? unit : null;
-    const items = plan.items.map(({ mediaIndex, imagePrompt, imageQuery, ...it }) => {
+    const items = plan.items.map(({ mediaIndex, imagePrompt, imageQuery, category, optionName, optionChoices, ...base }) => {
+      const it = {
+        ...base,
+        category: category?.trim() || null,
+        optionName: optionChoices.length ? optionName?.trim() || "Option" : null,
+        options: optionChoices.map((c) => c.trim()).filter(Boolean).slice(0, 12),
+        inStock: true,
+      };
       it.unit = unitSaid(it.unit);
       const m = take(mediaIndex);
       // A video matched to a product is better shown in the gallery.
@@ -59,10 +66,11 @@ export async function POST(req: Request) {
 
     // Fill empty slots with AI illustrations or stock photos, in parallel.
     const jobs: Promise<void>[] = [];
+    const usedPhotos = new Set<string>(); // no stock photo appears twice on one site
     let heroMedia = hero;
     if (allowGenerated && !heroMedia) {
       jobs.push(
-        findPicture({ prompt: plan.heroImagePrompt, query: plan.heroImageQuery, aspect: "16:9", alt: plan.category }).then((m) => {
+        findPicture({ prompt: plan.heroImagePrompt, query: plan.heroImageQuery, aspect: "16:9", alt: plan.category, used: usedPhotos }).then((m) => {
           heroMedia = m;
         }),
       );
@@ -73,7 +81,7 @@ export async function POST(req: Request) {
         .slice(0, MAX_GENERATED - (heroMedia ? 0 : 1))
         .forEach((it) =>
           jobs.push(
-            findPicture({ prompt: it.imagePrompt, query: it.imageQuery, aspect: "1:1", alt: it.name }).then((m) => {
+            findPicture({ prompt: it.imagePrompt, query: it.imageQuery, aspect: "1:1", alt: it.name, name: it.name, used: usedPhotos }).then((m) => {
               it.image = m;
             }),
           ),

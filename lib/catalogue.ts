@@ -56,6 +56,12 @@ export function applyPatch(items: Product[], businessName: string, patch: Patch)
       case "set_business_name":
         if (op.name) name = op.name;
         break;
+      case "out_of_stock":
+        if (target) target.inStock = false;
+        break;
+      case "in_stock":
+        if (target) target.inStock = true;
+        break;
     }
   }
   return { businessName: name, items: next.filter((_, i) => !removals.includes(i)) };
@@ -90,13 +96,14 @@ export function slugify(name: string): string {
   return `${base || "shop"}-${suffix}`;
 }
 
-type Line = { name: string; qty: number; price: number | null };
+type Line = { name: string; qty: number; price: number | null; option?: string | null };
+export const lineName = (l: Line) => (l.option ? `${l.name} (${l.option})` : l.name);
 export const orderTotal = (lines: Line[]) => lines.reduce((s, l) => s + (l.price ?? 0) * l.qty, 0);
 
 export function orderText(businessName: string, lines: Line[], customer?: Order["customer"], orderId?: string) {
   return [
     `Hi ${businessName}, I'd like to order:`,
-    ...lines.map((l) => `• ${l.name} × ${l.qty}${l.price !== null ? ` — ${formatPrice(l.price * l.qty)}` : ""}`),
+    ...lines.map((l) => `• ${lineName(l)} × ${l.qty}${l.price !== null ? ` — ${formatPrice(l.price * l.qty)}` : ""}`),
     `Total: ${formatPrice(orderTotal(lines))}`,
     ...(customer
       ? [

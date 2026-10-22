@@ -1,6 +1,30 @@
 // Checks and cleans a website draft coming from the browser before it is saved.
 import { normaliseWhatsapp, validateItems } from "./catalogue";
-import { THEME_IDS, type Draft, type Media, type Product, type SiteContent } from "./schema";
+import { THEME_IDS, TranslationSchema, type Draft, type Media, type Product, type SiteContent, type Translation } from "./schema";
+
+function translation(v: unknown): Translation | null {
+  const t = v as Translation;
+  if (!t || typeof t.language !== "string" || typeof t.label !== "string") return null;
+  const parsed = TranslationSchema.safeParse(t);
+  if (!parsed.success) return null;
+  const clip = (x: string | null, n: number) => (x === null ? null : x.slice(0, n));
+  const d = parsed.data;
+  return {
+    language: t.language.slice(0, 30),
+    label: t.label.slice(0, 30),
+    businessName: d.businessName.slice(0, 80),
+    category: d.category.slice(0, 80),
+    headline: d.headline.slice(0, 160),
+    subheadline: d.subheadline.slice(0, 400),
+    about: clip(d.about, 1600),
+    highlights: d.highlights.slice(0, 3).map((h) => h.slice(0, 120)),
+    area: clip(d.area, 120),
+    hours: clip(d.hours, 160),
+    items: d.items.slice(0, 60).map((i) => ({ name: i.name.slice(0, 120), description: i.description.slice(0, 300), optionName: clip(i.optionName, 40), options: i.options.slice(0, 12).map((o) => o.slice(0, 40)) })),
+    categories: d.categories.slice(0, 30).map((c) => ({ from: c.from.slice(0, 40), to: c.to.slice(0, 60) })),
+    ui: Object.fromEntries(Object.entries(d.ui).slice(0, 60).map(([k, v]) => [k.slice(0, 30), v.slice(0, 120)])),
+  };
+}
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const optStr = (v: unknown, max: number) => str(v, max) || null;
@@ -22,6 +46,7 @@ function product(v: unknown): Product {
   const p = v as Product;
   const price = typeof p?.price === "number" && Number.isFinite(p.price) ? Math.round(p.price * 100) / 100 : null;
   const image = media(p?.image);
+  const options = Array.isArray(p?.options) ? [...new Set(p.options.map((o) => str(o, 30)).filter(Boolean))].slice(0, 12) : [];
   return {
     name: str(p?.name, 80),
     price,
@@ -29,6 +54,10 @@ function product(v: unknown): Product {
     lowConfidence: false,
     description: str(p?.description, 200),
     image: image?.kind === "image" ? image : null,
+    category: optStr(p?.category, 40),
+    optionName: options.length ? optStr(p?.optionName, 30) ?? "Option" : null,
+    options,
+    inStock: p?.inStock !== false,
   };
 }
 
@@ -56,6 +85,7 @@ export function cleanContent(input: unknown): { content: SiteContent; errors: st
     hero: media(d.hero),
     gallery: Array.isArray(d.gallery) ? d.gallery.map(media).filter((m): m is Media => m !== null).slice(0, 24) : [],
     items,
+    translation: translation(d.translation),
   };
   const errors = validateItems(items);
   if (!content.businessName) errors.unshift("Add your business name.");

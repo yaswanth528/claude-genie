@@ -2,7 +2,7 @@
 // Edit panel for a website: type, look, text, products, photos and contact details.
 // Shared by the review screen (before publishing) and the owner's edit screen.
 import { useRef, useState } from "react";
-import { THEME_IDS, type Media, type Product, type SiteContent } from "@/lib/schema";
+import { THEME_IDS, type Media, type Product, type SiteContent, type Translation } from "@/lib/schema";
 import { THEMES } from "@/lib/themes";
 import { ReadBack } from "./ReadBack";
 import { uploadFile } from "./upload";
@@ -176,6 +176,29 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
                   />
                 </div>
                 <textarea rows={2} aria-label={`Description of ${it.name}`} placeholder="Short description" value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} />
+                <details className="prod-more">
+                  <summary>
+                    More: category, sizes, stock
+                    {it.inStock === false && <span className="pill warn">Out of stock</span>}
+                  </summary>
+                  <label className="check">
+                    <input type="checkbox" checked={it.inStock !== false} onChange={(e) => setItem(i, { inStock: e.target.checked })} />
+                    In stock
+                  </label>
+                  <input aria-label={`Category of ${it.name}`} placeholder="Category (e.g. Sarees)" value={it.category ?? ""} onChange={(e) => setItem(i, { category: e.target.value || null })} />
+                  <div className="prod-line">
+                    <input
+                      aria-label={`Choices for ${it.name}`}
+                      placeholder="Choices, comma separated (e.g. S, M, L)"
+                      value={(it.options ?? []).join(", ")}
+                      onChange={(e) => {
+                        const options = e.target.value.split(",").map((x) => x.trim());
+                        setItem(i, { options: options.some(Boolean) ? options : [], optionName: it.optionName ?? "Size" });
+                      }}
+                    />
+                    <input aria-label="What the choices are" placeholder="Size" value={it.optionName ?? ""} onChange={(e) => setItem(i, { optionName: e.target.value || null })} />
+                  </div>
+                </details>
                 <div className="row tight">
                   <FileButton label={up.busy === `p${i}` ? "Uploading…" : it.image ? "Change photo" : "Add photo"} accept="image/*" disabled={!!up.busy} onFile={(f) => up.run(`p${i}`, f, (m) => setItem(i, { image: { ...m, alt: it.name } }))} />
                   {it.image && (
@@ -253,6 +276,8 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
         <FileButton label={up.busy === "gallery" ? "Uploading…" : "Add to gallery"} accept="image/*,video/mp4,video/webm,video/quicktime" disabled={!!up.busy} onFile={(f) => up.run("gallery", f, (m) => set({ gallery: [...d.gallery, m] }))} />
       </details>
 
+      <TranslationPanel value={d} onChange={(translation) => set({ translation })} />
+
       <details>
         <summary>Location and hours</summary>
         <label htmlFor="e-area">Area / city</label>
@@ -265,5 +290,94 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
 
       {up.error && <p className="error">{up.error}</p>}
     </div>
+  );
+}
+
+const SECOND_LANGUAGES = [
+  { name: "Kannada", label: "ಕನ್ನಡ" },
+  { name: "Hindi", label: "हिन्दी" },
+  { name: "Tamil", label: "தமிழ்" },
+  { name: "Telugu", label: "తెలుగు" },
+  { name: "Malayalam", label: "മലയാളം" },
+  { name: "Marathi", label: "मराठी" },
+  { name: "English", label: "English" },
+];
+
+// A second language for the website. One AI call when the owner asks for it.
+function TranslationPanel({ value, onChange }: { value: SiteContent; onChange: (t: Translation | null) => void }) {
+  const [language, setLanguage] = useState(value.translation?.language ?? "Kannada");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const t = value.translation;
+
+  async function create() {
+    setBusy(true);
+    setError(null);
+    try {
+      const { translation: _old, ...content } = value;
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, language }),
+      });
+      const data = await res.json();
+      if (!res.ok) return setError(data.error ?? "Couldn't translate. Try again.");
+      onChange(data.translation);
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const setField = (patch: Partial<Translation>) => t && onChange({ ...t, ...patch });
+
+  return (
+    <details>
+      <summary>Second language</summary>
+      <p className="hint">Customers get a button to switch your website to another language.</p>
+      {!t ? (
+        <div className="row tight">
+          <select aria-label="Language" value={language} onChange={(e) => setLanguage(e.target.value)} style={{ width: "auto" }}>
+            {SECOND_LANGUAGES.map((l) => (
+              <option key={l.name} value={l.name}>
+                {l.label} {l.name !== l.label ? `(${l.name})` : ""}
+              </option>
+            ))}
+          </select>
+          <button type="button" className="btn ghost sm" onClick={create} disabled={busy}>
+            {busy ? "Translating…" : `Add ${language} version`}
+          </button>
+        </div>
+      ) : (
+        <>
+          <p>
+            <strong>{t.label}</strong> version added. Check the main lines below; customers can switch languages on your site.
+          </p>
+          <label htmlFor="t-head">Headline ({t.language})</label>
+          <input id="t-head" value={t.headline} onChange={(e) => setField({ headline: e.target.value })} />
+          <label htmlFor="t-sub">Line under the headline ({t.language})</label>
+          <textarea id="t-sub" rows={2} value={t.subheadline} onChange={(e) => setField({ subheadline: e.target.value })} />
+          <label>Product names ({t.language})</label>
+          {t.items.map((ti, i) => (
+            <input
+              key={i}
+              aria-label={`Product ${i + 1} in ${t.language}`}
+              value={ti.name}
+              onChange={(e) => setField({ items: t.items.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })}
+            />
+          ))}
+          <div className="row tight">
+            <button type="button" className="btn ghost sm" onClick={create} disabled={busy}>
+              {busy ? "Translating…" : "Translate again"}
+            </button>
+            <button type="button" className="btn ghost sm danger" onClick={() => onChange(null)}>
+              Remove {t.language}
+            </button>
+          </div>
+        </>
+      )}
+      {error && <p className="error">{error}</p>}
+    </details>
   );
 }

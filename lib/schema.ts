@@ -33,6 +33,9 @@ export const SitePlanSchema = z.object({
       mediaIndex: z.number().nullable().describe("Index of the uploaded photo that shows this product; null if none matches"),
       imagePrompt: z.string().describe("If no uploaded photo matches: a description for an illustrative product photo, plain background, no text"),
       imageQuery: z.string().describe("2-4 English words to search a stock photo library for this product, e.g. 'cotton kurti'"),
+      category: z.string().nullable().describe("Product group if the owner grouped products (e.g. 'Sarees', 'Sweets'); null otherwise"),
+      optionName: z.string().nullable().describe("If the owner said the product comes in choices: what varies, e.g. 'Size', 'Colour', 'Weight'; else null"),
+      optionChoices: z.array(z.string()).describe("The choices the owner said, e.g. ['S','M','L'] or ['250 g','500 g']; empty if none"),
     }),
   ),
   heroMediaIndex: z.number().nullable().describe("Index of the uploaded photo or video best suited as the main banner; null if none"),
@@ -58,7 +61,7 @@ export type GapCheck = z.infer<typeof GapCheckSchema>;
 export const PatchSchema = z.object({
   ops: z.array(
     z.object({
-      op: z.enum(["set_price", "rename", "add", "remove", "set_business_name"]),
+      op: z.enum(["set_price", "rename", "add", "remove", "set_business_name", "out_of_stock", "in_stock"]),
       index: z.number().nullable().describe("Index of the item in the current list; null for add/set_business_name"),
       name: z.string().nullable(),
       price: z.number().nullable(),
@@ -82,7 +85,30 @@ export type Media = {
   credit?: string | null; // e.g. "Photo: Jane Doe / Pexels" for stock photos
 };
 
-export type Product = Item & { description: string; image: Media | null };
+export type Product = Item & {
+  description: string;
+  image: Media | null;
+  category?: string | null; // groups products into filter chips on the site
+  optionName?: string | null; // e.g. "Size"
+  options?: string[]; // e.g. ["S", "M", "L"]; the customer picks one
+  inStock?: boolean; // false = shown as "Out of stock", can't be ordered (default true)
+};
+
+// A second language for the website (e.g. Kannada), switchable by customers.
+export const TranslationSchema = z.object({
+  businessName: z.string(),
+  category: z.string().describe("What the business sells, e.g. 'women's ethnic wear'"),
+  headline: z.string(),
+  subheadline: z.string(),
+  about: z.string().nullable(),
+  highlights: z.array(z.string()),
+  area: z.string().nullable(),
+  hours: z.string().nullable(),
+  items: z.array(z.object({ name: z.string(), description: z.string(), optionName: z.string().nullable(), options: z.array(z.string()) })),
+  categories: z.array(z.object({ from: z.string(), to: z.string() })).describe("Each product category translated"),
+  ui: z.record(z.string(), z.string()).describe("The interface wording translated, same keys as given"),
+});
+export type Translation = z.infer<typeof TranslationSchema> & { language: string; label: string };
 
 export type SiteContent = {
   businessName: string;
@@ -100,6 +126,7 @@ export type SiteContent = {
   hero: Media | null;
   gallery: Media[];
   items: Product[];
+  translation?: Translation | null;
 };
 
 // A draft is what the review screen edits before publishing.
@@ -142,6 +169,6 @@ export type Order = {
   slug: string;
   createdAt: string;
   customer: { name: string; phone: string; address: string; note: string };
-  lines: { name: string; qty: number; price: number | null }[];
+  lines: { name: string; qty: number; price: number | null; option?: string | null }[];
   total: number;
 };

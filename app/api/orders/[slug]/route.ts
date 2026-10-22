@@ -22,7 +22,10 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!site) return json({ error: "Website not found" }, 404);
   if (site.siteType !== "dynamic") return json({ error: "This shop takes orders on WhatsApp." }, 400);
 
-  const body = (await req.json().catch(() => ({}))) as { customer?: Record<string, unknown>; lines?: { index?: number; qty?: number }[] };
+  const body = (await req.json().catch(() => ({}))) as {
+    customer?: Record<string, unknown>;
+    lines?: { index?: number; qty?: number; option?: string | null }[];
+  };
   const customer = {
     name: str(body.customer?.name, 80),
     phone: str(body.customer?.phone, 20),
@@ -34,9 +37,17 @@ export async function POST(req: Request, { params }: Ctx) {
   if (customer.phone.replace(/\D/g, "").length < 10) errors.push("Add a phone number we can call.");
   if (!customer.address) errors.push("Add a delivery address.");
 
-  const lines = (body.lines ?? [])
-    .filter((l) => Number.isInteger(l.index) && l.index! >= 0 && l.index! < site.items.length && Number.isInteger(l.qty) && l.qty! > 0 && l.qty! <= 99)
-    .map((l) => ({ name: site.items[l.index!].name, price: site.items[l.index!].price, qty: l.qty! }));
+  const valid = (body.lines ?? []).filter(
+    (l) => Number.isInteger(l.index) && l.index! >= 0 && l.index! < site.items.length && Number.isInteger(l.qty) && l.qty! > 0 && l.qty! <= 99,
+  );
+  const lines = valid.map((l) => {
+    const item = site.items[l.index!];
+    // Only accept an option the product really has; products with options need one.
+    const option = item.options?.length ? (item.options.includes(l.option ?? "") ? l.option! : item.options[0]) : null;
+    return { name: item.name, price: item.price, qty: l.qty!, option };
+  });
+  const soldOut = valid.filter((l) => site.items[l.index!].inStock === false).map((l) => site.items[l.index!].name);
+  if (soldOut.length) errors.push(`Sorry, ${soldOut.join(", ")} ${soldOut.length > 1 ? "are" : "is"} out of stock.`);
   if (lines.length === 0) errors.push("Your cart is empty.");
   if (errors.length) return json({ errors }, 400);
 

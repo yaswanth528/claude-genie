@@ -1,0 +1,42 @@
+// Interface wording on generated websites. English is the default; a site's translation
+// (lib/schema.ts → Translation) can override any of these for the owner's language.
+export const UI_EN = {
+  products: "Our products",
+  shop: "Shop",
+  about: "About",
+  gallery: "Gallery",
+  contact: "Contact",
+  seeProducts: "See products",
+  shopNow: "Shop now",
+  chat: "Chat on WhatsApp",
+  add: "Add",
+  addToCart: "Add to cart",
+  outOfStock: "Out of stock",
+  all: "All",
+  pickHint: "Pick what you like and send your order on WhatsApp.",
+  cartHint: "Add items to your cart and check out in a minute.",
+  visit: "Visit or message us",
+  address: "Address",
+  area: "Area",
+  hours: "Hours",
+  messageUs: "Message us on WhatsApp for orders and questions.",
+  maps: "Open in Google Maps",
+  messageOnWa: "Message on WhatsApp",
+  orderOnWa: "Order on WhatsApp",
+  viewCart: "View cart",
+  cart: "Your cart",
+  cartShort: "Cart",
+  total: "Total",
+  yourName: "Your name",
+  phone: "Phone",
+  deliveryAddress: "Delivery address",
+  note: "Note (optional)",
+  placeOrder: "Place order",
+  payNote: "Pay the shop directly when they confirm your order.",
+  empty: "Your cart is empty.",
+} as const;
+
+export type UiKey = keyof typeof UI_EN;
+export type UiText = Record<UiKey, string>;
+
+export const uiText = (overrides?: Partial<Record<string, string>> | null): UiText => ({ ...UI_EN, ...(overrides ?? {}) }) as UiText;

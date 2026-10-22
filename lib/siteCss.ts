@@ -248,6 +248,40 @@ export const SITE_CSS = `
 .s-errors p { color: #b42318; font-size: .92rem; }
 .s-placed { display: grid; gap: 16px; }
 
+/* Language switch */
+.s-lang {
+  flex-shrink: 0; border: 1px solid var(--s-line); background: var(--s-surface); color: var(--s-ink);
+  border-radius: 999px; padding: 6px 12px; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer;
+}
+.s-header-row > .s-lang { margin-left: auto; }
+.s-header-row > .s-lang + .s-btn { margin-left: 8px; }
+@container site (min-width: 820px) { .s-header-row > .s-lang { margin-left: 8px; } }
+
+/* Category filter */
+.s-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: -8px 0 24px; }
+.s-chips button {
+  border: 1px solid var(--s-line); background: var(--s-surface); color: var(--s-ink); border-radius: 999px;
+  padding: 7px 16px; font: inherit; font-weight: 600; font-size: .92rem; cursor: pointer;
+}
+.s-chips button.on { background: var(--s-accent); border-color: var(--s-accent); color: var(--s-accent-ink); }
+
+/* Product options (size, colour, weight) */
+.s-opts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.s-opts button {
+  min-width: 36px; border: 1px solid var(--s-line); background: var(--s-bg); color: var(--s-ink);
+  border-radius: 8px; padding: 4px 10px; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
+}
+.s-opts button.on { border-color: var(--s-accent); box-shadow: inset 0 0 0 1px var(--s-accent); color: var(--s-accent); }
+
+/* Out of stock */
+.s-card.is-out .s-card-media img, .s-card.is-out .s-card-media video { filter: grayscale(1); opacity: .6; }
+.s-card.is-out .s-price { color: var(--s-muted); }
+.s-out-tag {
+  position: absolute; top: 8px; left: 8px; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px; background: var(--s-ink); color: var(--s-bg);
+}
+.s-out-text { font-size: .85rem; font-weight: 700; color: var(--s-muted); }
+
 @media (prefers-reduced-motion: reduce) {
   .site *, .site *::before { transition: none !important; }
   .s-card:hover, .s-btn:hover { transform: none; }

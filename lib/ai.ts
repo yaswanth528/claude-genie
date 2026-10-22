@@ -1,7 +1,18 @@
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { mediaForModel } from "./media";
-import { GapCheckSchema, PatchSchema, SitePlanSchema, type GapCheck, type Patch, type Product, type SitePlan } from "./schema";
+import { UI_EN } from "./i18n";
+import {
+  GapCheckSchema,
+  PatchSchema,
+  SitePlanSchema,
+  TranslationSchema,
+  type GapCheck,
+  type Patch,
+  type Product,
+  type SiteContent,
+  type SitePlan,
+} from "./schema";
 
 // Created on first use so `next build` doesn't need an API key.
 let _client: GoogleGenAI | null = null;
@@ -116,7 +127,11 @@ Design:
 - Pick the theme that fits the business type, the colour option that suits it, and a hero style.
 - Uploaded photos are numbered from 0 in the order given. Match photos to the products they show, pick the best banner, and put good leftovers in the gallery. Never use one photo twice.
 - For any product without a matching photo, write imagePrompt: a realistic product photo of exactly that item (Indian context), soft natural light, clean simple background, no text, no people's faces.
-- heroImagePrompt: a wide, inviting photo that captures this kind of shop in India, no text or logos.`;
+- heroImagePrompt: a wide, inviting photo that captures this kind of shop in India, no text or logos.
+
+Products:
+- If the owner groups products (e.g. "in sarees we have... in kurtis we have..."), set category; otherwise leave it null.
+- If they say a product comes in sizes, colours or weights, set optionName and optionChoices. Only what they said.`;
 
 export type UploadedMedia = { url: string; kind: "image" | "video"; name: string };
 
@@ -155,11 +170,41 @@ export async function generateImage(prompt: string, aspect: "16:9" | "1:1" | "4:
   }
 }
 
+// ---------- Second language ----------
+
+export async function translateSite(site: SiteContent, language: string) {
+  const source = {
+    businessName: site.businessName,
+    category: site.category,
+    headline: site.headline,
+    subheadline: site.subheadline,
+    about: site.about,
+    highlights: site.highlights,
+    area: site.area,
+    hours: site.hours,
+    items: site.items.map((i) => ({ name: i.name, description: i.description, optionName: i.optionName ?? null, options: i.options ?? [] })),
+    categories: [...new Set(site.items.map((i) => i.category).filter(Boolean))],
+    ui: UI_EN,
+  };
+  const prompt = `Translate this small shop's website text into ${language}, for local customers in India.
+Rules:
+- Natural, simple, everyday ${language}, the way a shop sign or WhatsApp message would say it. Not formal or literary.
+- Keep product and brand names recognisable: well-known names (e.g. "Kaju Katli", "iPhone") can stay as they are or be written in ${language} script.
+- Keep numbers, prices and units as digits. Keep the same number and order of items, highlights and options.
+- Translate every key in "ui" (keep the keys exactly). Translate each category in "categories" as {from, to}.
+- businessName: keep the shop's name, written in ${language} script if natural.
+
+Website text (JSON):
+${JSON.stringify(source)}`;
+  return generateJson(TranslationSchema, prompt);
+}
+
 // ---------- Voice edits ----------
 
 const EDIT_RULES = `You turn a business owner's spoken edit request into a patch for their product list.
 Return only the operations needed. Use the item's index from the list given.
 If the request could match more than one item (e.g. "the kurti" when there are several kurtis), return no ops and put a short clarifying question in ambiguity.
+Use out_of_stock / in_stock when the owner says an item is finished, sold out, not available, or back in stock.
 Never change anything the owner didn't ask for.`;
 
 export async function interpretEdit(items: Product[], businessName: string, request: string): Promise<Patch> {
