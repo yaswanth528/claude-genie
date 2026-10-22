@@ -4,6 +4,7 @@
 // switches between them; one cart is shared across both.
 import QRCode from "qrcode";
 import { formatPrice, upiLink } from "./catalogue";
+import { openStatus, parseHours } from "./hours";
 import { categoriesOf, localText, type LocalText } from "./localize";
 import type { Media, Site } from "./schema";
 import { jsonLd, ogImageUrl } from "./seo";
@@ -21,6 +22,8 @@ const FONTS: Record<string, string> = {
   bazaar: "family=Archivo:wght@400;600;800",
 };
 const FONT_VARS = `:root{--f-cormorant:"Cormorant Garamond";--f-jost:"Jost";--f-fraunces:"Fraunces";--f-nunito:"Nunito Sans";--f-baloo:"Baloo 2";--f-hind:"Hind";--f-sora:"Sora";--f-manrope:"Manrope";--f-playfair:"Playfair Display";--f-mulish:"Mulish";--f-archivo:"Archivo";--f-kannada:"Noto Sans Kannada";--f-devanagari:"Noto Sans Devanagari";--f-tamil:"Noto Sans Tamil";--f-telugu:"Noto Sans Telugu";--f-malayalam:"Noto Sans Malayalam"}`;
+
+const WA_SVG = `<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M12 2.6a9.4 9.4 0 0 0-8.1 14.1L2.6 21.4l4.8-1.3A9.4 9.4 0 1 0 12 2.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 7.9c.2-.5.5-.5.8-.5h.6c.2 0 .4 0 .6.5l.8 1.8c.1.2.1.4 0 .6l-.6.8c-.1.2-.1.4 0 .5a7 7 0 0 0 2.9 2.8c.2.1.4.1.5 0l.8-.8c.2-.2.4-.2.6-.1l1.8.8c.2.1.4.2.4.4v.6c0 .5-.3 1-.9 1.3-.6.3-1.7.5-3.6-.3a10.4 10.4 0 0 1-4.6-4.3C8.4 10.4 8.6 8.7 9 7.9z" fill="currentColor"/></svg>`;
 
 const initials = (name: string) =>
   name.split(/\s+/).slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase();
@@ -45,7 +48,10 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
   const cols = Math.min(4, Math.max(2, site.items.length));
   const aboutImage = site.gallery.find((m) => m.kind === "image");
   const phone = wa.startsWith("91") && wa.length === 12 ? `+91 ${wa.slice(2, 7)} ${wa.slice(7)}` : `+${wa}`;
-  const mapsQuery = encodeURIComponent(`${site.businessName} ${site.address ?? site.area ?? ""}`);
+  const place = site.address || site.area ? `${site.businessName}, ${site.address ?? site.area}` : null;
+  const hasHours = !!parseHours(site.hours);
+  // Filled in by the page script ("Open now · closes 9 pm"), using the visitor's clock.
+  const openBadge = hasHours ? `<strong class="s-open" data-open hidden></strong>` : "";
   const categories = categoriesOf(site.items);
   const langButton = site.translation
     ? `<button class="s-lang" data-act="lang" aria-label="Change language">${esc(lang === "alt" ? "English" : site.translation.label)}</button>`
@@ -90,7 +96,11 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
 ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${esc(u.cartShort)}<span data-count></span></button>` : `<a class="s-btn s-btn-sm" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">WhatsApp</a>`}</div></header>
 <section id="${idp}top" class="s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}">${heroFull && site.hero ? media(site.hero, "s-hero-bg", true) : ""}
 <div class="s-wrap s-hero-inner"><div class="s-hero-copy">${L.category ? `<p class="s-eyebrow">${esc(L.area ? `${L.category} · ${L.area}` : L.category)}</p>` : ""}<h1>${esc(L.headline || L.businessName)}</h1><p class="s-lead">${esc(L.subheadline)}</p>
-<div class="s-hero-cta"><a class="s-btn" href="#${idp}products">${esc(dynamic ? u.shopNow : u.seeProducts)}</a><a class="s-btn s-btn-ghost" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">${esc(u.chat)}</a></div></div>
+<div class="s-hero-cta"><a class="s-btn" href="#${idp}products">${esc(dynamic ? u.shopNow : u.seeProducts)}</a><a class="s-btn s-btn-ghost" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">${esc(u.chat)}</a></div>${
+  hasHours || site.reviewsUrl
+    ? `<div class="s-trust">${openBadge}${site.reviewsUrl ? `<a href="${esc(site.reviewsUrl)}" target="_blank" rel="noreferrer">★ ${esc(u.reviewsShort)}</a>` : ""}</div>`
+    : ""
+}</div>
 ${!heroFull && site.hero ? `<div class="s-hero-media">${media(site.hero, "", true)}</div>` : ""}</div></section>
 ${L.highlights.length ? `<section class="s-highlights"><div class="s-wrap s-highlights-row">${L.highlights.map((h) => `<p>${esc(h)}</p>`).join("")}</div></section>` : ""}
 <section id="${idp}products" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(dynamic ? u.shop : u.products)}</h2><p>${esc(dynamic ? u.cartHint : u.pickHint)}</p></div>${chips}
@@ -99,15 +109,22 @@ ${L.about ? `<section id="${idp}about" class="s-section s-about"><div class="s-w
 ${site.gallery.length ? `<section id="${idp}gallery" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(u.gallery)}</h2></div><div class="s-gallery">${site.gallery.map((m) => (m.kind === "video" ? `<video src="${esc(m.url)}" controls playsinline preload="metadata" aria-label="${esc(m.alt)}"></video>` : media(m))).join("")}</div></div></section>` : ""}
 <section id="${idp}contact" class="s-section s-contact"><div class="s-wrap s-contact-grid"><div><h2>${esc(u.visit)}</h2>${
     site.address || L.area || L.hours
-      ? `<ul class="s-contact-list">${site.address ? `<li><span>${esc(u.address)}</span>${esc(site.address)}</li>` : L.area ? `<li><span>${esc(u.area)}</span>${esc(L.area)}</li>` : ""}${L.hours ? `<li><span>${esc(u.hours)}</span>${esc(L.hours)}</li>` : ""}</ul>`
+      ? `<ul class="s-contact-list">${site.address ? `<li><span>${esc(u.address)}</span>${esc(site.address)}</li>` : L.area ? `<li><span>${esc(u.area)}</span>${esc(L.area)}</li>` : ""}${L.hours ? `<li><span>${esc(u.hours)}</span>${esc(L.hours)}${openBadge}</li>` : ""}</ul>`
       : `<p class="s-muted">${esc(u.messageUs)}</p>`
-  }${site.address || site.area ? `<a class="s-link" href="https://www.google.com/maps/search/?api=1&amp;query=${mapsQuery}" target="_blank" rel="noreferrer">${esc(u.maps)} ↗</a>` : ""}${deliveryHtml(site, u)}</div>
+  }${
+    place
+      ? `<a class="s-link" href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(place)}" target="_blank" rel="noreferrer">${esc(u.maps)} ↗</a><iframe class="s-map" title="${esc(`${u.map}: ${site.businessName}`)}" src="https://maps.google.com/maps?q=${encodeURIComponent(site.address ?? place)}&amp;z=15&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`
+      : ""
+  }${deliveryHtml(site, u)}</div>
 <div class="s-contact-card"><p class="s-muted">WhatsApp</p><p class="s-phone">${esc(phone)}</p><a class="s-btn" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">${esc(u.messageOnWa)}</a>${
+    site.reviewsUrl ? `<a class="s-link s-reviews" href="${esc(site.reviewsUrl)}" target="_blank" rel="noreferrer">★ ${esc(u.reviews)} ↗</a>` : ""
+  }${
     site.upiId
       ? `<div class="s-upi"><p class="s-muted">${esc(u.upiHint)}</p><div class="s-upi-row">${upiQrSvg ? `<div class="s-upi-qr" role="img" aria-label="UPI QR code">${upiQrSvg}</div>` : ""}<div><p class="s-upi-id">${esc(site.upiId)}</p><a class="s-btn s-btn-ghost s-btn-sm" href="${esc(upiLink(site.upiId, site.businessName, undefined, "Order"))}">${esc(u.payUpi)}</a></div></div></div>`
       : ""
   }</div></div></section>
 <footer class="s-footer"><div class="s-wrap s-footer-row"><span>© ${esc(L.businessName)}${credits(site).length ? `<small class="s-credits"> · ${esc(u.photosBy)}: ${esc(credits(site).join(", "))}</small>` : ""}</span><span><a href="${esc(appOrigin)}/privacy" target="_blank" rel="noreferrer">${esc(u.privacy)}</a> · <a href="${esc(appOrigin)}">Made with SiteGenie</a></span></div></footer>
+${dynamic ? `<a class="s-wa-fab" data-fab hidden href="https://wa.me/${wa}" target="_blank" rel="noreferrer" aria-label="${esc(u.chat)}">${WA_SVG}</a>` : ""}
 <div class="s-orderbar" data-orderbar hidden>${dynamic ? `<button class="s-btn" data-act="open-cart" data-bar-label></button>` : `<a class="s-btn s-btn-wa" target="_blank" rel="noreferrer" data-bar-label></a>`}</div>
 ${dynamic ? cartHtml(u, appOrigin) : ""}
 <div class="s-drawer-wrap s-pv-wrap" data-pv hidden role="dialog" aria-modal="true"><button class="s-drawer-scrim" data-act="close-pv" aria-label="${esc(u.close)}"></button><div class="s-pv"><button class="s-close s-pv-close" data-act="close-pv" aria-label="${esc(u.close)}">×</button><div data-pv-media></div><div class="s-pv-body"><h2 data-pv-name></h2><p class="s-price" data-pv-price></p><p class="s-pv-desc" data-pv-desc></p><div class="s-opts" data-pv-opts></div><div data-pv-action></div><p class="s-muted s-small" data-pv-credit></p></div></div></div>
@@ -187,6 +204,12 @@ export async function renderStandalone(site: Site, appOrigin: string): Promise<s
         ]),
     ),
     ui: { base: { orderOnWa: base.ui.orderOnWa, viewCart: base.ui.viewCart }, alt: alt ? { orderOnWa: alt.ui.orderOnWa, viewCart: alt.ui.viewCart } : null },
+    hours: parseHours(site.hours),
+    openWords: Object.fromEntries(
+      ([["base", base], ["alt", alt]] as const)
+        .filter(([, l]) => l)
+        .map(([k, l]) => [k, { openNow: l!.ui.openNow, closes: l!.ui.closes, closedNow: l!.ui.closedNow, opens: l!.ui.opens, tomorrow: l!.ui.tomorrow }]),
+    ),
   };
 
   return `<!doctype html>
@@ -202,7 +225,7 @@ ${body(site, base, appOrigin, "base", upiQrSvg)}
 ${alt ? body(site, alt, appOrigin, "alt", upiQrSvg) : ""}
 </div>
 <script type="application/json" id="sg-config">${JSON.stringify(config).replace(/</g, "\\u003c")}</script>
-<script>${SCRIPT}</script>
+<script>var sgOpenStatus=(${openStatus.toString()});${SCRIPT}</script>
 </body></html>`;
 }
 
@@ -233,7 +256,7 @@ $$('[data-act="opt"]',card).forEach(function(b){var on=+b.dataset.o===o;b.classL
 if(add){add.hidden=n>0;q.hidden=n===0;$("[data-qty]",card).textContent=n}});
 var l=lines(),count=l.reduce(function(s,x){return s+x.qty},0),bar=$("[data-orderbar]",R),lab=$("[data-bar-label]",R),cartEl=$("[data-cart]",R);
 $$("[data-count]").forEach(function(e){e.textContent=count?" \\u00B7 "+count:""});
-var open=C.dynamic&&cartEl&&!cartEl.hidden;bar.hidden=count===0||open;
+var open=C.dynamic&&cartEl&&!cartEl.hidden;bar.hidden=count===0||open;busy=count>0||!!open;fab();
 if(C.dynamic){lab.textContent=U.viewCart+" \\u00B7 "+count+" \\u00B7 "+rs(total(l));renderCart(l,R)}
 else{lab.textContent=U.orderOnWa+" \\u00B7 "+rs(total(l));lab.href=wa(text(l))}}
 function renderCart(l,R){var ul=$("[data-lines]",R);if(!ul)return;ul.innerHTML="";
@@ -243,7 +266,9 @@ var b=qd.querySelectorAll("button");b[0].onclick=function(){bump(x.key,-1)};b[1]
 var pr=document.createElement("span");pr.className="s-line-price";pr.textContent=rs((x.price||0)*x.qty);li.append(n,qd,pr);ul.appendChild(li)});
 var t=total(l),dv=dlv(t),mn=C.delivery&&C.delivery.minOrder&&t<C.delivery.minOrder;$("[data-delivery-row]",R).hidden=!dv;$("[data-delivery]",R).textContent=rs(dv);$("[data-total]",R).textContent=rs(t+dv);$("[data-min]",R).hidden=!mn;if(mn)$("[data-min-amt]",R).textContent=rs(C.delivery.minOrder);var sb=$("[data-submit]",R);sb.disabled=!!mn;sb.textContent=sb.dataset.label+" \\u00B7 "+rs(t+dv);
 var placed=!$("[data-placed]",R).hidden;$("[data-form]",R).hidden=placed||l.length===0;$("[data-empty]",R).hidden=placed||l.length>0}
-var pv=-1;
+var pv=-1,busy=false;
+function fab(){var R=root(),h=$(".s-hero",R),f=$("[data-fab]",R);if(f)f.hidden=busy||!h||window.scrollY<h.offsetTop+h.offsetHeight}
+window.addEventListener("scroll",fab,{passive:true});
 function openView(i){pv=i;var R=root(),v=((C.view[lang]||C.view.base)||[])[i];if(!v)return;var w=$("[data-pv]",R);
 var m=$("[data-pv-media]",w);m.innerHTML="";if(v.img){var im=document.createElement("img");im.className="s-pv-img";im.src=v.img;im.alt=v.name;m.appendChild(im)}
 $("[data-pv-name]",w).textContent=v.name;$("[data-pv-price]",w).textContent=v.price;$("[data-pv-desc]",w).textContent=v.desc||"";$("[data-pv-credit]",w).textContent=v.credit||"";
@@ -273,4 +298,6 @@ fetch(C.api,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON
 .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})}).then(function(r){if(!r.ok||!r.d.order){btn.disabled=false;er.hidden=false;er.innerHTML="";(r.d.errors||[r.d.error||"Couldn't place the order."]).forEach(function(m){var p=document.createElement("p");p.textContent=m;er.appendChild(p)});return}
 var o=r.d.order;done(text(o.lines,o.customer,o.id,r.d.link),o.id,r.d.link)})
 .catch(function(){done(text(l,c))})})});
+function openTick(){if(!C.hours)return;$$("[data-open]").forEach(function(el){var r=el.closest(".site"),w=(r&&C.openWords[r.dataset.lang])||C.openWords.base,st=sgOpenStatus(C.hours,Date.now(),w);el.hidden=!st;if(st){el.textContent=st.text;el.classList.toggle("is-open",st.open)}})}
+try{openTick();setInterval(openTick,60000)}catch(e){}
 render()})();`;

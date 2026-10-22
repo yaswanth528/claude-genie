@@ -47,7 +47,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const photo = raw && /images\.unsplash\.com/.test(raw) ? `${raw.split("?")[0]}?w=960&q=75&auto=format&fm=jpg` : raw;
   const eyebrow = [s.category, s.area].filter(Boolean).join(" · ");
   const cta = s.siteType === "dynamic" ? "Order online" : "Order on WhatsApp";
-  const text = `${s.businessName}${s.headline}${eyebrow}${cta}₹`;
+  // The eyebrow is drawn in capitals, so the font subset needs those letters too.
+  const text = `${s.businessName}${s.headline}${eyebrow}${eyebrow.toUpperCase()}${cta}₹`;
 
   const display = FAMILY[s.theme.id] ?? "Archivo";
   const fonts: { name: string; data: ArrayBuffer; weight: 400 | 700; style: "normal" }[] = [];

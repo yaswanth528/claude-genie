@@ -144,6 +144,7 @@
 @media (max-width: 979px) {
   .review-preview .s-header { position: relative; top: 0; }
   .review-preview .s-orderbar { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  .review-preview .s-wa-fab { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* Follow-up questions and recordings */

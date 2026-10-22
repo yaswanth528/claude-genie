@@ -47,6 +47,14 @@ export const UI_EN = {
   close: "Close",
   privacy: "Privacy",
   checkoutNote: "Your name, phone and address go to the shop so they can deliver your order.",
+  openNow: "Open now",
+  closes: "closes",
+  closedNow: "Closed",
+  opens: "opens",
+  tomorrow: "tomorrow",
+  reviews: "Read our Google reviews",
+  reviewsShort: "Google reviews",
+  map: "Map",
 } as const;
 
 export type UiKey = keyof typeof UI_EN;

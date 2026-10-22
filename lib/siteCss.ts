@@ -208,6 +208,33 @@ export const SITE_CSS = `
 .s-contact-card { background: var(--s-surface); border: 1px solid var(--s-line); border-radius: calc(var(--s-radius) * 1.5); padding: 24px; display: grid; gap: 8px; }
 .s-phone { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 8px; }
 
+.s-map { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; border: 1px solid var(--s-line); border-radius: var(--s-radius); margin-top: 18px; background: var(--s-soft); }
+.s-reviews { margin-top: 4px; }
+
+/* Trust: "Open now · closes 9 pm" and the reviews link */
+.s-trust { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 30px; font-size: .9rem; font-weight: 600; }
+.s-hero-type .s-trust { justify-content: center; }
+.s-trust a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.s-open {
+  display: inline-flex; align-items: center; gap: 8px; width: fit-content; padding: 4px 12px 4px 10px; border-radius: 999px;
+  font-size: .86rem; font-weight: 700; letter-spacing: 0; text-transform: none;
+  background: var(--s-surface); color: var(--s-ink); border: 1px solid var(--s-line);
+}
+.s-open::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--s-muted); flex-shrink: 0; }
+.s-open.is-open::before { background: #1e9e57; box-shadow: 0 0 0 3px rgba(30, 158, 87, .22); }
+.s-hero-full .s-open { background: rgba(0, 0, 0, .38); color: #fff; border-color: rgba(255, 255, 255, .28); }
+.s-contact-list .s-open { margin-top: 6px; }
+
+/* Floating WhatsApp button (hidden while the order bar shows) */
+.s-wa-fab {
+  position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center;
+  background: #128c4a; box-shadow: 0 10px 24px -8px rgba(18, 140, 74, .65), 0 2px 6px rgba(0, 0, 0, .18);
+  transition: transform .15s ease;
+}
+.site .s-wa-fab { color: #fff; }
+.s-wa-fab:hover { transform: scale(1.06); }
+
 /* Footer */
 .s-footer { border-top: 1px solid var(--s-line); padding-block: 28px calc(28px + 76px); color: var(--s-muted); font-size: .9rem; }
 .s-footer-row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }

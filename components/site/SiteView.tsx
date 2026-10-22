@@ -3,8 +3,9 @@
 // and for the preview on the review screen. lib/standalone.ts renders the same markup for
 // customers' separately hosted sites.
 import QRCode from "qrcode";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { deliveryFor, formatPrice, lineName, orderText, orderTotal, shortId, upiLink, whatsappLink } from "@/lib/catalogue";
+import { openStatus, parseHours } from "@/lib/hours";
 import { categoriesOf, localText } from "@/lib/localize";
 import type { Media, Order, SiteContent } from "@/lib/schema";
 import { SITE_CSS } from "@/lib/siteCss";
@@ -33,6 +34,28 @@ const initials = (name: string) =>
     .map((w) => w[0] ?? "")
     .join("")
     .toUpperCase();
+
+export const WA_ICON = (
+  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+    <path d="M12 2.6a9.4 9.4 0 0 0-8.1 14.1L2.6 21.4l4.8-1.3A9.4 9.4 0 1 0 12 2.6z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    <path
+      d="M9 7.9c.2-.5.5-.5.8-.5h.6c.2 0 .4 0 .6.5l.8 1.8c.1.2.1.4 0 .6l-.6.8c-.1.2-.1.4 0 .5a7 7 0 0 0 2.9 2.8c.2.1.4.1.5 0l.8-.8c.2-.2.4-.2.6-.1l1.8.8c.2.1.4.2.4.4v.6c0 .5-.3 1-.9 1.3-.6.3-1.7.5-3.6-.3a10.4 10.4 0 0 1-4.6-4.3C8.4 10.4 8.6 8.7 9 7.9z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const mapSrc = (q: string) => `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=15&output=embed`;
+
+// While the owner types the address in the editor, wait before reloading the map.
+function useSettled<T>(value: T, ms: number): T {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
 
 export function SiteView({ site, preview }: Props) {
   const [cart, setCart] = useState<Cart>({});
@@ -108,6 +131,32 @@ export function SiteView({ site, preview }: Props) {
   const phone = wa.startsWith("91") && wa.length === 12 ? `+91 ${wa.slice(2, 7)} ${wa.slice(7)}` : `+${wa}`;
   const aboutImage = site.gallery.find((m) => m.kind === "image") ?? null;
 
+  // "Open now · closes 9 pm", worked out in the visitor's browser (never on the server, so
+  // the page and the clock always agree) and refreshed every minute.
+  const week = useMemo(() => parseHours(site.hours), [site.hours]);
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+  const status = week && now ? openStatus(week, now, u) : null;
+  const place = site.address || site.area ? `${site.businessName}, ${site.address ?? site.area}` : null;
+  // The map pins the address itself: a new shop may not be on Google Maps by name yet.
+  const mapQuery = useSettled(site.address ?? place, preview ? 900 : 0);
+
+  // Cart websites have no WhatsApp button in the header, so a round one floats in once the
+  // visitor scrolls past the banner (keeping it off the first product cards).
+  const heroRef = useRef<HTMLElement>(null);
+  const [pastHero, setPastHero] = useState(false);
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el || !dynamic || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setPastHero(!e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [dynamic]);
+
   return (
     <div className="site-box">
       <style dangerouslySetInnerHTML={{ __html: SITE_CSS }} />
@@ -141,7 +190,7 @@ export function SiteView({ site, preview }: Props) {
           </div>
         </header>
 
-        <section id="top" className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}`}>
+        <section ref={heroRef} id="top" className={`s-hero${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}`}>
           {heroFull && site.hero && <MediaBox media={site.hero} className="s-hero-bg" eager />}
           <div className="s-wrap s-hero-inner">
             <div className="s-hero-copy">
@@ -156,6 +205,16 @@ export function SiteView({ site, preview }: Props) {
                   {u.chat}
                 </a>
               </div>
+              {(week || site.reviewsUrl) && (
+                <div className="s-trust">
+                  {status && <strong className={`s-open ${status.open ? "is-open" : ""}`}>{status.text}</strong>}
+                  {site.reviewsUrl && (
+                    <a href={site.reviewsUrl} target="_blank" rel="noreferrer">
+                      ★ {u.reviewsShort}
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
             {!heroFull && site.hero && (
               <div className="s-hero-media">
@@ -325,22 +384,19 @@ export function SiteView({ site, preview }: Props) {
                     <li>
                       <span>{u.hours}</span>
                       {L.hours}
+                      {status && <strong className={`s-open ${status.open ? "is-open" : ""}`}>{status.text}</strong>}
                     </li>
                   )}
                 </ul>
               ) : (
                 <p className="s-muted">{u.messageUs}</p>
               )}
-              {(site.address || site.area) && (
-                <a
-                  className="s-link"
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${site.businessName} ${site.address ?? site.area}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+              {place && (
+                <a className="s-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`} target="_blank" rel="noreferrer">
                   {u.maps} ↗
                 </a>
               )}
+              {mapQuery && <iframe className="s-map" title={`${u.map}: ${site.businessName}`} src={mapSrc(mapQuery)} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />}
             {site.delivery && (
               <ul className="s-contact-list s-delivery">
                 {site.delivery.areas && (
@@ -371,6 +427,11 @@ export function SiteView({ site, preview }: Props) {
               <a className="s-btn" href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer">
                 {u.messageOnWa}
               </a>
+              {site.reviewsUrl && (
+                <a className="s-link s-reviews" href={site.reviewsUrl} target="_blank" rel="noreferrer">
+                  ★ {u.reviews} ↗
+                </a>
+              )}
               {upi && (
                 <div className="s-upi">
                   <p className="s-muted">{u.upiHint}</p>
@@ -416,6 +477,11 @@ export function SiteView({ site, preview }: Props) {
           />
         )}
 
+        {dynamic && pastHero && count === 0 && !cartOpen && (
+          <a className="s-wa-fab" href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" aria-label={u.chat}>
+            {WA_ICON}
+          </a>
+        )}
         {!dynamic && count > 0 && (
           <div className="s-orderbar">
             <a className="s-btn s-btn-wa" href={whatsappLink(wa, orderText(site.businessName, lines))} target="_blank" rel="noreferrer">

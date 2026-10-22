@@ -5,6 +5,9 @@ import { THEME_IDS, TranslationSchema, type Delivery, type Draft, type Media, ty
 // UPI IDs look like name@bank (e.g. lakshmi.silks@okaxis).
 export const UPI_RE = /^[a-zA-Z0-9._-]{2,256}@[a-zA-Z][a-zA-Z0-9.-]{1,64}$/;
 
+// A Google Maps / reviews link, as copied from the Maps app ("Share") or Google Business.
+export const REVIEWS_RE = /^https:\/\/(maps\.app\.goo\.gl|goo\.gl|g\.page|g\.co|search\.google\.com|(www\.|maps\.)?google\.[a-z.]{2,8})\/[^\s<>"']{0,500}$/;
+
 const rupees = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.min(Math.round(v), 1_000_000) : null);
 
 function delivery(v: unknown): Delivery | null {
@@ -100,9 +103,12 @@ export function cleanContent(input: unknown): { content: SiteContent; errors: st
     translation: translation(d.translation),
     upiId: typeof d.upiId === "string" && UPI_RE.test(d.upiId.trim()) ? d.upiId.trim() : null,
     delivery: delivery(d.delivery),
+    reviewsUrl: typeof d.reviewsUrl === "string" && REVIEWS_RE.test(d.reviewsUrl.trim()) ? d.reviewsUrl.trim() : null,
   };
   const errors = validateItems(items);
   if (typeof d.upiId === "string" && d.upiId.trim() && !content.upiId) errors.push("The UPI ID doesn't look right. It should look like name@bank.");
+  if (typeof d.reviewsUrl === "string" && d.reviewsUrl.trim() && !content.reviewsUrl)
+    errors.push("The Google reviews link doesn't look right. In Google Maps, open your shop, tap Share and copy the link.");
   if (!content.businessName) errors.unshift("Add your business name.");
   if (!content.headline) content.headline = content.businessName;
   return { content, errors };

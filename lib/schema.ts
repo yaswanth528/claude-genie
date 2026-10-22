@@ -130,6 +130,7 @@ export type SiteContent = {
   translation?: Translation | null;
   upiId?: string | null; // owner's UPI ID; buyers pay the shop directly
   delivery?: Delivery | null;
+  reviewsUrl?: string | null; // the shop's Google reviews / Maps listing
 };
 
 export type Delivery = {

@@ -2,6 +2,7 @@
 // Edit panel for a website: type, look, text, products, photos and contact details.
 // Shared by the review screen (before publishing) and the owner's edit screen.
 import { useRef, useState } from "react";
+import { parseHours } from "@/lib/hours";
 import { THEME_IDS, type Media, type Product, type SiteContent, type Translation } from "@/lib/schema";
 import { THEMES } from "@/lib/themes";
 import { ReadBack } from "./ReadBack";
@@ -320,11 +321,41 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
         <label htmlFor="e-addr">Full address</label>
         <textarea id="e-addr" rows={2} value={d.address ?? ""} onChange={(e) => set({ address: e.target.value || null })} />
         <label htmlFor="e-hours">Opening hours</label>
-        <input id="e-hours" placeholder="e.g. 10 am – 9 pm, closed Tuesday" value={d.hours ?? ""} onChange={(e) => set({ hours: e.target.value || null })} />
+        <input id="e-hours" placeholder="e.g. 10 am – 9 pm, closed Tuesday" value={d.hours ?? ""} onChange={(e) => set({ hours: e.target.value || null })} aria-describedby="e-hours-hint" />
+        <HoursHint id="e-hours-hint" hours={d.hours} />
+        <label htmlFor="e-reviews">Google reviews link (optional)</label>
+        <input
+          id="e-reviews"
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          placeholder="https://maps.app.goo.gl/…"
+          value={d.reviewsUrl ?? ""}
+          onChange={(e) => set({ reviewsUrl: e.target.value.trim() || null })}
+        />
+        <p className="hint small">In Google Maps, open your shop, tap Share, and paste the link here. Customers trust shops with reviews.</p>
       </details>
 
       {up.error && <p className="error">{up.error}</p>}
     </div>
+  );
+}
+
+// Tells the owner whether the website can show "Open now" from what they typed.
+function HoursHint({ id, hours }: { id: string; hours: string | null }) {
+  if (!hours?.trim()) return <p id={id} className="hint small">Add your hours and the website shows “Open now” or “Closed” to customers.</p>;
+  const week = parseHours(hours);
+  if (!week) return <p id={id} className="hint small">We couldn’t read these hours, so the “Open now” badge won’t show. Try “10 am – 9 pm, closed Tuesday”.</p>;
+  const fmt = (m: number) => {
+    const h = Math.floor((m % 1440) / 60), mm = m % 60;
+    return `${h % 12 || 12}${mm ? `:${String(mm).padStart(2, "0")}` : ""} ${h < 12 ? "am" : "pm"}`;
+  };
+  const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const summary = [1, 2, 3, 4, 5, 6, 0].map((d) => `${names[d]} ${week[d].length ? week[d].map(([a, b]) => `${fmt(a)}–${fmt(b)}`).join(", ") : "closed"}`);
+  return (
+    <p id={id} className="hint small">
+      ✓ Customers will see “Open now” or “Closed”. We read: {summary.join(" · ")}
+    </p>
   );
 }
 
