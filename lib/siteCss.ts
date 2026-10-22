@@ -208,6 +208,88 @@ export const SITE_CSS = `
 .s-contact-card { background: var(--s-surface); border: 1px solid var(--s-line); border-radius: calc(var(--s-radius) * 1.5); padding: 24px; display: grid; gap: 8px; }
 .s-phone { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 8px; }
 
+/* Product tags */
+.s-badge {
+  position: absolute; top: 8px; left: 8px; z-index: 2; width: fit-content;
+  font-size: .66rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; line-height: 1.6;
+  padding: 2px 9px; border-radius: 999px; background: var(--s-accent); color: var(--s-accent-ink);
+  box-shadow: 0 4px 10px -4px rgba(0,0,0,.35);
+}
+.s-badge-new { background: var(--s-ink); color: var(--s-bg); }
+.s-badge-offer { background: #c0262d; color: #fff; }
+.s-card-body > .s-badge, .s-pv-body > .s-badge { position: static; box-shadow: none; }
+
+/* Owner's own photos: shown whole, on a soft blurred copy of themselves (no cropping). */
+.s-framed { isolation: isolate; }
+.s-framed::before { content: ""; position: absolute; inset: -24px; z-index: -1; background: var(--img) center / cover no-repeat; filter: blur(18px) saturate(1.15); opacity: .9; }
+.site .s-framed img { object-fit: contain; }
+
+/* Layouts: list rows, big lookbook photos, or a menu board */
+.s-grid.s-layout-list { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@container site (min-width: 860px) { .s-grid.s-layout-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.s-layout-list .s-card { flex-direction: row; }
+.s-layout-list .s-card-media, .theme-boutique .s-layout-list .s-card-media { width: clamp(104px, 30cqi, 150px); aspect-ratio: 1; flex-shrink: 0; align-self: stretch; }
+.theme-boutique .s-layout-list .s-card { border: 1px solid var(--s-line); background: var(--s-surface); }
+.s-grid.s-layout-lookbook { grid-template-columns: minmax(0, 1fr); gap: clamp(20px, 4cqi, 36px); }
+@container site (min-width: 600px) { .s-grid.s-layout-lookbook { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container site (min-width: 1080px) { .s-grid.s-layout-lookbook { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.s-layout-lookbook .s-card-media, .theme-boutique .s-layout-lookbook .s-card-media { aspect-ratio: 4 / 5; }
+.s-layout-lookbook .s-card h3 { font-family: var(--s-display); font-weight: var(--s-display-weight); font-size: 1.45rem; }
+.s-grid.s-layout-menu {
+  grid-template-columns: minmax(0, 1fr); gap: 0 56px; padding: clamp(18px, 4cqi, 40px);
+  background: var(--s-surface); border: 1px solid var(--s-line); border-radius: calc(var(--s-radius) * 1.5);
+}
+@container site (min-width: 860px) { .s-grid.s-layout-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.s-layout-menu .s-card { background: transparent; border: 0; border-bottom: 1px dashed var(--s-line); border-radius: 0; overflow: visible; }
+.s-layout-menu .s-card:hover { transform: none; box-shadow: none; }
+.s-layout-menu .s-card-media, .s-layout-menu .s-card-num { display: none; }
+.s-layout-menu .s-card-body { padding: 16px 0; }
+.s-layout-menu .s-card h3 { font-family: var(--s-display); font-weight: var(--s-display-weight); font-size: 1.25rem; }
+
+/* Search and "You looked at" */
+.s-search { margin: 0 0 18px; }
+.s-search input {
+  width: 100%; max-width: 440px; min-height: 46px; padding: 10px 16px 10px 42px; border-radius: 999px;
+  border: 1px solid var(--s-line); background: var(--s-surface); color: var(--s-ink); font: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='m13 13 4 4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 15px center;
+}
+.s-noresults { color: var(--s-muted); padding: 12px 0 24px; }
+.s-seen { display: grid; gap: 8px; margin: 0 0 22px; }
+.s-seen > p { font-size: .76rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--s-muted); }
+.s-seen-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.s-seen-row::-webkit-scrollbar { display: none; }
+.s-seen-row button {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; max-width: 220px; min-height: 40px; padding: 4px 14px 4px 4px;
+  border: 1px solid var(--s-line); border-radius: 999px; background: var(--s-surface); color: var(--s-ink);
+  font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer;
+}
+.s-seen-row img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.s-seen-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s-seen-row button:not(:has(img)) { padding-left: 14px; }
+
+/* Festival banner */
+.s-festive {
+  position: relative; z-index: 21; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 10px;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  text-align: center; font-weight: 700; font-size: .95rem; line-height: 1.35; color: #fff; background: var(--fest);
+}
+.s-festive em { font-style: normal; font-weight: 500; opacity: .95; }
+.s-festive::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 6px;
+  background: radial-gradient(circle at 7px 0, var(--fest-dot) 3px, transparent 3.6px) 0 0 / 14px 6px repeat-x;
+}
+.s-fest-diwali { --fest: linear-gradient(90deg, #4a0d1a, #8f1d2c 45%, #b8641e); --fest-dot: #f2b33d; }
+.s-fest-navratri { --fest: linear-gradient(90deg, #8e1458, #c2185b 45%, #ef6c00); --fest-dot: #ffd54f; }
+.s-fest-ganesh { --fest: linear-gradient(90deg, #a6260f, #d84315 50%, #f08c00); --fest-dot: #ffe082; }
+.s-fest-holi { --fest: linear-gradient(90deg, #d81b60, #8e24aa 30%, #1e88e5 55%, #43a047 78%, #f9a825); --fest-dot: #fff; }
+.s-fest-eid { --fest: linear-gradient(90deg, #0b3d2e, #12664f 55%, #1b7a5a); --fest-dot: #e6c36a; }
+.s-fest-christmas { --fest: linear-gradient(90deg, #8b1520, #b71c1c 50%, #1b5e20); --fest-dot: #f5f5f5; }
+.s-fest-pongal { --fest: linear-gradient(90deg, #5d7a1f, #7c9a2d 45%, #e0a100); --fest-dot: #fff3c4; }
+.s-fest-onam { --fest: linear-gradient(90deg, #b34700, #e67e00 50%, #f2b01e); --fest-dot: #fff; }
+.s-fest-ugadi { --fest: linear-gradient(90deg, #2e6b2f, #4f8f2a 50%, #d4a017); --fest-dot: #fff3c4; }
+.s-fest-newyear { --fest: linear-gradient(90deg, #1a1446, #3b2a8a 55%, #6a3fb5); --fest-dot: #ffd54f; }
+
 .s-map { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; border: 1px solid var(--s-line); border-radius: var(--s-radius); margin-top: 18px; background: var(--s-soft); }
 .s-reviews { margin-top: 4px; }
 

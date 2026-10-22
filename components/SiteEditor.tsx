@@ -3,7 +3,7 @@
 // Shared by the review screen (before publishing) and the owner's edit screen.
 import { useRef, useState } from "react";
 import { parseHours } from "@/lib/hours";
-import { THEME_IDS, type Media, type Product, type SiteContent, type Translation } from "@/lib/schema";
+import { BADGES, FESTIVALS, LAYOUTS, THEME_IDS, type Badge, type FestivalId, type Layout, type Media, type Product, type SiteContent, type Translation } from "@/lib/schema";
 import { THEMES } from "@/lib/themes";
 import { ReadBack } from "./ReadBack";
 import { uploadFile } from "./upload";
@@ -141,6 +141,23 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
             ))}
           </div>
         </div>
+        <p className="field-label">How products are shown</p>
+        <div className="layout-row" role="radiogroup" aria-label="Product layout">
+          {LAYOUTS.map((l) => (
+            <button
+              key={l}
+              type="button"
+              role="radio"
+              aria-checked={(d.theme.layout ?? "grid") === l}
+              className={`layout-chip ${(d.theme.layout ?? "grid") === l ? "on" : ""}`}
+              onClick={() => set({ theme: { ...d.theme, layout: l } })}
+            >
+              <LayoutIcon layout={l} />
+              <strong>{LAYOUT_TEXT[l][0]}</strong>
+              <span>{LAYOUT_TEXT[l][1]}</span>
+            </button>
+          ))}
+        </div>
       </details>
 
       <details open>
@@ -184,9 +201,17 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
                 <textarea rows={2} aria-label={`Description of ${it.name}`} placeholder="Short description" value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} />
                 <details className="prod-more">
                   <summary>
-                    More: category, sizes, stock
+                    More: tag, category, sizes, stock
+                    {it.badge && <span className="pill ok">{BADGE_TEXT[it.badge]}</span>}
                     {it.inStock === false && <span className="pill warn">Out of stock</span>}
                   </summary>
+                  <div className="seg small" role="radiogroup" aria-label={`Tag for ${it.name}`}>
+                    {([null, ...BADGES] as (Badge | null)[]).map((b) => (
+                      <button key={b ?? "none"} type="button" role="radio" aria-checked={(it.badge ?? null) === b} className={(it.badge ?? null) === b ? "on" : ""} onClick={() => setItem(i, { badge: b })}>
+                        {b ? BADGE_TEXT[b] : "No tag"}
+                      </button>
+                    ))}
+                  </div>
                   <label className="check">
                     <input type="checkbox" checked={it.inStock !== false} onChange={(e) => setItem(i, { inStock: e.target.checked })} />
                     In stock
@@ -315,6 +340,36 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
       <TranslationPanel value={d} onChange={(translation) => set({ translation })} />
 
       <details>
+        <summary>Festival banner</summary>
+        <p className="hint small">A festive strip at the top of your website, with your offer. Switch it off after the festival.</p>
+        <label htmlFor="e-fest">Festival</label>
+        <select
+          id="e-fest"
+          value={d.festival?.id ?? ""}
+          onChange={(e) => set({ festival: e.target.value ? { id: e.target.value as FestivalId, message: d.festival?.message ?? null } : null })}
+        >
+          <option value="">No banner</option>
+          {FESTIVALS.map((f) => (
+            <option key={f} value={f}>
+              {FESTIVAL_TEXT[f]}
+            </option>
+          ))}
+        </select>
+        {d.festival && (
+          <>
+            <label htmlFor="e-fest-msg">Your offer (optional)</label>
+            <input
+              id="e-fest-msg"
+              maxLength={100}
+              placeholder="e.g. 10% off on all sweet boxes till Sunday"
+              value={d.festival.message ?? ""}
+              onChange={(e) => set({ festival: { ...d.festival!, message: e.target.value || null } })}
+            />
+          </>
+        )}
+      </details>
+
+      <details>
         <summary>Location and hours</summary>
         <label htmlFor="e-area">Area / city</label>
         <input id="e-area" value={d.area ?? ""} onChange={(e) => set({ area: e.target.value || null })} />
@@ -338,6 +393,39 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
 
       {up.error && <p className="error">{up.error}</p>}
     </div>
+  );
+}
+
+const BADGE_TEXT: Record<Badge, string> = { bestseller: "Bestseller", new: "New", offer: "Offer" };
+const LAYOUT_TEXT: Record<Layout, [string, string]> = {
+  grid: ["Grid", "Photo tiles"],
+  list: ["List", "Photo and details side by side"],
+  lookbook: ["Lookbook", "Big photos"],
+  menu: ["Menu", "Names and prices, no photos"],
+};
+const FESTIVAL_TEXT: Record<FestivalId, string> = {
+  diwali: "🪔 Diwali",
+  navratri: "🪷 Navratri / Dussehra",
+  ganesh: "🌺 Ganesh Chaturthi",
+  holi: "🎨 Holi",
+  eid: "🌙 Eid",
+  christmas: "🎄 Christmas",
+  pongal: "🌾 Pongal / Sankranti",
+  onam: "🌼 Onam",
+  ugadi: "🌿 Ugadi / Gudi Padwa",
+  newyear: "✨ New Year",
+};
+
+// Tiny pictures of each product layout.
+function LayoutIcon({ layout }: { layout: Layout }) {
+  const r = (x: number, y: number, w: number, h: number, o = 1) => <rect x={x} y={y} width={w} height={h} rx={1.5} fill="currentColor" opacity={o} />;
+  return (
+    <svg viewBox="0 0 40 28" width="40" height="28" aria-hidden="true">
+      {layout === "grid" && [r(1, 1, 11, 11), r(14.5, 1, 11, 11), r(28, 1, 11, 11), r(1, 15, 11, 11, 0.5), r(14.5, 15, 11, 11, 0.5), r(28, 15, 11, 11, 0.5)]}
+      {layout === "list" && [r(1, 1, 9, 7.5), r(12, 2.5, 26, 2, 0.5), r(12, 6, 16, 1.6, 0.3), r(1, 10.25, 9, 7.5), r(12, 11.75, 26, 2, 0.5), r(12, 15.25, 16, 1.6, 0.3), r(1, 19.5, 9, 7.5), r(12, 21, 26, 2, 0.5)]}
+      {layout === "lookbook" && [r(1, 1, 18, 26), r(21, 1, 18, 26, 0.6)]}
+      {layout === "menu" && [r(1, 2, 18, 2.4, 0.7), r(31, 2, 8, 2.4), r(1, 9, 22, 2.4, 0.7), r(31, 9, 8, 2.4), r(1, 16, 15, 2.4, 0.7), r(31, 16, 8, 2.4), r(1, 23, 20, 2.4, 0.7), r(31, 23, 8, 2.4)]}
+    </svg>
   );
 }
 

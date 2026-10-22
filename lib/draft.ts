@@ -1,6 +1,6 @@
 // Checks and cleans a website draft coming from the browser before it is saved.
 import { normaliseWhatsapp, validateItems } from "./catalogue";
-import { THEME_IDS, TranslationSchema, type Delivery, type Draft, type Media, type Product, type SiteContent, type Translation } from "./schema";
+import { BADGES, FESTIVALS, LAYOUTS, THEME_IDS, TranslationSchema, type Delivery, type Festival, type Draft, type Media, type Product, type SiteContent, type Translation } from "./schema";
 
 // UPI IDs look like name@bank (e.g. lakshmi.silks@okaxis).
 export const UPI_RE = /^[a-zA-Z0-9._-]{2,256}@[a-zA-Z][a-zA-Z0-9.-]{1,64}$/;
@@ -37,7 +37,7 @@ function translation(v: unknown): Translation | null {
     hours: clip(d.hours, 160),
     items: d.items.slice(0, 60).map((i) => ({ name: i.name.slice(0, 120), description: i.description.slice(0, 300), optionName: clip(i.optionName, 40), options: i.options.slice(0, 12).map((o) => o.slice(0, 40)) })),
     categories: d.categories.slice(0, 30).map((c) => ({ from: c.from.slice(0, 40), to: c.to.slice(0, 60) })),
-    ui: Object.fromEntries(Object.entries(d.ui).slice(0, 60).map(([k, v]) => [k.slice(0, 30), v.slice(0, 120)])),
+    ui: Object.fromEntries(Object.entries(d.ui).slice(0, 150).map(([k, v]) => [k.slice(0, 30), v.slice(0, 120)])),
   };
 }
 
@@ -73,7 +73,14 @@ function product(v: unknown): Product {
     optionName: options.length ? optStr(p?.optionName, 30) ?? "Option" : null,
     options,
     inStock: p?.inStock !== false,
+    badge: BADGES.includes(p?.badge as never) ? p.badge : null,
   };
+}
+
+function festival(v: unknown): Festival | null {
+  const f = v as Festival;
+  if (!f || !FESTIVALS.includes(f.id as never)) return null;
+  return { id: f.id, message: optStr(f.message, 100) };
 }
 
 export function cleanContent(input: unknown): { content: SiteContent; errors: string[] } {
@@ -89,6 +96,7 @@ export function cleanContent(input: unknown): { content: SiteContent; errors: st
       id: themeId,
       accent: [0, 1, 2].includes(d.theme?.accent as number) ? d.theme!.accent : 0,
       heroStyle: d.theme?.heroStyle === "split" ? "split" : "full",
+      layout: LAYOUTS.includes(d.theme?.layout as never) ? d.theme!.layout : "grid",
     },
     headline: str(d.headline, 120),
     subheadline: str(d.subheadline, 300),
@@ -103,6 +111,7 @@ export function cleanContent(input: unknown): { content: SiteContent; errors: st
     translation: translation(d.translation),
     upiId: typeof d.upiId === "string" && UPI_RE.test(d.upiId.trim()) ? d.upiId.trim() : null,
     delivery: delivery(d.delivery),
+    festival: festival(d.festival),
     reviewsUrl: typeof d.reviewsUrl === "string" && REVIEWS_RE.test(d.reviewsUrl.trim()) ? d.reviewsUrl.trim() : null,
   };
   const errors = validateItems(items);

@@ -8,6 +8,7 @@ import { openStatus, parseHours } from "./hours";
 import { categoriesOf, localText, type LocalText } from "./localize";
 import type { Media, Site } from "./schema";
 import { jsonLd, ogImageUrl } from "./seo";
+import { badgeLabel, cssUrl, FEST_ICON, festGreeting, isFramed, SEARCH_MIN } from "./siteBits";
 import { SITE_CSS } from "./siteCss";
 import { themeVars } from "./themes";
 
@@ -57,11 +58,14 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
     ? `<button class="s-lang" data-act="lang" aria-label="Change language">${esc(lang === "alt" ? "English" : site.translation.label)}</button>`
     : "";
 
+  const layout = site.theme.layout ?? "grid";
   const cards = L.items
     .map((it, i) => {
       const out = it.inStock === false;
+      const badge = it.badge ? `<span class="s-badge s-badge-${it.badge}">${esc(badgeLabel(it.badge, u))}</span>` : "";
+      const framed = isFramed(it.image) && layout !== "menu";
       const img = anyImages
-        ? `<div class="s-card-media" data-act="view">${
+        ? `<div class="s-card-media${framed ? " s-framed" : ""}"${framed ? ` style="${esc(`--img:${cssUrl(it.image!.url)}`)}"` : ""} data-act="view">${layout !== "menu" ? badge : ""}${
             it.image
               ? media(it.image) + (it.image.generated ? `<span class="s-ai-tag">${esc(u.samplePhoto)}</span>` : "")
               : `<div class="s-card-mono">${esc(initials(it.name || "?"))}</div>`
@@ -73,11 +77,12 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
             .join("")}</div>`
         : "";
       const action = out
-        ? anyImages
+        ? anyImages && layout !== "menu"
           ? ""
           : `<span class="s-out-text">${esc(u.outOfStock)}</span>`
         : `<button class="s-add" data-act="add" aria-label="Add ${esc(it.name)}">${esc(dynamic ? u.addToCart : u.add)}</button><div class="s-qty" hidden><button data-act="dec" aria-label="One less ${esc(it.name)}">−</button><span data-qty>0</span><button data-act="inc" aria-label="One more ${esc(it.name)}">+</button></div>`;
-      return `<article class="s-card${out ? " is-out" : ""}" data-i="${i}"${site.items[i].category ? ` data-cat="${esc(site.items[i].category!)}"` : ""}>${img}<div class="s-card-body"><h3><button class="s-card-title" data-act="view">${esc(it.name)}</button></h3>${
+      const searchText = [site.items[i].name, it.name, site.items[i].description, it.description, site.items[i].category, it.categoryLabel].join(" ").toLowerCase();
+      return `<article class="s-card${out ? " is-out" : ""}" data-i="${i}" data-s="${esc(searchText)}"${site.items[i].category ? ` data-cat="${esc(site.items[i].category!)}"` : ""}>${img}<div class="s-card-body">${!anyImages || layout === "menu" ? badge : ""}<h3><button class="s-card-title" data-act="view">${esc(it.name)}</button></h3>${
         it.description ? `<p class="s-card-desc">${esc(it.description)}</p>` : ""
       }${opts}<div class="s-card-foot"><span class="s-price">${esc(formatPrice(it.price))}${it.unit ? `<small> ${esc(it.unit)}</small>` : ""}</span>${action}</div></div></article>`;
     })
@@ -91,6 +96,7 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
       : "";
 
   return `<div class="site theme-${site.theme.id}" data-lang="${lang}" style="${esc(Object.entries(themeVars(site.theme.id, site.theme.accent)).map(([k, v]) => `${k}:${v}`).join(";"))}"${lang === "alt" ? " hidden" : ""}>
+${site.festival ? `<div class="s-festive s-fest-${site.festival.id}"><span>${FEST_ICON[site.festival.id]} ${esc(festGreeting(site.festival.id, u))}</span>${site.festival.message ? `<em>${esc(site.festival.message)}</em>` : ""}</div>` : ""}
 <header class="s-header"><div class="s-wrap s-header-row"><a href="#${idp}top" class="s-brand">${esc(L.businessName)}</a>
 <nav class="s-nav" aria-label="Sections"><a href="#${idp}products">${esc(dynamic ? u.shop : u.products)}</a>${L.about ? `<a href="#${idp}about">${esc(u.about)}</a>` : ""}${site.gallery.length ? `<a href="#${idp}gallery">${esc(u.gallery)}</a>` : ""}<a href="#${idp}contact">${esc(u.contact)}</a></nav>
 ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${esc(u.cartShort)}<span data-count></span></button>` : `<a class="s-btn s-btn-sm" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">WhatsApp</a>`}</div></header>
@@ -104,7 +110,9 @@ ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${
 ${!heroFull && site.hero ? `<div class="s-hero-media">${media(site.hero, "", true)}</div>` : ""}</div></section>
 ${L.highlights.length ? `<section class="s-highlights"><div class="s-wrap s-highlights-row">${L.highlights.map((h) => `<p>${esc(h)}</p>`).join("")}</div></section>` : ""}
 <section id="${idp}products" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(dynamic ? u.shop : u.products)}</h2><p>${esc(dynamic ? u.cartHint : u.pickHint)}</p></div>${chips}
-<div class="s-grid${anyImages ? "" : " s-grid-text"}" style="--cols:${cols}">${cards}</div></div></section>
+${site.items.length >= SEARCH_MIN ? `<div class="s-search"><input type="search" data-search placeholder="${esc(u.search)}" aria-label="${esc(u.search)}"></div>` : ""}
+<div class="s-seen" data-seen hidden><p>${esc(u.recent)}</p><div class="s-seen-row" data-seen-row></div></div>
+<div class="s-grid${anyImages ? "" : " s-grid-text"} s-layout-${layout}" style="--cols:${cols}">${cards}</div><p class="s-noresults" data-noresults hidden>${esc(u.noResults)}</p></div></section>
 ${L.about ? `<section id="${idp}about" class="s-section s-about"><div class="s-wrap${aboutImage ? " s-about-grid" : ""}"><div><h2>${esc(u.about)} ${esc(L.businessName)}</h2><p class="s-about-text">${esc(L.about)}</p></div>${aboutImage ? media(aboutImage, "s-about-img") : ""}</div></section>` : ""}
 ${site.gallery.length ? `<section id="${idp}gallery" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(u.gallery)}</h2></div><div class="s-gallery">${site.gallery.map((m) => (m.kind === "video" ? `<video src="${esc(m.url)}" controls playsinline preload="metadata" aria-label="${esc(m.alt)}"></video>` : media(m))).join("")}</div></div></section>` : ""}
 <section id="${idp}contact" class="s-section s-contact"><div class="s-wrap s-contact-grid"><div><h2>${esc(u.visit)}</h2>${
@@ -127,7 +135,7 @@ ${site.gallery.length ? `<section id="${idp}gallery" class="s-section"><div clas
 ${dynamic ? `<a class="s-wa-fab" data-fab hidden href="https://wa.me/${wa}" target="_blank" rel="noreferrer" aria-label="${esc(u.chat)}">${WA_SVG}</a>` : ""}
 <div class="s-orderbar" data-orderbar hidden>${dynamic ? `<button class="s-btn" data-act="open-cart" data-bar-label></button>` : `<a class="s-btn s-btn-wa" target="_blank" rel="noreferrer" data-bar-label></a>`}</div>
 ${dynamic ? cartHtml(u, appOrigin) : ""}
-<div class="s-drawer-wrap s-pv-wrap" data-pv hidden role="dialog" aria-modal="true"><button class="s-drawer-scrim" data-act="close-pv" aria-label="${esc(u.close)}"></button><div class="s-pv"><button class="s-close s-pv-close" data-act="close-pv" aria-label="${esc(u.close)}">×</button><div data-pv-media></div><div class="s-pv-body"><h2 data-pv-name></h2><p class="s-price" data-pv-price></p><p class="s-pv-desc" data-pv-desc></p><div class="s-opts" data-pv-opts></div><div data-pv-action></div><p class="s-muted s-small" data-pv-credit></p></div></div></div>
+<div class="s-drawer-wrap s-pv-wrap" data-pv hidden role="dialog" aria-modal="true"><button class="s-drawer-scrim" data-act="close-pv" aria-label="${esc(u.close)}"></button><div class="s-pv"><button class="s-close s-pv-close" data-act="close-pv" aria-label="${esc(u.close)}">×</button><div data-pv-media></div><div class="s-pv-body"><span data-pv-badge hidden></span><h2 data-pv-name></h2><p class="s-price" data-pv-price></p><p class="s-pv-desc" data-pv-desc></p><div class="s-opts" data-pv-opts></div><div data-pv-action></div><p class="s-muted s-small" data-pv-credit></p></div></div></div>
 </div>`;
 }
 
@@ -200,6 +208,8 @@ export async function renderStandalone(site: Site, appOrigin: string): Promise<s
             out: it.inStock === false,
             add: site.siteType === "dynamic" ? l!.ui.addToCart : l!.ui.add,
             outLabel: l!.ui.outOfStock,
+            badge: it.badge ? badgeLabel(it.badge, l!.ui) : "",
+            badgeKind: it.badge ?? "",
           })),
         ]),
     ),
@@ -266,24 +276,30 @@ var b=qd.querySelectorAll("button");b[0].onclick=function(){bump(x.key,-1)};b[1]
 var pr=document.createElement("span");pr.className="s-line-price";pr.textContent=rs((x.price||0)*x.qty);li.append(n,qd,pr);ul.appendChild(li)});
 var t=total(l),dv=dlv(t),mn=C.delivery&&C.delivery.minOrder&&t<C.delivery.minOrder;$("[data-delivery-row]",R).hidden=!dv;$("[data-delivery]",R).textContent=rs(dv);$("[data-total]",R).textContent=rs(t+dv);$("[data-min]",R).hidden=!mn;if(mn)$("[data-min-amt]",R).textContent=rs(C.delivery.minOrder);var sb=$("[data-submit]",R);sb.disabled=!!mn;sb.textContent=sb.dataset.label+" \\u00B7 "+rs(t+dv);
 var placed=!$("[data-placed]",R).hidden;$("[data-form]",R).hidden=placed||l.length===0;$("[data-empty]",R).hidden=placed||l.length>0}
-var pv=-1,busy=false;
+var pv=-1,busy=false,F={cat:"",q:""},SK="sg-seen-"+C.slug,seen=[];
+try{var sv=JSON.parse(localStorage.getItem(SK)||"[]");if(Array.isArray(sv))seen=sv}catch(e){}
+function filt(R){var n=0;$$(".s-card[data-i]",R).forEach(function(cd){var ok=(!F.cat||cd.dataset.cat===F.cat)&&(!F.q||(cd.dataset.s||"").indexOf(F.q)>=0);cd.hidden=!ok;if(ok)n++});var nr=$("[data-noresults]",R);if(nr)nr.hidden=!(F.q&&!n)}
+function renderSeen(){var list=C.items.length>=4?seen.filter(function(x){return x<C.items.length}).slice(0,6):[];
+$$(".site").forEach(function(R){var box=$("[data-seen]",R),row=$("[data-seen-row]",R),V=C.view[R.dataset.lang]||C.view.base;if(!box)return;box.hidden=!list.length;row.innerHTML="";
+list.forEach(function(i){var v=V[i];if(!v)return;var b=document.createElement("button");b.dataset.act="view-seen";b.dataset.i=i;if(v.img){var im=document.createElement("img");im.src=v.img;im.alt="";im.loading="lazy";b.appendChild(im)}var sp=document.createElement("span");sp.textContent=v.name;b.appendChild(sp);row.appendChild(b)})})}
 function fab(){var R=root(),h=$(".s-hero",R),f=$("[data-fab]",R);if(f)f.hidden=busy||!h||window.scrollY<h.offsetTop+h.offsetHeight}
 window.addEventListener("scroll",fab,{passive:true});
 function openView(i){pv=i;var R=root(),v=((C.view[lang]||C.view.base)||[])[i];if(!v)return;var w=$("[data-pv]",R);
 var m=$("[data-pv-media]",w);m.innerHTML="";if(v.img){var im=document.createElement("img");im.className="s-pv-img";im.src=v.img;im.alt=v.name;m.appendChild(im)}
-$("[data-pv-name]",w).textContent=v.name;$("[data-pv-price]",w).textContent=v.price;$("[data-pv-desc]",w).textContent=v.desc||"";$("[data-pv-credit]",w).textContent=v.credit||"";
+var bd=$("[data-pv-badge]",w);bd.hidden=!v.badge;bd.className=v.badge?"s-badge s-badge-"+v.badgeKind:"";bd.textContent=v.badge||"";$("[data-pv-name]",w).textContent=v.name;$("[data-pv-price]",w).textContent=v.price;$("[data-pv-desc]",w).textContent=v.desc||"";$("[data-pv-credit]",w).textContent=v.credit||"";
 var os=$("[data-pv-opts]",w);os.innerHTML="";v.options.forEach(function(o,j){var b=document.createElement("button");b.textContent=o;b.dataset.act="pv-opt";b.dataset.o=j;b.className=opt(i)===j?"on":"";os.appendChild(b)});
 var ac=$("[data-pv-action]",w),n=cart[i+":"+opt(i)]||0;ac.innerHTML="";
 if(v.out){var p=document.createElement("p");p.className="s-out-text";p.textContent=v.outLabel;ac.appendChild(p)}
 else if(n>0){ac.innerHTML='<div class="s-qty s-pv-qty"><button data-act="pv-dec" aria-label="One less">\\u2212</button><span></span><button data-act="pv-inc" aria-label="One more">+</button></div>';ac.querySelector("span").textContent=n}
 else{var bt=document.createElement("button");bt.className="s-btn s-btn-block";bt.dataset.act="pv-add";bt.textContent=v.add;ac.appendChild(bt)}
-w.hidden=false}
+w.hidden=false;if(seen[0]!==i){seen=[i].concat(seen.filter(function(x){return x!==i})).slice(0,8);try{localStorage.setItem(SK,JSON.stringify(seen))}catch(e){}renderSeen()}}
 function bump(k,d){var n=Math.min(99,Math.max(0,(cart[k]||0)+d));if(n)cart[k]=n;else delete cart[k];render()}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-act]");if(!b)return;var a=b.dataset.act,card=b.closest(".s-card[data-i]"),i=card?+card.dataset.i:-1,R=root();
 if(a==="add"||a==="inc")bump(i+":"+opt(i),1);else if(a==="dec")bump(i+":"+opt(i),-1);
 else if(a==="opt"){choice[i]=+b.dataset.o;render()}
-else if(a==="cat"){var c=b.dataset.cat;$$('[data-act="cat"]',R).forEach(function(x){x.classList.toggle("on",x===b)});$$(".s-card[data-i]",R).forEach(function(cd){cd.hidden=!!c&&cd.dataset.cat!==c})}
-else if(a==="lang"){lang=lang==="alt"?"base":"alt";render()}
+else if(a==="cat"){F.cat=b.dataset.cat;$$('[data-act="cat"]',R).forEach(function(x){x.classList.toggle("on",x===b)});filt(R)}
+else if(a==="view-seen"){openView(+b.dataset.i)}
+else if(a==="lang"){lang=lang==="alt"?"base":"alt";render();filt(root())}
 else if(a==="view"){openView(i)}
 else if(a==="close-pv"){$("[data-pv]",R).hidden=true;pv=-1}
 else if(a==="pv-opt"){choice[pv]=+b.dataset.o;openView(pv);render()}
@@ -300,4 +316,6 @@ var o=r.d.order;done(text(o.lines,o.customer,o.id,r.d.link),o.id,r.d.link)})
 .catch(function(){done(text(l,c))})})});
 function openTick(){if(!C.hours)return;$$("[data-open]").forEach(function(el){var r=el.closest(".site"),w=(r&&C.openWords[r.dataset.lang])||C.openWords.base,st=sgOpenStatus(C.hours,Date.now(),w);el.hidden=!st;if(st){el.textContent=st.text;el.classList.toggle("is-open",st.open)}})}
 try{openTick();setInterval(openTick,60000)}catch(e){}
+document.addEventListener("input",function(e){if(e.target.matches&&e.target.matches("[data-search]")){F.q=e.target.value.trim().toLowerCase();$$("[data-search]").forEach(function(x){if(x!==e.target)x.value=e.target.value});filt(root())}});
+renderSeen();
 render()})();`;

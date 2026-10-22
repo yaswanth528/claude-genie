@@ -8,6 +8,7 @@ import { deliveryFor, formatPrice, lineName, orderText, orderTotal, shortId, upi
 import { openStatus, parseHours } from "@/lib/hours";
 import { categoriesOf, localText } from "@/lib/localize";
 import type { Media, Order, SiteContent } from "@/lib/schema";
+import { badgeLabel, cssUrl, FEST_ICON, festGreeting, isFramed, SEARCH_MIN } from "@/lib/siteBits";
 import { SITE_CSS } from "@/lib/siteCss";
 import { themeVars } from "@/lib/themes";
 
@@ -63,7 +64,9 @@ export function SiteView({ site, preview }: Props) {
   const [cartOpen, setCartOpen] = useState(false);
   const [alt, setAlt] = useState(false); // showing the translation?
   const [filter, setFilter] = useState<string | null>(null);
-  const [view, setView] = useState<number | null>(null); // product opened in the big view
+  const [view, setViewRaw] = useState<number | null>(null); // product opened in the big view
+  const [query, setQuery] = useState("");
+  const [seen, setSeen] = useState<number[]>([]); // products this visitor opened, newest first
   const [upiQr, setUpiQr] = useState<string | null>(null);
   const upi = site.upiId ? upiLink(site.upiId, site.businessName, undefined, "Order") : null;
   useEffect(() => {
@@ -95,6 +98,37 @@ export function SiteView({ site, preview }: Props) {
       localStorage.setItem(storageKey, JSON.stringify(cart));
     } catch {}
   }, [cart, storageKey, preview]);
+
+  // "You looked at": remembered on this device, like the cart.
+  const seenKey = site.slug && !preview ? `sg-seen-${site.slug}` : null;
+  useEffect(() => {
+    if (!seenKey) return;
+    try {
+      const s = JSON.parse(localStorage.getItem(seenKey) ?? "[]");
+      if (Array.isArray(s)) setSeen(s.filter((n) => Number.isInteger(n)));
+    } catch {}
+  }, [seenKey]);
+  const setView = (i: number | null) => {
+    setViewRaw(i);
+    if (i === null || !seenKey) return;
+    setSeen((s) => {
+      const next = [i, ...s.filter((x) => x !== i)].slice(0, 8);
+      try {
+        localStorage.setItem(seenKey, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+  const seenItems = site.items.length >= 4 ? seen.filter((i) => i < site.items.length).slice(0, 6) : [];
+
+  const layout = site.theme.layout ?? "grid";
+  const q = query.trim().toLowerCase();
+  const shown = (i: number) => {
+    if (filter && site.items[i].category !== filter) return false;
+    if (!q) return true;
+    const a = site.items[i], b = L.items[i];
+    return [a.name, b.name, a.description, b.description, a.category, b.categoryLabel].join(" ").toLowerCase().includes(q);
+  };
 
   const optIndex = (i: number) => (site.items[i].options?.length ? (choice[i] ?? 0) : -1);
   const change = (key: string, d: number) =>
@@ -161,6 +195,14 @@ export function SiteView({ site, preview }: Props) {
     <div className="site-box">
       <style dangerouslySetInnerHTML={{ __html: SITE_CSS }} />
       <div className={`site theme-${site.theme.id} ${preview ? "is-preview" : ""}`} style={vars}>
+        {site.festival && (
+          <div className={`s-festive s-fest-${site.festival.id}`}>
+            <span>
+              {FEST_ICON[site.festival.id]} {festGreeting(site.festival.id, u)}
+            </span>
+            {site.festival.message && <em>{site.festival.message}</em>}
+          </div>
+        )}
         <header className="s-header">
           <div className="s-wrap s-header-row">
             <a href="#top" className="s-brand">
@@ -190,7 +232,7 @@ export function SiteView({ site, preview }: Props) {
           </div>
         </header>
 
-        <section ref={heroRef} id="top" className={`s-hero${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}`}>
+        <section ref={heroRef} id="top" className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}`}>
           {heroFull && site.hero && <MediaBox media={site.hero} className="s-hero-bg" eager />}
           <div className="s-wrap s-hero-inner">
             <div className="s-hero-copy">
@@ -252,17 +294,44 @@ export function SiteView({ site, preview }: Props) {
                 ))}
               </div>
             )}
-            <div className={`s-grid ${anyImages ? "" : "s-grid-text"}`} style={{ "--cols": cols } as CSSProperties}>
+            {site.items.length >= SEARCH_MIN && (
+              <div className="s-search">
+                <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={u.search} aria-label={u.search} />
+              </div>
+            )}
+            {seenItems.length > 0 && (
+              <div className="s-seen">
+                <p>{u.recent}</p>
+                <div className="s-seen-row">
+                  {seenItems.map((i) => (
+                    <button key={i} onClick={() => setView(i)}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {site.items[i].image && <img src={site.items[i].image!.url} alt="" loading="lazy" />}
+                      <span>{L.items[i].name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className={`s-grid ${anyImages ? "" : "s-grid-text"} s-layout-${layout}`} style={{ "--cols": cols } as CSSProperties}>
               {L.items.map((it, i) => {
-                if (filter && site.items[i].category !== filter) return null;
+                if (!shown(i)) return null;
                 const out = it.inStock === false;
                 const o = optIndex(i);
                 const key = keyOf(i, o);
                 const n = cart[key] ?? 0;
+                const badge = it.badge ? <span className={`s-badge s-badge-${it.badge}`}>{badgeLabel(it.badge, u)}</span> : null;
+                const framed = isFramed(it.image) && layout !== "menu";
                 return (
                   <article key={i} className={`s-card ${out ? "is-out" : ""}`}>
                     {anyImages && (
-                      <div className="s-card-media" onClick={() => setView(i)} role="presentation">
+                      <div
+                        className={`s-card-media ${framed ? "s-framed" : ""}`}
+                        style={framed ? ({ "--img": cssUrl(it.image!.url) } as CSSProperties) : undefined}
+                        onClick={() => setView(i)}
+                        role="presentation"
+                      >
+                        {layout !== "menu" && badge}
                         {it.image ? (
                           <>
                             <MediaBox media={it.image} />
@@ -276,6 +345,7 @@ export function SiteView({ site, preview }: Props) {
                     )}
                     {!anyImages && <span className="s-card-num">{String(i + 1).padStart(2, "0")}</span>}
                     <div className="s-card-body">
+                      {(!anyImages || layout === "menu") && badge}
                       <h3>
                         <button className="s-card-title" onClick={() => setView(i)}>
                           {it.name}
@@ -303,7 +373,7 @@ export function SiteView({ site, preview }: Props) {
                           {it.unit && <small> {it.unit}</small>}
                         </span>
                         {out ? (
-                          !anyImages && <span className="s-out-text">{u.outOfStock}</span>
+                          (!anyImages || layout === "menu") && <span className="s-out-text">{u.outOfStock}</span>
                         ) : n > 0 ? (
                           <div className="s-qty">
                             <button onClick={() => change(key, -1)} aria-label={`One less ${it.name}`}>
@@ -325,6 +395,7 @@ export function SiteView({ site, preview }: Props) {
                 );
               })}
             </div>
+            {query.trim() && !L.items.some((_, i) => shown(i)) && <p className="s-noresults">{u.noResults}</p>}
           </div>
         </section>
 
@@ -701,6 +772,7 @@ function ProductView({
         </button>
         {item.image && <MediaBox media={item.image} className="s-pv-img" eager />}
         <div className="s-pv-body">
+          {item.badge && <span className={`s-badge s-badge-${item.badge}`}>{badgeLabel(item.badge, ui)}</span>}
           <h2>{item.name}</h2>
           <p className="s-price">
             {formatPrice(item.price)}

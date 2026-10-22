@@ -160,8 +160,14 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
 
   const changed = (after: Product) => {
     const b = preview?.before.items.find((x) => x.name === after.name);
-    return !b || b.price !== after.price;
+    return !b || b.price !== after.price || (b.badge ?? null) !== (after.badge ?? null) || (b.inStock !== false) !== (after.inStock !== false);
   };
+  // "· Bestseller", "· Out of stock": what a voice edit can change besides the price.
+  const tags = (it: Product) =>
+    [it.badge ? { bestseller: "Bestseller", new: "New", offer: "Offer" }[it.badge] : null, it.inStock === false ? "Out of stock" : null]
+      .filter(Boolean)
+      .map((t) => ` · ${t}`)
+      .join("");
   const removed = (before: Product) => !preview?.after.items.some((x) => x.name === before.name);
   const hasChanges = preview && preview.patch.ops.length > 0;
   const formDirty = form && current && JSON.stringify(form) !== JSON.stringify(current);
@@ -250,7 +256,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
             </div>
           )}
           <p className="hint" style={{ marginTop: 16 }}>
-            Say something like “change the cotton kurti price to 849”, “remove dupatta” or “add bedsheet for 650”.
+            Say something like “change the cotton kurti price to 849”, “remove dupatta”, “add bedsheet for 650”, “silk saree is sold out” or “mark mysore pak as bestseller”.
           </p>
           <label htmlFor="lang">Language</label>
           <select id="lang" value={lang} onChange={(e) => setLang(e.target.value)}>
@@ -282,6 +288,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
                     {preview.before.items.map((it, i) => (
                       <li key={i} className={removed(it) ? "changed removed" : ""}>
                         {it.name} — {formatPrice(it.price)}
+                        {tags(it)}
                       </li>
                     ))}
                   </ul>
@@ -293,6 +300,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
                     {preview.after.items.map((it, i) => (
                       <li key={i} className={changed(it) ? "changed" : ""}>
                         {it.name} — {formatPrice(it.price)}
+                        {tags(it)}
                       </li>
                     ))}
                   </ul>

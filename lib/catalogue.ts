@@ -62,6 +62,14 @@ export function applyPatch(items: Product[], businessName: string, patch: Patch)
       case "in_stock":
         if (target) target.inStock = true;
         break;
+      case "mark_bestseller":
+      case "mark_new":
+      case "mark_offer":
+        if (target) target.badge = op.op.slice(5) as Product["badge"];
+        break;
+      case "clear_badge":
+        if (target) target.badge = null;
+        break;
     }
   }
   return { businessName: name, items: next.filter((_, i) => !removals.includes(i)) };

@@ -55,6 +55,22 @@ export const UI_EN = {
   reviews: "Read our Google reviews",
   reviewsShort: "Google reviews",
   map: "Map",
+  bestseller: "Bestseller",
+  newTag: "New",
+  offer: "Offer",
+  search: "Search products",
+  noResults: "Nothing matches your search.",
+  recent: "You looked at",
+  fest_diwali: "Happy Diwali",
+  fest_navratri: "Happy Navratri",
+  fest_ganesh: "Happy Ganesh Chaturthi",
+  fest_holi: "Happy Holi",
+  fest_eid: "Eid Mubarak",
+  fest_christmas: "Merry Christmas",
+  fest_pongal: "Happy Pongal & Sankranti",
+  fest_onam: "Happy Onam",
+  fest_ugadi: "Happy Ugadi",
+  fest_newyear: "Happy New Year",
 } as const;
 
 export type UiKey = keyof typeof UI_EN;

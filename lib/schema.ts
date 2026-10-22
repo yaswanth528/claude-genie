@@ -3,6 +3,18 @@ import { z } from "zod";
 export const THEME_IDS = ["boutique", "kitchen", "fresh", "studio", "craft", "bazaar"] as const;
 export type ThemeId = (typeof THEME_IDS)[number];
 
+// How products are laid out: photo grid, rows, big photos, or a text menu board.
+export const LAYOUTS = ["grid", "list", "lookbook", "menu"] as const;
+export type Layout = (typeof LAYOUTS)[number];
+
+export const BADGES = ["bestseller", "new", "offer"] as const;
+export type Badge = (typeof BADGES)[number];
+
+// A festive banner the owner can switch on for the season.
+export const FESTIVALS = ["diwali", "navratri", "ganesh", "holi", "eid", "christmas", "pongal", "onam", "ugadi", "newyear"] as const;
+export type FestivalId = (typeof FESTIVALS)[number];
+export type Festival = { id: FestivalId; message: string | null };
+
 export const ItemSchema = z.object({
   name: z.string().describe("Product name as the owner said it, cleaned up"),
   price: z.number().nullable().describe("Price in rupees; null if not said or unclear"),
@@ -62,7 +74,7 @@ export type GapCheck = z.infer<typeof GapCheckSchema>;
 export const PatchSchema = z.object({
   ops: z.array(
     z.object({
-      op: z.enum(["set_price", "rename", "add", "remove", "set_business_name", "out_of_stock", "in_stock"]),
+      op: z.enum(["set_price", "rename", "add", "remove", "set_business_name", "out_of_stock", "in_stock", "mark_bestseller", "mark_new", "mark_offer", "clear_badge"]),
       index: z.number().nullable().describe("Index of the item in the current list; null for add/set_business_name"),
       name: z.string().nullable(),
       price: z.number().nullable(),
@@ -93,6 +105,7 @@ export type Product = Item & {
   optionName?: string | null; // e.g. "Size"
   options?: string[]; // e.g. ["S", "M", "L"]; the customer picks one
   inStock?: boolean; // false = shown as "Out of stock", can't be ordered (default true)
+  badge?: Badge | null; // "Bestseller" / "New" / "Offer" tag on the product card
 };
 
 // A second language for the website (e.g. Kannada), switchable by customers.
@@ -116,7 +129,7 @@ export type SiteContent = {
   category: string;
   language: string;
   siteType: "static" | "dynamic";
-  theme: { id: ThemeId; accent: number; heroStyle: "full" | "split" };
+  theme: { id: ThemeId; accent: number; heroStyle: "full" | "split"; layout?: Layout };
   headline: string;
   subheadline: string;
   about: string | null;
@@ -131,6 +144,7 @@ export type SiteContent = {
   upiId?: string | null; // owner's UPI ID; buyers pay the shop directly
   delivery?: Delivery | null;
   reviewsUrl?: string | null; // the shop's Google reviews / Maps listing
+  festival?: Festival | null;
 };
 
 export type Delivery = {

@@ -205,6 +205,7 @@ const EDIT_RULES = `You turn a business owner's spoken edit request into a patch
 Return only the operations needed. Use the item's index from the list given.
 If the request could match more than one item (e.g. "the kurti" when there are several kurtis), return no ops and put a short clarifying question in ambiguity.
 Use out_of_stock / in_stock when the owner says an item is finished, sold out, not available, or back in stock.
+Use mark_bestseller / mark_new / mark_offer when the owner wants a product tagged as a bestseller (popular, most sold), new (new arrival, just in) or on offer (discount, sale); clear_badge to remove the tag.
 Never change anything the owner didn't ask for.`;
 
 export async function interpretEdit(items: Product[], businessName: string, request: string): Promise<Patch> {
