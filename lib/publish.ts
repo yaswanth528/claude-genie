@@ -1,6 +1,6 @@
 // Payment rules and deploying a site to its own hosting.
 import { deployToPages } from "./cloudflare";
-import { PRICES } from "./prices";
+import { PRICES, YEARLY, renewalState } from "./prices";
 import type { Site } from "./schema";
 import { renderStandalone } from "./standalone";
 import { ConflictError, getSiteRev, saveSite } from "./store";
@@ -12,6 +12,12 @@ export function amountDue(site: Site): number {
   if (!paid) return PRICES[site.siteType];
   if (site.siteType === "dynamic" && paid.plan === "static") return PRICES.dynamic - PRICES.static; // upgrade
   return 0;
+}
+
+// The yearly renewal for dynamic sites, payable from 30 days before the paid year ends.
+export function renewalDue(site: Site): number {
+  const state = renewalState(site.payment, site.siteType);
+  return state === "due" || state === "grace" || state === "lapsed" ? YEARLY : 0;
 }
 
 export const paymentMode = (): "test" | "live" | "off" =>

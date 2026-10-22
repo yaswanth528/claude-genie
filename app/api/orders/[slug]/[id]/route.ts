@@ -1,6 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
-import { NextResponse } from "next/server";
-import { applyDeliveryRules, buildLines, buyerCanChange, money, publicOrder, statusOf, totalOf } from "@/lib/orders";
+import { after, NextResponse } from "next/server";
+import { sendEmail } from "@/lib/email";
+import { appOrigin } from "@/lib/publish";
+import { applyDeliveryRules, buildLines, buyerCanChange, money, ownerAlert, publicOrder, statusOf, totalOf } from "@/lib/orders";
 import { canEdit } from "@/lib/owner";
 import { ORDER_STATUSES, type Order, type OrderStatus, type Site } from "@/lib/schema";
 import { ConflictError, getOrderRev, getSite, hashKey, saveOrder } from "@/lib/store";
@@ -112,12 +114,20 @@ export async function PUT(req: Request, ctx: Ctx) {
   }
 
   order = { ...order, total: totalOf(order) };
+  const buyerAction = !owner ? (body.cancel ? "cancelled" : "changed") : null;
   try {
     await saveOrder(order, r.rev);
   } catch (err) {
     if (err instanceof ConflictError) return NextResponse.json({ error: err.message }, { status: 409 });
     console.error(err);
     return NextResponse.json({ error: "Couldn't save. Try again." }, { status: 502 });
+  }
+  if (buyerAction) {
+    const saved = order;
+    after(() => {
+      const a = ownerAlert(saved, site, buyerAction);
+      return sendEmail(site.ownerEmail, a.subject, a.lines, { label: "Open your orders", url: `${appOrigin(req)}/p/${site.slug}/edit` });
+    });
   }
   return NextResponse.json(view(site, order, owner));
 }

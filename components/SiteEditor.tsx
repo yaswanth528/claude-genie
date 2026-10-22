@@ -55,8 +55,8 @@ function FileButton({ label, accept, disabled, onFile }: { label: string; accept
   );
 }
 
-export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ value: d, onChange, language = "English", showWhatsapp, recordings = [] }: Props<T>) {
-  const set = (patch: Partial<SiteContent> & { whatsapp?: string }) => onChange({ ...d, ...patch });
+export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEmail?: string | null }>({ value: d, onChange, language = "English", showWhatsapp, recordings = [] }: Props<T>) {
+  const set = (patch: Partial<SiteContent> & { whatsapp?: string; ownerEmail?: string | null }) => onChange({ ...d, ...patch });
   const setItem = (i: number, patch: Partial<Product>) => set({ items: d.items.map((it, j) => (j === i ? { ...it, ...patch } : it)) });
   const up = useUpload();
   const num = (v: string) => (v.replace(/\D/g, "") ? Number(v.replace(/\D/g, "")) : null);
@@ -74,6 +74,8 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
           <>
             <label htmlFor="e-wa">WhatsApp number (orders come here)</label>
             <input id="e-wa" inputMode="tel" placeholder="98765 43210" value={d.whatsapp ?? ""} onChange={(e) => set({ whatsapp: e.target.value })} />
+            <label htmlFor="e-email">Email for new-order alerts (optional)</label>
+            <input id="e-email" type="email" autoComplete="email" placeholder="you@example.com" value={d.ownerEmail ?? ""} onChange={(e) => set({ ownerEmail: e.target.value })} />
           </>
         )}
         <label htmlFor="e-cat">What you sell</label>

@@ -2,6 +2,7 @@
 import { use, useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { MicButton } from "@/components/MicButton";
+import { AccountPanel } from "@/components/AccountPanel";
 import { Insights } from "@/components/Insights";
 import { OrderCard } from "@/components/OrderCard";
 import { PayPanel } from "@/components/PayPanel";
@@ -13,7 +14,17 @@ import type { Live, Order, OrderStatus, Patch, Payment, Product, SiteContent } f
 
 type Snapshot = { businessName: string; items: Product[] };
 type Preview = { patch: Patch; before: Snapshot; after: Snapshot; errors: string[] };
-type Owner = SiteContent & { slug: string; whatsapp: string; updatedAt: string; canUndo: boolean; payment: Payment | null; live: Live | null; due: number };
+type Owner = SiteContent & {
+  slug: string;
+  whatsapp: string;
+  updatedAt: string;
+  canUndo: boolean;
+  payment: Payment | null;
+  live: Live | null;
+  due: number;
+  ownerEmail: string | null;
+  renewal: { state: "none" | "active" | "due" | "grace" | "lapsed"; paidUntil: string | null; due: number };
+};
 type Tab = "voice" | "site" | "orders" | "share" | "insights";
 
 export default function EditPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -97,7 +108,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
 
   async function saveForm() {
     if (!form) return;
-    const { slug: _s, whatsapp: _w, updatedAt: _u, canUndo: _c, payment: _p, live: _l, due: _d, ...content } = form;
+    const { slug: _s, whatsapp: _w, updatedAt: _u, canUndo: _c, payment: _p, live: _l, due: _d, ownerEmail: _e, renewal: _r, ...content } = form;
     const data = await call(`/api/pages/${slug}`, "PUT", { content });
     if (data) {
       loaded(data);
@@ -164,6 +175,16 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
       </div>
 
       {current && <LiveStatus owner={current} busy={busy} onPush={pushLive} />}
+      {current && current.due === 0 && (
+        <AccountPanel
+          key={`${current.updatedAt}-${current.ownerEmail}`}
+          slug={slug}
+          editKey={key}
+          renewal={current.renewal}
+          ownerEmail={current.ownerEmail}
+          onChanged={() => call(`/api/pages/${slug}`, "GET").then((d) => d && loaded(d))}
+        />
+      )}
       {current && current.due > 0 && (
         <PayPanel
           slug={slug}

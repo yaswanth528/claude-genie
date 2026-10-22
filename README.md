@@ -44,6 +44,9 @@ Payments/UPI, address capture, logins, custom domains and analytics (per the MVP
 | Vercel Blob store (**Public** access) with `BLOB_READ_WRITE_TOKEN` | Photo and video uploads (a Private store rejects public files) |
 | `ADMIN_PASSWORD` | Admin panel at `/admin` |
 | `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` + `AUTH_SECRET` | Owner login with a WhatsApp code |
-| `GITHUB_TOKEN` + `GITHUB_REPO` | Older storage (import into D1 from `/admin`) |
+| `CRON_SECRET` | Daily job: cleanup, renewal reminders, Sunday backup |
+| `GITHUB_TOKEN` + `GITHUB_REPO` | Weekly database backups into this private repo (`backups/`) |
+| `BREVO_API_KEY` + `ALERT_FROM_EMAIL` | New-order and renewal emails to owners |
+| `SUPPORT_EMAIL` | Contact address on the Privacy and Terms pages |
 
 Variables only reach the site after a new deployment (Deployments → ⋯ → Redeploy).

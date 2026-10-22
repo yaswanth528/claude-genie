@@ -106,9 +106,9 @@ ${site.gallery.length ? `<section id="${idp}gallery" class="s-section"><div clas
       ? `<div class="s-upi"><p class="s-muted">${esc(u.upiHint)}</p><div class="s-upi-row">${upiQrSvg ? `<div class="s-upi-qr" role="img" aria-label="UPI QR code">${upiQrSvg}</div>` : ""}<div><p class="s-upi-id">${esc(site.upiId)}</p><a class="s-btn s-btn-ghost s-btn-sm" href="${esc(upiLink(site.upiId, site.businessName, undefined, "Order"))}">${esc(u.payUpi)}</a></div></div></div>`
       : ""
   }</div></div></section>
-<footer class="s-footer"><div class="s-wrap s-footer-row"><span>© ${esc(L.businessName)}${credits(site).length ? `<small class="s-credits"> · ${esc(u.photosBy)}: ${esc(credits(site).join(", "))}</small>` : ""}</span><a href="${esc(appOrigin)}">Made with SiteGenie</a></div></footer>
+<footer class="s-footer"><div class="s-wrap s-footer-row"><span>© ${esc(L.businessName)}${credits(site).length ? `<small class="s-credits"> · ${esc(u.photosBy)}: ${esc(credits(site).join(", "))}</small>` : ""}</span><span><a href="${esc(appOrigin)}/privacy" target="_blank" rel="noreferrer">${esc(u.privacy)}</a> · <a href="${esc(appOrigin)}">Made with SiteGenie</a></span></div></footer>
 <div class="s-orderbar" data-orderbar hidden>${dynamic ? `<button class="s-btn" data-act="open-cart" data-bar-label></button>` : `<a class="s-btn s-btn-wa" target="_blank" rel="noreferrer" data-bar-label></a>`}</div>
-${dynamic ? cartHtml(u) : ""}
+${dynamic ? cartHtml(u, appOrigin) : ""}
 <div class="s-drawer-wrap s-pv-wrap" data-pv hidden role="dialog" aria-modal="true"><button class="s-drawer-scrim" data-act="close-pv" aria-label="${esc(u.close)}"></button><div class="s-pv"><button class="s-close s-pv-close" data-act="close-pv" aria-label="${esc(u.close)}">×</button><div data-pv-media></div><div class="s-pv-body"><h2 data-pv-name></h2><p class="s-price" data-pv-price></p><p class="s-pv-desc" data-pv-desc></p><div class="s-opts" data-pv-opts></div><div data-pv-action></div><p class="s-muted s-small" data-pv-credit></p></div></div></div>
 </div>`;
 }
@@ -127,7 +127,7 @@ function deliveryHtml(site: Site, u: LocalText["ui"]) {
   return rows ? `<ul class="s-contact-list s-delivery">${rows}</ul>` : "";
 }
 
-const cartHtml = (u: LocalText["ui"]) => `<div class="s-drawer-wrap" data-cart hidden role="dialog" aria-modal="true" aria-label="${esc(u.cart)}"><button class="s-drawer-scrim" data-act="close-cart" aria-label="Close cart"></button><div class="s-drawer">
+const cartHtml = (u: LocalText["ui"], appOrigin: string) => `<div class="s-drawer-wrap" data-cart hidden role="dialog" aria-modal="true" aria-label="${esc(u.cart)}"><button class="s-drawer-scrim" data-act="close-cart" aria-label="Close cart"></button><div class="s-drawer">
 <div class="s-drawer-head"><h2 data-cart-title>${esc(u.cart)}</h2><button class="s-close" data-act="close-cart" aria-label="Close">×</button></div>
 <div data-placed hidden class="s-placed"><p data-placed-text></p><a class="s-btn s-btn-wa" data-placed-link target="_blank" rel="noreferrer">${esc(u.orderOnWa)}</a><a class="s-btn s-btn-ghost" data-track-link target="_blank" rel="noreferrer" hidden>View or change my order</a></div>
 <p class="s-muted" data-empty>${esc(u.empty)}</p>
@@ -137,7 +137,7 @@ const cartHtml = (u: LocalText["ui"]) => `<div class="s-drawer-wrap" data-cart h
 <label>${esc(u.deliveryAddress)}<textarea name="address" autocomplete="street-address" required></textarea></label>
 <label>${esc(u.note)}<input name="note"></label>
 <div class="s-errors" data-errors hidden></div><button class="s-btn s-btn-block" data-submit data-label="${esc(u.placeOrder)}"></button>
-<p class="s-muted s-small">${esc(u.payNote)}</p></form></div></div>`;
+<p class="s-muted s-small">${esc(u.payNote)} ${esc(u.checkoutNote)} <a href="${esc(appOrigin)}/privacy" target="_blank" rel="noreferrer">${esc(u.privacy)}</a></p></form></div></div>`;
 
 export async function renderStandalone(site: Site, appOrigin: string): Promise<string> {
   const upiQrSvg = site.upiId

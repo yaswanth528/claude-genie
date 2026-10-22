@@ -9,7 +9,7 @@ import { hashKey, newEditKey, saveSite } from "@/lib/store";
 export async function POST(req: Request) {
   const stop = await limit(req, "publish");
   if (stop) return stop;
-  const { content, whatsapp, errors } = cleanDraft(await req.json().catch(() => null));
+  const { content, whatsapp, ownerEmail, errors } = cleanDraft(await req.json().catch(() => null));
   if (errors.length) return NextResponse.json({ errors }, { status: 400 });
 
   const editKey = newEditKey();
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     ...content,
     slug: slugify(content.businessName),
     whatsapp: whatsapp!,
+    ownerEmail,
     editKeyHash: hashKey(editKey),
     updatedAt: new Date().toISOString(),
   };

@@ -396,7 +396,9 @@ export function SiteView({ site, preview }: Props) {
               © {L.businessName}
               {credits.length > 0 && <small className="s-credits"> · {u.photosBy}: {credits.map((c) => c.replace(/^Photo: /, "")).join(", ")}</small>}
             </span>
-            <a href="/">Made with SiteGenie</a>
+            <span>
+              <a href="/privacy">{u.privacy}</a> · <a href="/">Made with SiteGenie</a>
+            </span>
           </div>
         </footer>
 
@@ -584,7 +586,12 @@ function CartDrawer({
             <button className="s-btn s-btn-block" disabled={busy || (!!minOrder && total < minOrder)}>
               {busy ? "…" : `${ui.placeOrder} · ${formatPrice(total + delivery)}`}
             </button>
-            <p className="s-muted s-small">{ui.payNote}</p>
+            <p className="s-muted s-small">
+              {ui.payNote} {ui.checkoutNote}{" "}
+              <a href="/privacy" target="_blank" rel="noreferrer">
+                {ui.privacy}
+              </a>
+            </p>
           </form>
         )}
       </div>

@@ -4,7 +4,9 @@ import { canEdit } from "@/lib/owner";
 import { interpretEdit } from "@/lib/ai";
 import { applyPatch, contentOf, undoLast, validateItems, withChange } from "@/lib/catalogue";
 import { cleanContent } from "@/lib/draft";
-import { amountDue, appOrigin, deploySite } from "@/lib/publish";
+import { renewalState } from "@/lib/prices";
+import { amountDue, appOrigin, deploySite, renewalDue } from "@/lib/publish";
+import { EMAIL_RE } from "@/lib/email";
 import type { Patch, Site } from "@/lib/schema";
 import { ConflictError, getSiteRev, saveSite, type Rev } from "@/lib/store";
 
@@ -27,6 +29,8 @@ const ownerView = (s: Site) => ({
   payment: s.payment ?? null,
   live: s.live ?? null,
   due: amountDue(s),
+  ownerEmail: s.ownerEmail ?? null,
+  renewal: { state: renewalState(s.payment, s.siteType), paidUntil: s.payment?.paidUntil ?? null, due: renewalDue(s) },
 });
 
 async function save(next: Site, message: string, req: Request, rev: Rev) {
@@ -86,7 +90,13 @@ export async function PUT(req: Request, { params }: Ctx) {
   const { slug } = await params;
   const { site, rev, error } = await authorised(req, slug);
   if (error) return error;
-  const body = (await req.json().catch(() => ({}))) as { patch?: Patch; content?: unknown };
+  const body = (await req.json().catch(() => ({}))) as { patch?: Patch; content?: unknown; ownerEmail?: string | null };
+
+  if (body.ownerEmail !== undefined) {
+    const email = (body.ownerEmail ?? "").trim().toLowerCase();
+    if (email && !EMAIL_RE.test(email)) return NextResponse.json({ error: "That email address doesn't look right." }, { status: 400 });
+    return save({ ...site, ownerEmail: email || null }, `Owner email for ${slug}`, req, rev);
+  }
 
   if (body.patch) {
     if (!body.patch.ops?.length) return NextResponse.json({ error: "Nothing to apply." }, { status: 400 });

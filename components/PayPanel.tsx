@@ -64,7 +64,17 @@ export function PayPanel({ slug, editKey, siteType, due, upgrade, onLive }: Prop
       <button className="btn block" onClick={pay} disabled={busy}>
         {busy ? "Putting your website live…" : paidNotLive ? "Retry putting it live" : `Pay ${formatPrice(due)} to get your website`}
       </button>
-      <p className="hint small">Test mode: no money is charged. Real payments (UPI, cards) will be added before launch.</p>
+      <p className="hint small">
+        Test mode: no money is charged. Real payments (UPI, cards) will be added before launch. By continuing you agree to the{" "}
+        <a href="/terms" target="_blank" rel="noreferrer">
+          Terms
+        </a>{" "}
+        and{" "}
+        <a href="/privacy" target="_blank" rel="noreferrer">
+          Privacy policy
+        </a>
+        .
+      </p>
     </div>
   );
 }

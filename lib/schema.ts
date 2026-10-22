@@ -139,7 +139,7 @@ export type Delivery = {
 };
 
 // A draft is what the review screen edits before publishing.
-export type Draft = SiteContent & { whatsapp: string };
+export type Draft = SiteContent & { whatsapp: string; ownerEmail?: string };
 
 export type Site = SiteContent & {
   slug: string;
@@ -150,14 +150,17 @@ export type Site = SiteContent & {
   history?: Snapshot[];
   payment?: Payment | null;
   live?: Live | null;
+  ownerEmail?: string | null; // private: new-order and renewal emails go here
+  renewalReminderSentFor?: string | null; // the paidUntil date we already reminded about
 };
 
 export type Payment = {
   plan: "static" | "dynamic";
-  amount: number; // rupees charged now
+  amount: number; // rupees paid in total
   mode: "test" | "live";
   reference: string;
   paidAt: string;
+  paidUntil?: string | null; // dynamic plan: online orders paid up to this date (yearly)
 };
 
 // The customer's own deployed website (Cloudflare Pages).

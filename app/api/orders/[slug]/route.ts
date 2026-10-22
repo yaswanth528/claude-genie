@@ -1,8 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { sendEmail } from "@/lib/email";
 import { limit } from "@/lib/ratelimit";
-import { applyDeliveryRules, buildLines, orderLink, publicOrder, totalOf } from "@/lib/orders";
+import { applyDeliveryRules, buildLines, orderLink, ownerAlert, publicOrder, totalOf } from "@/lib/orders";
 import { canEdit } from "@/lib/owner";
+import { renewalState } from "@/lib/prices";
 import { appOrigin } from "@/lib/publish";
 import type { Order } from "@/lib/schema";
 import { getSite, hashKey, listOrders, newId, saveOrder } from "@/lib/store";
@@ -27,6 +29,8 @@ export async function POST(req: Request, { params }: Ctx) {
   const site = await getSite(slug);
   if (!site) return json({ error: "Website not found" }, 404);
   if (site.siteType !== "dynamic") return json({ error: "This shop takes orders on WhatsApp." }, 400);
+  if (renewalState(site.payment, site.siteType) === "lapsed")
+    return json({ error: "This shop isn't taking online orders right now. Please order on WhatsApp.", errors: ["This shop isn't taking online orders right now. Please order on WhatsApp."] }, 402);
 
   const body = (await req.json().catch(() => ({}))) as {
     customer?: Record<string, unknown>;
@@ -71,6 +75,11 @@ export async function POST(req: Request, { params }: Ctx) {
     // Still let the buyer send the order on WhatsApp.
     return json({ order: publicOrder(order), saved: false });
   }
+  // Tell the owner even if the buyer never sends the WhatsApp message.
+  after(() => {
+    const a = ownerAlert(order, site, "new");
+    return sendEmail(site.ownerEmail, a.subject, a.lines, { label: "Open your orders", url: `${appOrigin(req)}/p/${slug}/edit` });
+  });
   return json({ order: publicOrder(order), saved: true, link });
 }
 

@@ -115,7 +115,9 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="wrap footer">SiteGenie · Voice-to-Page for small businesses</footer>
+      <footer className="wrap footer">
+        SiteGenie · Voice-to-Page for small businesses · <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
+      </footer>
     </>
   );
 }

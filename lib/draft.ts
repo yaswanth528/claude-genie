@@ -108,9 +108,11 @@ export function cleanContent(input: unknown): { content: SiteContent; errors: st
   return { content, errors };
 }
 
-export function cleanDraft(input: unknown): { content: SiteContent; whatsapp: string | null; errors: string[] } {
+export function cleanDraft(input: unknown): { content: SiteContent; whatsapp: string | null; ownerEmail: string | null; errors: string[] } {
   const { content, errors } = cleanContent(input);
   const whatsapp = normaliseWhatsapp(str((input as Draft)?.whatsapp, 20));
   if (!whatsapp) errors.unshift("Add a valid WhatsApp number.");
-  return { content, whatsapp, errors };
+  const email = str((input as { ownerEmail?: string })?.ownerEmail, 120).toLowerCase();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("That email address doesn't look right.");
+  return { content, whatsapp, ownerEmail: email || null, errors };
 }

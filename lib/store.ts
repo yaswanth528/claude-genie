@@ -322,3 +322,43 @@ export async function visitsByDay(slug: string, days: number): Promise<{ day: st
     return { day, count: map.get(day) ?? 0 };
   });
 }
+
+// ---------- Maintenance (daily job) ----------
+
+// Removes expired login codes and stale "last sent" markers.
+export async function cleanupAuth(): Promise<number> {
+  let removed = 0;
+  for (const path of await listPaths("catalogues/auth")) {
+    const doc = await readDoc<{ expires?: number; at?: number }>(path);
+    const stale = !doc || (doc.expires !== undefined ? doc.expires < Date.now() : (doc.at ?? 0) < Date.now() - 86400000);
+    if (stale) {
+      await deleteDoc(path);
+      removed++;
+    }
+  }
+  return removed;
+}
+
+export async function cleanupRateLimits(): Promise<void> {
+  if (backend() === "d1") await query("DELETE FROM rate_limits WHERE window_start < ?", [Math.floor(Date.now() / 1000) - 86400]);
+}
+
+// Every document and visit count, for the weekly backup (D1 only).
+export async function exportAll(): Promise<{ docs: { path: string; body: unknown; updated_at: string }[]; visits: unknown[] } | null> {
+  if (backend() !== "d1") return null;
+  const docs = await query<{ path: string; body: string; updated_at: string }>("SELECT path, body, updated_at FROM docs WHERE path NOT LIKE 'catalogues/auth/%'");
+  const visits = await query("SELECT slug, day, count FROM visits");
+  return { docs: docs.map((d) => ({ path: d.path, body: JSON.parse(d.body), updated_at: d.updated_at })), visits };
+}
+
+// Writes a file into the private GitHub repo (used for backups).
+export async function commitToGitHub(path: string, content: string, message: string): Promise<boolean> {
+  if (!GITHUB_TOKEN || !GITHUB_REPO) return false;
+  const existing = await readGitHub(path).catch(() => null);
+  const res = await gh(path, {
+    method: "PUT",
+    body: JSON.stringify({ message, content: Buffer.from(content).toString("base64"), branch: GITHUB_BRANCH, ...(existing ? { sha: existing.sha } : {}) }),
+  });
+  if (!res.ok) throw new Error(`GitHub backup failed: ${res.status}`);
+  return true;
+}

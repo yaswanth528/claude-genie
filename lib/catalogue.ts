@@ -29,7 +29,7 @@ export function normaliseWhatsapp(input: string): string | null {
 }
 
 export function contentOf(site: Site): SiteContent {
-  const { slug: _s, whatsapp: _w, editKeyHash: _k, updatedAt: _u, history: _h, payment: _p, live: _l, ...content } = site;
+  const { slug: _s, whatsapp: _w, editKeyHash: _k, updatedAt: _u, history: _h, payment: _p, live: _l, ownerEmail: _e, renewalReminderSentFor: _r, ...content } = site;
   return content;
 }
 

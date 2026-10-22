@@ -45,6 +45,8 @@ export const UI_EN = {
   samplePhoto: "Sample photo",
   photosBy: "Sample photos",
   close: "Close",
+  privacy: "Privacy",
+  checkoutNote: "Your name, phone and address go to the shop so they can deliver your order.",
 } as const;
 
 export type UiKey = keyof typeof UI_EN;

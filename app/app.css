@@ -242,3 +242,16 @@
 .upi-alt { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .upi-alt img { border-radius: 8px; border: 1px solid var(--line); background: #fff; }
 .upi-id { font-weight: 800; word-break: break-all; margin: 2px 0 6px; }
+
+/* Account panel */
+.account { display: grid; gap: 12px; margin-top: 12px; }
+.account-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.account-row > div { min-width: 0; }
+.account-row .link-box { flex: 1 1 260px; }
+
+/* Legal pages */
+.legal article { display: grid; gap: 4px; }
+.legal h1 { margin-top: 20px; }
+.legal h2 { font-size: 1.2rem; margin: 22px 0 4px; }
+.legal ul { padding-left: 20px; display: grid; gap: 6px; }
+.legal p, .legal li { max-width: 68ch; }

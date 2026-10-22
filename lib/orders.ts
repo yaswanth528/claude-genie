@@ -81,3 +81,23 @@ export const waNumber = (phone: string) => {
   const d = phone.replace(/\D/g, "");
   return d.length === 10 ? `91${d}` : d;
 };
+
+// Email to the owner about an order (new, changed or cancelled by the buyer).
+export function ownerAlert(o: Order, site: Pick<Site, "businessName">, what: "new" | "changed" | "cancelled") {
+  const head = { new: "New order", changed: "Order changed by the buyer", cancelled: "Order cancelled by the buyer" }[what];
+  const lines = o.lines.map((l) => `${lineName(l)} × ${l.qty}${l.price !== null ? ` — ${formatPrice(l.price * l.qty)}` : ""}`);
+  return {
+    subject: `${head} #${shortId(o.id)} · ${formatPrice(totalOf(o))}`,
+    lines: [
+      `${head} on ${site.businessName}.`,
+      "",
+      ...lines,
+      ...(o.deliveryCharge ? [`Delivery: ${formatPrice(o.deliveryCharge)}`] : []),
+      `Total: ${formatPrice(totalOf(o))}`,
+      "",
+      `${o.customer.name} · ${o.customer.phone}`,
+      o.customer.address,
+      ...(o.customer.note ? [`Note: ${o.customer.note}`] : []),
+    ],
+  };
+}
