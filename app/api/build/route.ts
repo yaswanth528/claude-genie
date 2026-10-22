@@ -41,7 +41,12 @@ export async function POST(req: Request) {
 
     const hero = take(plan.heroMediaIndex);
     const gallery: Media[] = [];
+    // Keep a unit only if its words were actually spoken (the model sometimes adds "per piece").
+    const spoken = transcript.toLowerCase();
+    const unitSaid = (unit: string | null) =>
+      unit && unit.toLowerCase().replace(/\bper\b/g, "").split(/\W+/).filter(Boolean).some((w) => spoken.includes(w)) ? unit : null;
     const items = plan.items.map(({ mediaIndex, imagePrompt, ...it }) => {
+      it.unit = unitSaid(it.unit);
       const m = take(mediaIndex);
       // A video matched to a product is better shown in the gallery.
       if (m?.kind === "video") gallery.push(m);

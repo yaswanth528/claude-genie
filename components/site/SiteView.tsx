@@ -62,6 +62,10 @@ export function SiteView({ site, preview }: Props) {
   const total = orderTotal(lines);
   const vars = themeVars(site.theme.id, site.theme.accent) as CSSProperties;
   const heroFull = site.theme.heroStyle === "full" && site.hero;
+  const heroType = !site.hero; // no banner photo: a type-led banner instead of an empty picture box
+  const anyImages = site.items.some((it) => it.image);
+  const cols = Math.min(4, Math.max(2, site.items.length));
+  const phone = site.whatsapp.startsWith("91") && site.whatsapp.length === 12 ? `+91 ${site.whatsapp.slice(2, 7)} ${site.whatsapp.slice(7)}` : `+${site.whatsapp}`;
   const aboutImage = site.gallery.find((m) => m.kind === "image") ?? null;
   const contactBits = [site.area, site.address, site.hours].filter(Boolean);
   const highlights = site.highlights.map((h) => h.trim()).filter(Boolean);
@@ -92,7 +96,7 @@ export function SiteView({ site, preview }: Props) {
         </div>
       </header>
 
-      <section id="top" className={`s-hero ${heroFull ? "s-hero-full" : "s-hero-split"}`}>
+      <section id="top" className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}`}>
         {heroFull && site.hero && <MediaBox media={site.hero} className="s-hero-bg" eager />}
         <div className="s-wrap s-hero-inner">
           <div className="s-hero-copy">
@@ -108,9 +112,9 @@ export function SiteView({ site, preview }: Props) {
               </a>
             </div>
           </div>
-          {!heroFull && (
+          {!heroFull && site.hero && (
             <div className="s-hero-media">
-              {site.hero ? <MediaBox media={site.hero} eager /> : <div className="s-hero-mono">{initials(site.businessName || "S G")}</div>}
+              <MediaBox media={site.hero} eager />
             </div>
           )}
         </div>
@@ -132,19 +136,22 @@ export function SiteView({ site, preview }: Props) {
             <h2>{dynamic ? "Shop" : "Our products"}</h2>
             <p>{dynamic ? "Add items to your cart and check out in a minute." : "Pick what you like and send your order on WhatsApp."}</p>
           </div>
-          <div className="s-grid">
+          <div className={`s-grid ${anyImages ? "" : "s-grid-text"}`} style={{ "--cols": cols } as CSSProperties}>
             {site.items.map((it, i) => (
               <article key={i} className="s-card">
-                <div className="s-card-media">
-                  {it.image ? (
-                    <>
-                      <MediaBox media={it.image} />
-                      {it.image.generated && <span className="s-ai-tag">Illustration</span>}
-                    </>
-                  ) : (
-                    <div className="s-card-mono">{initials(it.name || "?")}</div>
-                  )}
-                </div>
+                {anyImages && (
+                  <div className="s-card-media">
+                    {it.image ? (
+                      <>
+                        <MediaBox media={it.image} />
+                        {it.image.generated && <span className="s-ai-tag">Illustration</span>}
+                      </>
+                    ) : (
+                      <div className="s-card-mono">{initials(it.name || "?")}</div>
+                    )}
+                  </div>
+                )}
+                {!anyImages && <span className="s-card-num">{String(i + 1).padStart(2, "0")}</span>}
                 <div className="s-card-body">
                   <h3>{it.name}</h3>
                   {it.description && <p className="s-card-desc">{it.description}</p>}
@@ -233,7 +240,7 @@ export function SiteView({ site, preview }: Props) {
           </div>
           <div className="s-contact-card">
             <p className="s-muted">WhatsApp</p>
-            <p className="s-phone">+{site.whatsapp}</p>
+            <p className="s-phone">{phone}</p>
             <a className="s-btn" href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noreferrer">
               Message on WhatsApp
             </a>
