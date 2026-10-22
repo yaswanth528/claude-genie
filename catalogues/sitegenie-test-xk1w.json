@@ -7,7 +7,7 @@
   "items": [
     {
       "name": "Cotton kurti",
-      "price": 799,
+      "price": 849,
       "unit": null,
       "lowConfidence": false
     },
@@ -19,5 +19,25 @@
     }
   ],
   "editKeyHash": "ea64942aeeba280421ab353f82779fa841b7aa2deb6a33a33ca91896e87242b8",
-  "updatedAt": "2026-10-22T09:12:42.510Z"
+  "updatedAt": "2026-10-22T09:13:16.918Z",
+  "history": [
+    {
+      "businessName": "SiteGenie Test",
+      "items": [
+        {
+          "name": "Cotton kurti",
+          "price": 799,
+          "unit": null,
+          "lowConfidence": false
+        },
+        {
+          "name": "Dupatta",
+          "price": 299,
+          "unit": null,
+          "lowConfidence": false
+        }
+      ],
+      "updatedAt": "2026-10-22T09:12:42.510Z"
+    }
+  ]
 }
