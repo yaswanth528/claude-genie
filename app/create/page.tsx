@@ -154,7 +154,9 @@ export default function CreatePage() {
           </aside>
           <section className={`review-preview ${pane === "preview" ? "show" : ""}`} aria-label="Website preview">
             <div className={`device ${device}`}>
-              <SiteView site={draft} preview />
+              <div className="device-scroll">
+                <SiteView site={draft} preview />
+              </div>
             </div>
             <div className="preview-cta mobile-only">
               <button className="btn" onClick={publish} disabled={busy}>

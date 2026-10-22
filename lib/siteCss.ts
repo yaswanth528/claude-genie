@@ -65,7 +65,6 @@ export const SITE_CSS = `
   backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--s-line);
 }
-.is-preview .s-header { position: relative; top: 0; }
 .s-header-row { display: flex; align-items: center; gap: 20px; min-height: 64px; }
 .s-brand {
   font-family: var(--s-display); font-weight: var(--s-display-weight); font-size: 1.35rem;
@@ -219,12 +218,10 @@ export const SITE_CSS = `
   background: linear-gradient(transparent, color-mix(in srgb, var(--s-bg) 92%, transparent) 30%);
   display: flex; justify-content: center;
 }
-.is-preview .s-orderbar { position: sticky; }
 .s-orderbar .s-btn { width: min(100%, 520px); }
 
 /* Cart drawer */
 .s-drawer-wrap { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: flex-end; }
-.is-preview .s-drawer-wrap { position: absolute; }
 .s-drawer-scrim { position: absolute; inset: 0; border: 0; background: rgba(0,0,0,.45); cursor: pointer; }
 .s-drawer {
   position: relative; width: min(100%, 440px); height: 100%; overflow-y: auto;

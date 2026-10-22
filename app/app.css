@@ -57,9 +57,16 @@
   .review-edit, .review-preview { display: block; overflow-y: auto; }
   .review-edit { border-right: 1px solid var(--line); background: var(--bg); }
   .review-preview { padding: 28px; background: #e9e4da; }
-  .device { border-radius: 18px; box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.45); }
-  .device.phone { max-width: 400px; border: 10px solid #1d1d1d; border-radius: 34px; }
-  .device.desktop { max-width: 1280px; }
+  /* The preview keeps a real screen size and the website scrolls inside it. The transform
+     makes the frame the containing block for the site's fixed cart bar and drawer, so they
+     stay pinned inside the frame like on a phone. */
+  .device { border-radius: 18px; box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.45); transform: translateZ(0); }
+  .device.phone { width: 410px; max-width: 100%; height: min(864px, calc(100vh - 61px - 56px)); border: 10px solid #1d1d1d; border-radius: 40px; }
+  .device.desktop { max-width: 1280px; height: calc(100vh - 61px - 56px); border: 1px solid var(--line); }
+  .device-scroll { height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .device.phone .device-scroll { scrollbar-width: none; }
+  .device.phone .device-scroll::-webkit-scrollbar { display: none; }
+  .review-preview { display: flex !important; align-items: flex-start; justify-content: center; overflow: hidden; }
 }
 .publish-bar { position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg) 18%); padding-top: 20px; margin-top: 12px; }
 
@@ -132,3 +139,9 @@
 }
 .preview-cta .btn:first-child { flex: 1; }
 @media (min-width: 980px) { .preview-cta { display: none; } }
+
+/* Phones: the preview is the page itself, so keep the site's bars clear of the app's bars. */
+@media (max-width: 979px) {
+  .review-preview .s-header { position: relative; top: 0; }
+  .review-preview .s-orderbar { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+}
