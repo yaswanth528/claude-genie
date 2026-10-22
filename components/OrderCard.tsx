@@ -1,7 +1,7 @@
 "use client";
 // One order in the owner's Orders tab: status, items, discount/delivery, WhatsApp update.
 import { useState } from "react";
-import { formatPrice, lineName, whatsappLink } from "@/lib/catalogue";
+import { formatPrice, lineName, shortId, whatsappLink } from "@/lib/catalogue";
 import { STATUS_LABEL, orderSummary, totalOf, waNumber } from "@/lib/orders";
 import type { Order, OrderStatus, Product } from "@/lib/schema";
 
@@ -65,7 +65,7 @@ export function OrderCard({ order, slug, editKey, businessName, products, onSave
       <header>
         <div>
           <strong>{order.customer.name}</strong>
-          <span className="hint small"> · #{order.id}</span>
+          <span className="hint small"> · #{shortId(order.id)}</span>
         </div>
         <span className="hint small">{new Date(order.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</span>
       </header>

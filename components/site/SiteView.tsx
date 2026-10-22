@@ -3,7 +3,7 @@
 // and for the preview on the review screen. lib/standalone.ts renders the same markup for
 // customers' separately hosted sites.
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { formatPrice, lineName, orderText, orderTotal, whatsappLink } from "@/lib/catalogue";
+import { formatPrice, lineName, orderText, orderTotal, shortId, whatsappLink } from "@/lib/catalogue";
 import { categoriesOf, localText } from "@/lib/localize";
 import type { Media, Order, SiteContent } from "@/lib/schema";
 import { SITE_CSS } from "@/lib/siteCss";
@@ -445,7 +445,7 @@ function CartDrawer({
         {placed ? (
           <div className="s-placed">
             <p>
-              {placed.id ? `Order ${placed.id} is saved. ` : ""}Tap below to send it to {site.businessName} on WhatsApp so they can confirm.
+              {placed.id ? `Order #${shortId(placed.id)} is saved. ` : ""}Tap below to send it to {site.businessName} on WhatsApp so they can confirm.
             </p>
             <a className="s-btn s-btn-wa" href={placed.link} target="_blank" rel="noreferrer">
               {ui.orderOnWa}

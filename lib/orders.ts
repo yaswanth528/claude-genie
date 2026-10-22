@@ -1,5 +1,5 @@
 // Order rules shared by the place-order, buyer and owner endpoints.
-import { formatPrice, lineName, orderTotal } from "./catalogue";
+import { formatPrice, lineName, orderTotal, shortId } from "./catalogue";
 import type { Order, OrderLine, OrderStatus, Site } from "./schema";
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -54,7 +54,7 @@ export function publicOrder(o: Order) {
 export function orderSummary(o: Order, site: Pick<Site, "businessName">, link?: string): string {
   const lines = o.lines.map((l) => `• ${lineName(l)} × ${l.qty}${l.price !== null ? ` — ${formatPrice(l.price * l.qty)}` : ""}`);
   return [
-    `${site.businessName}: order #${o.id}`,
+    `${site.businessName}: order #${shortId(o.id)}`,
     `Status: ${STATUS_LABEL[statusOf(o)]}`,
     ...lines,
     ...(o.discount ? [`Discount: −${formatPrice(o.discount)}`] : []),

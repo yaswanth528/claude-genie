@@ -3,7 +3,7 @@
 // While the shop hasn't confirmed, the buyer can change quantities/sizes, remove or add
 // items, or cancel; each change opens WhatsApp to tell the shop.
 import { use, useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
-import { formatPrice, lineName, whatsappLink } from "@/lib/catalogue";
+import { formatPrice, lineName, shortId, whatsappLink } from "@/lib/catalogue";
 import { STATUS_LABEL, orderSummary, totalOf } from "@/lib/orders";
 import type { Order, OrderStatus, ThemeId } from "@/lib/schema";
 import { themeVars } from "@/lib/themes";
@@ -101,7 +101,7 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
   async function cancel() {
     if (!window.confirm("Cancel this order?")) return;
     const v = await put({ cancel: true });
-    if (v) setNotice({ text: "Your order is cancelled.", wa: whatsappLink(v.shop.whatsapp, `Please cancel my order #${v.order.id}. Thank you.`) });
+    if (v) setNotice({ text: "Your order is cancelled.", wa: whatsappLink(v.shop.whatsapp, `Please cancel my order #${shortId(v.order.id)}. Thank you.`) });
   }
 
   if (token === undefined) return null;
@@ -136,7 +136,7 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
     <div className="order-page" style={vars}>
       <main className="narrow">
         <p className="op-shop">{shop.businessName}</p>
-        <h1>Order #{order.id}</h1>
+        <h1>Order #{shortId(order.id)}</h1>
         <p className={`op-status s-${status}`}>{STATUS_LABEL[status]}</p>
 
         {status !== "cancelled" && (
@@ -289,7 +289,7 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
           )
         )}
         <div className="row">
-          <a className="btn wa" href={whatsappLink(shop.whatsapp, `Hi, about my order #${order.id}:`)} target="_blank" rel="noreferrer">
+          <a className="btn wa" href={whatsappLink(shop.whatsapp, `Hi, about my order #${shortId(order.id)}:`)} target="_blank" rel="noreferrer">
             Message the shop
           </a>
         </div>

@@ -114,10 +114,13 @@ export function orderText(businessName: string, lines: Line[], customer?: Order[
           ...(customer.note ? [`Note: ${customer.note}`] : []),
         ]
       : []),
-    ...(orderId ? [`Order ID: ${orderId}`] : []),
+    ...(orderId ? [`Order #${shortId(orderId)}`] : []),
     ...(link ? ["", `See or change this order: ${link}`] : []),
   ].join("\n");
 }
+
+// What people see as the order number: the random tail of the id, e.g. "6A1CC6".
+export const shortId = (id: string) => (id.split("-").pop() ?? id).toUpperCase();
 
 export const whatsappLink = (whatsapp: string, text: string) =>
   `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;
