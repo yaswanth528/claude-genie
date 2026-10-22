@@ -33,3 +33,16 @@ Drop images (png, jpg, webp, svg…) into this folder or into `images/`. `npm ru
 ## Out of MVP scope
 
 Payments/UPI, address capture, logins, custom domains and analytics (per the MVP scope). Speech-to-text, the scope's one open decision, is resolved as Gemini audio transcription.
+
+## Settings (Vercel → Environment Variables)
+
+| Variable | Turns on |
+|---|---|
+| `GEMINI_API_KEY` | Speech, website planning, translations, voice edits |
+| `UNSPLASH_ACCESS_KEY` / `PIXABAY_API_KEY` | Stock photos when the owner adds none |
+| `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Pages Edit, D1 Edit) | Separate customer websites and D1 storage |
+| `ADMIN_PASSWORD` | Admin panel at `/admin` |
+| `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` + `AUTH_SECRET` | Owner login with a WhatsApp code |
+| `GITHUB_TOKEN` + `GITHUB_REPO` | Older storage (import into D1 from `/admin`) |
+
+Variables only reach the site after a new deployment.
