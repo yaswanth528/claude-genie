@@ -1,0 +1,197 @@
+{
+  "businessName": "Sri Lakshmi Silks",
+  "category": "women's ethnic wear",
+  "language": "English",
+  "siteType": "dynamic",
+  "theme": {
+    "id": "boutique",
+    "accent": 0,
+    "heroStyle": "split"
+  },
+  "headline": "Elegant Silks and Kurtis",
+  "subheadline": "Providing fine Mysore silk sarees, cotton sarees, and stylish kurtis for women.",
+  "about": "Sri Lakshmi Silks in Jayanagar offers a curated collection of traditional sarees and comfortable daily-wear kurtis. Visit us between 10 AM and 9 PM to explore our collection.",
+  "highlights": [
+    "Open 10 am to 9 pm",
+    "Sizes S to XL available in kurtis"
+  ],
+  "area": "Jayanagar",
+  "address": null,
+  "hours": "10 am to 9 pm",
+  "hero": null,
+  "gallery": [],
+  "items": [
+    {
+      "name": "Mysore silk saree",
+      "price": 4500,
+      "unit": null,
+      "lowConfidence": false,
+      "description": "Traditional Mysore silk saree",
+      "image": {
+        "url": "https://images.unsplash.com/photo-1772037869794-d1bcfd2a8e36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTEwMTQzfDB8MXxzZWFyY2h8MXx8bXlzb3JlJTIwc2lsayUyMHNhcmVlfGVufDF8Mnx8fDE3OTI2NzY4NDl8MA&ixlib=rb-4.1.0&q=80&w=1080&w=900",
+        "kind": "image",
+        "generated": true,
+        "alt": "Mysore silk saree",
+        "credit": "Photo: Pranab Debnath / Unsplash"
+      },
+      "category": "Sarees",
+      "optionName": null,
+      "options": [],
+      "inStock": true
+    },
+    {
+      "name": "Cotton saree",
+      "price": 1200,
+      "unit": null,
+      "lowConfidence": false,
+      "description": "Comfortable daily wear cotton saree",
+      "image": {
+        "url": "https://images.unsplash.com/photo-1732709470611-670308da8c5e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTEwMTQzfDB8MXxzZWFyY2h8N3x8Y290dG9uJTIwc2FyZWV8ZW58MXwyfHx8MTc5MjY3Njg0OXww&ixlib=rb-4.1.0&q=80&w=1080&w=900",
+        "kind": "image",
+        "generated": true,
+        "alt": "Cotton saree",
+        "credit": "Photo: Ghunnghat Delhi / Unsplash"
+      },
+      "category": "Sarees",
+      "optionName": null,
+      "options": [],
+      "inStock": true
+    },
+    {
+      "name": "Cotton kurti",
+      "price": 799,
+      "unit": null,
+      "lowConfidence": false,
+      "description": "Casual and comfortable cotton kurti",
+      "image": null,
+      "category": "Kurtis",
+      "optionName": "Size",
+      "options": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "inStock": true
+    },
+    {
+      "name": "Printed kurti",
+      "price": 899,
+      "unit": null,
+      "lowConfidence": false,
+      "description": "Attractive printed kurti",
+      "image": {
+        "url": "https://images.unsplash.com/photo-1715859019107-90c16285b149?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTEwMTQzfDB8MXxzZWFyY2h8MXx8cHJpbnRlZCUyMGt1cnRpfGVufDF8Mnx8fDE3OTI2NzY4NDh8MA&ixlib=rb-4.1.0&q=80&w=1080&w=900",
+        "kind": "image",
+        "generated": true,
+        "alt": "Printed kurti",
+        "credit": "Photo: Kinjal Sanchaniya / Unsplash"
+      },
+      "category": "Kurtis",
+      "optionName": "Size",
+      "options": [
+        "M",
+        "L"
+      ],
+      "inStock": true
+    }
+  ],
+  "translation": {
+    "language": "Kannada",
+    "label": "ಕನ್ನಡ",
+    "businessName": "ಶ್ರೀ ಲಕ್ಷ್ಮಿ ಸಿಲ್ಕ್ಸ್",
+    "category": "ಮಹಿಳೆಯರ ಸಾಂಪ್ರದಾಯಿಕ ಉಡುಪುಗಳು",
+    "headline": "ಸುಂದರವಾದ ಸಿಲ್ಕ್ ಸೀರೆಗಳು ಮತ್ತು ಕುರ್ತಿಗಳು",
+    "subheadline": "ಮಹಿಳೆಯರಿಗಾಗಿ ಅಂದವಾದ ಮೈಸೂರು ಸಿಲ್ಕ್ ಸೀರೆಗಳು, ಕಾಟನ್ ಸೀರೆಗಳು ಮತ್ತು ಸ್ಟೈಲಿಶ್ ಕುರ್ತಿಗಳು ಲಭ್ಯವಿವೆ.",
+    "about": "ಜಯನಗರದಲ್ಲಿರುವ ಶ್ರೀ ಲಕ್ಷ್ಮಿ ಸಿಲ್ಕ್ಸ್‌ನಲ್ಲಿ ಸಾಂಪ್ರದಾಯಿಕ ಸೀರೆಗಳು ಮತ್ತು ಧರಿಸಲು ಆರಾಮದಾಯಕವಾದ ದೈನಂದಿನ ಕುರ್ತಿಗಳ ಉತ್ತಮ ಕಲೆಕ್ಷನ್ ಸಿಗುತ್ತದೆ. ನಮ್ಮ ಕಲೆಕ್ಷನ್ ನೋಡಲು ಬೆಳಿಗ್ಗೆ 10 ರಿಂದ ರಾತ್ರಿ 9 ರವರೆಗೆ ಭೇಟಿ ನೀಡಿ.",
+    "highlights": [
+      "ಬೆಳಿಗ್ಗೆ 10 ರಿಂದ ರಾತ್ರಿ 9 ರವರೆಗೆ ತೆರೆದಿರುತ್ತದೆ",
+      "ಕುರ್ತಿಗಳಲ್ಲಿ S ನಿಂದ XL ಸೈಜ್‌ಗಳು ಲಭ್ಯವಿವೆ"
+    ],
+    "area": "ಜಯನಗರ",
+    "hours": "ಬೆಳಿಗ್ಗೆ 10 ರಿಂದ ರಾತ್ರಿ 9 ರವರೆಗೆ",
+    "items": [
+      {
+        "name": "ಮೈಸೂರು ಸಿಲ್ಕ್ ಸೀರೆ",
+        "description": "ಸಾಂಪ್ರದಾಯಿಕ ಮೈಸೂರು ಸಿಲ್ಕ್ ಸೀರೆ",
+        "optionName": null,
+        "options": []
+      },
+      {
+        "name": "ಕಾಟನ್ ಸೀರೆ",
+        "description": "ದಿನ ಬಳಕೆಗೆ ಆರಾಮದಾಯಕವಾದ ಕಾಟನ್ ಸೀರೆ",
+        "optionName": null,
+        "options": []
+      },
+      {
+        "name": "ಕಾಟನ್ ಕುರ್ತಿ",
+        "description": "ಕ್ಯಾಜುವಲ್ ಮತ್ತು ಆರಾಮದಾಯಕವಾದ ಕಾಟನ್ ಕುರ್ತಿ",
+        "optionName": "ಸೈಜ್",
+        "options": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ]
+      },
+      {
+        "name": "ಪ್ರಿಂಟೆಡ್ ಕುರ್ತಿ",
+        "description": "ಆಕರ್ಷಕವಾದ ಪ್ರಿಂಟೆಡ್ ಕುರ್ತಿ",
+        "optionName": "ಸೈಜ್",
+        "options": [
+          "M",
+          "L"
+        ]
+      }
+    ],
+    "categories": [
+      {
+        "from": "Sarees",
+        "to": "ಸೀರೆಗಳು"
+      },
+      {
+        "from": "Kurtis",
+        "to": "ಕುರ್ತಿಗಳು"
+      }
+    ],
+    "ui": {
+      "products": "ನಮ್ಮ ಉತ್ಪನ್ನಗಳು",
+      "shop": "ಅಂಗಡಿ",
+      "about": "ನಮ್ಮ ಬಗ್ಗೆ",
+      "gallery": "ಫೋಟೋಗಳು",
+      "contact": "ಸಂಪರ್ಕಿಸಿ",
+      "seeProducts": "ಉತ್ಪನ್ನಗಳನ್ನು ನೋಡಿ",
+      "shopNow": "ಈಗ ಖರೀದಿಸಿ",
+      "chat": "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಚಾಟ್ ಮಾಡಿ",
+      "add": "ಸೇರಿಸಿ",
+      "addToCart": "ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ",
+      "outOfStock": "ಸ್ಟಾಕ್ ಇಲ್ಲ",
+      "all": "ಎಲ್ಲಾ",
+      "pickHint": "ನಿಮಗೆ ಇಷ್ಟವಾದದ್ದನ್ನು ಆಯ್ಕೆ ಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ಆರ್ಡರ್ ಅನ್ನು ವಾಟ್ಸಾಪ್‌ಗೆ ಕಳುಹಿಸಿ.",
+      "cartHint": "ನಿಮ್ಮ ಕಾರ್ಟ್‌ಗೆ ವಸ್ತುಗಳನ್ನು ಸೇರಿಸಿ ಮತ್ತು ಒಂದು ನಿಮಿಷದಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ.",
+      "visit": "ಅಂಗಡಿಗೆ ಭೇಟಿ ನೀಡಿ ಅಥವಾ ಮೆಸೇಜ್ ಮಾಡಿ",
+      "address": "ವಿಳಾಸ",
+      "area": "ಪ್ರದೇಶ",
+      "hours": "ಸಮಯ",
+      "messageUs": "ಆರ್ಡರ್ ಮಾಡಲು ಮತ್ತು ಪ್ರಶ್ನೆಗಳಿಗೆ ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಮೆಸೇಜ್ ಮಾಡಿ.",
+      "maps": "ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್‌ನಲ್ಲಿ ತೆರೆಯಿರಿ",
+      "messageOnWa": "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಮೆಸೇಜ್ ಮಾಡಿ",
+      "orderOnWa": "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ",
+      "viewCart": "ಕಾರ್ಟ್ ನೋಡಿ",
+      "cart": "ನಿಮ್ಮ ಕಾರ್ಟ್",
+      "cartShort": "ಕಾರ್ಟ್",
+      "total": "ಒಟ್ಟು",
+      "yourName": "ನಿಮ್ಮ ಹೆಸರು",
+      "phone": "ಫೋನ್",
+      "deliveryAddress": "ತಲುಪಿಸಬೇಕಾದ ವಿಳಾಸ",
+      "note": "ಟಿಪ್ಪಣಿ (ಬೇಕಿದ್ದರೆ)",
+      "placeOrder": "ಆರ್ಡರ್ ಮಾಡಿ",
+      "payNote": "ಅಂಗಡಿಯವರು ನಿಮ್ಮ ಆರ್ಡರ್ ಅನ್ನು ಖಚಿತಪಡಿಸಿದ ನಂತರ ನೇರವಾಗಿ ಪಾವತಿಸಿ.",
+      "empty": "ನಿಮ್ಮ ಕಾರ್ಟ್ ಖಾಲಿಯಾಗಿದೆ."
+    }
+  },
+  "slug": "sri-lakshmi-silks-41fk",
+  "whatsapp": "919876543210",
+  "editKeyHash": "89554ab839c7aee6379d72607f1affcc12c323da78f35410ab5ea9182eedcef2",
+  "updatedAt": "2026-10-22T13:47:48.518Z"
+}
