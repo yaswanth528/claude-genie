@@ -67,7 +67,12 @@ export default function CreatePage() {
     setErrors([]);
     setStage("checking");
     try {
-      const res = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ transcript }) });
+      const res = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript }),
+        signal: AbortSignal.timeout(12_000),
+      });
       const data = (await res.json()) as { questions?: Question[] };
       const qs = data.questions ?? [];
       if (qs.length) {
@@ -77,7 +82,7 @@ export default function CreatePage() {
         return;
       }
     } catch {
-      // If the check fails, just build.
+      // If the check fails or is slow, just build.
     }
     build(transcript);
   }

@@ -84,7 +84,7 @@ Write exactly what was said, in the script of the language spoken. Write every p
 const GAP_RULES = `A small shop owner described their business by voice (possibly mixed languages, possibly with speech-to-text errors).
 Before we build their website, list what is important and missing or unclear. Only ask about:
 - the shop/business name, if it was never said;
-- a product whose price was not said;
+- EVERY product that was mentioned without a price, even in passing ("we also have jamun", "ಜಾಮೂನ್ ಕೂಡ ಇದೆ", "aur dupatta bhi hai") - ask its price;
 - a price that may be misheard (e.g. "seventy nine" vs "seven ninety nine", or a number that looks wrong for that product);
 - a product name that is garbled.
 Do NOT ask about anything optional (address, hours, delivery, photos, WhatsApp number, descriptions).
