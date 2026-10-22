@@ -1,6 +1,7 @@
 // The share card (Open Graph image) for a shop: what WhatsApp, Facebook and others show
 // when the shop's link is shared. 1200×630, in the shop's own colours.
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { THEMES } from "@/lib/themes";
 import { getSite } from "@/lib/store";
 
@@ -41,7 +42,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
 
   const theme = THEMES[s.theme.id] ?? THEMES.bazaar;
   const p = theme.palettes[s.theme.accent] ?? theme.palettes[0];
-  const photo = s.hero?.kind === "image" ? s.hero.url : s.items.find((i) => i.image?.kind === "image")?.image?.url;
+  const raw = s.hero?.kind === "image" ? s.hero.url : s.items.find((i) => i.image?.kind === "image")?.image?.url;
+  // Unsplash can send a smaller copy, which makes the card faster to draw.
+  const photo = raw && /images\.unsplash\.com/.test(raw) ? `${raw.split("?")[0]}?w=960&q=75&auto=format&fm=jpg` : raw;
   const eyebrow = [s.category, s.area].filter(Boolean).join(" · ");
   const cta = s.siteType === "dynamic" ? "Order online" : "Order on WhatsApp";
   const text = `${s.businessName}${s.headline}${eyebrow}${cta}₹`;
@@ -60,7 +63,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const stack = (first: string) => [first, ...SCRIPTS.map(([, f]) => f)].join(", ");
   const nameSize = s.businessName.length > 22 ? 64 : 84;
 
-  return new ImageResponse(
+  const card = new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", background: p.bg, color: p.ink }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "64px 56px 56px 64px" }}>
@@ -105,7 +108,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
       width: 1200,
       height: 630,
       fonts: fonts.length ? fonts : undefined,
-      headers: { "Cache-Control": "public, max-age=3600, s-maxage=86400" },
     },
   );
+  // PNG of a photo is ~1 MB; WhatsApp skips previews much over 300 KB, so send a JPEG.
+  const jpg = await sharp(Buffer.from(await card.arrayBuffer())).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+  return new Response(new Uint8Array(jpg), {
+    headers: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=3600, s-maxage=86400" },
+  });
 }
