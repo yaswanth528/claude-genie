@@ -32,11 +32,13 @@ export const SitePlanSchema = z.object({
       description: z.string().describe("One short line describing the product, using only what was said or what the product name itself means. No invented claims."),
       mediaIndex: z.number().nullable().describe("Index of the uploaded photo that shows this product; null if none matches"),
       imagePrompt: z.string().describe("If no uploaded photo matches: a description for an illustrative product photo, plain background, no text"),
+      imageQuery: z.string().describe("2-4 English words to search a stock photo library for this product, e.g. 'cotton kurti'"),
     }),
   ),
   heroMediaIndex: z.number().nullable().describe("Index of the uploaded photo or video best suited as the main banner; null if none"),
   galleryMediaIndexes: z.array(z.number()).describe("Indexes of uploaded media not used above that are worth showing in a gallery"),
   heroImagePrompt: z.string().describe("If there is no suitable upload: a description for a wide banner photo that sets the mood of this business, no text or logos"),
+  heroImageQuery: z.string().describe("2-4 English words to search a stock photo library for a banner, e.g. 'indian saree shop'"),
 });
 
 // What the model returns from a voice edit: a patch, never a whole site.
@@ -62,8 +64,9 @@ export type Patch = z.infer<typeof PatchSchema>;
 export type Media = {
   url: string;
   kind: "image" | "video";
-  generated: boolean; // true = AI illustration, not the owner's own photo
+  generated: boolean; // true = not the owner's own photo (AI illustration or stock photo)
   alt: string;
+  credit?: string | null; // e.g. "Photo: Jane Doe / Pexels" for stock photos
 };
 
 export type Product = Item & { description: string; image: Media | null };
@@ -96,11 +99,30 @@ export type Site = SiteContent & {
   updatedAt: string;
   // Earlier versions, newest first, for one-step undo (capped in lib/catalogue.ts).
   history?: Snapshot[];
+  payment?: Payment | null;
+  live?: Live | null;
+};
+
+export type Payment = {
+  plan: "static" | "dynamic";
+  amount: number; // rupees charged now
+  mode: "test" | "live";
+  reference: string;
+  paidAt: string;
+};
+
+// The customer's own deployed website (Cloudflare Pages).
+export type Live = {
+  provider: "cloudflare";
+  project: string;
+  url: string;
+  deployedAt: string;
+  updatedAt: string; // site content version that was deployed
 };
 
 export type Snapshot = { content: SiteContent; updatedAt: string };
 
-export type PublicSite = Omit<Site, "editKeyHash" | "history">;
+export type PublicSite = Omit<Site, "editKeyHash" | "history" | "payment" | "live">;
 
 export type Order = {
   id: string;

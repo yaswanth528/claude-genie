@@ -7,12 +7,14 @@ const optStr = (v: unknown, max: number) => str(v, max) || null;
 
 export const isMediaUrl = (url: unknown): url is string =>
   typeof url === "string" &&
-  (/^\/api\/media\/[a-z0-9-]+\.[a-z0-9]{2,5}$/.test(url) || /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\/[\w./-]+$/.test(url));
+  (/^\/api\/media\/[a-z0-9-]+\.[a-z0-9]{2,5}$/.test(url) ||
+    /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\/[\w./-]+$/.test(url) ||
+    /^https:\/\/images\.pexels\.com\/photos\/[\w./?=&%-]+$/.test(url));
 
 function media(v: unknown): Media | null {
   const m = v as Media;
   if (!m || !isMediaUrl(m.url) || (m.kind !== "image" && m.kind !== "video")) return null;
-  return { url: m.url, kind: m.kind, generated: Boolean(m.generated), alt: str(m.alt, 120) };
+  return { url: m.url, kind: m.kind, generated: Boolean(m.generated), alt: str(m.alt, 120), credit: optStr(m.credit, 120) };
 }
 
 function product(v: unknown): Product {

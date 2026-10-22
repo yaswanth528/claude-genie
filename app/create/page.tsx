@@ -4,13 +4,15 @@ import { CopyButton } from "@/components/CopyButton";
 import { Logo } from "@/components/Logo";
 import { MediaPicker } from "@/components/MediaPicker";
 import { MicButton } from "@/components/MicButton";
+import { PayPanel } from "@/components/PayPanel";
 import { SiteEditor } from "@/components/SiteEditor";
 import { SiteView } from "@/components/site/SiteView";
 import type { Uploaded } from "@/components/upload";
 import { LANGUAGES } from "@/components/useSpeech";
-import type { Draft } from "@/lib/schema";
+import { PRICES } from "@/lib/prices";
+import type { Draft, Live } from "@/lib/schema";
 
-type Stage = "speak" | "building" | "review" | "done";
+type Stage = "speak" | "building" | "review" | "pay" | "done";
 type Result = { slug: string; editKey: string; whatsapp: string };
 
 const BUILD_STEPS = ["Understanding what you said", "Choosing a design for your business", "Placing your photos", "Creating pictures", "Writing your website"];
@@ -51,6 +53,7 @@ export default function CreatePage() {
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
+  const [live, setLive] = useState<Live | null>(null);
   const onText = useCallback((t: string) => setTranscript((prev) => (prev.trim() ? `${prev.trim()} ${t}` : t)), []);
 
   async function build() {
@@ -86,7 +89,7 @@ export default function CreatePage() {
       const data = await res.json();
       if (!res.ok) return setErrors(data.errors ?? ["Couldn't publish."]);
       setResult(data);
-      setStage("done");
+      setStage("pay");
       window.scrollTo({ top: 0 });
     } catch {
       setErrors(["Network error. Try again."]);
@@ -130,13 +133,13 @@ export default function CreatePage() {
         <div className="review-body">
           <aside className={`review-edit ${pane === "edit" ? "show" : ""}`}>
             <h1>Your website is ready</h1>
-            <p className="hint">Check the details, change anything you like, then publish. Nothing goes live until you do.</p>
+            <p className="hint">This is a preview. Change anything you like, then continue to get your own website.</p>
             <SiteEditor value={draft} onChange={setDraft} language={lang} showWhatsapp />
             <div className="publish-bar">
               {errorBox}
               <div className="row">
                 <button className="btn" onClick={publish} disabled={busy}>
-                  {busy ? "Publishing…" : "Publish my website"}
+                  {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
                 </button>
                 <button className="btn ghost" onClick={() => setStage("speak")} disabled={busy}>
                   Start again
@@ -158,7 +161,7 @@ export default function CreatePage() {
       <Logo />
       <div className="stepper-head" aria-hidden>
         {[0, 1, 2].map((i) => (
-          <span key={i} className={i <= { speak: 0, building: 1, review: 1, done: 2 }[stage] ? "done" : ""} />
+          <span key={i} className={i <= { speak: 0, building: 1, review: 1, pay: 2, done: 2 }[stage] ? "done" : ""} />
         ))}
       </div>
 
@@ -200,22 +203,49 @@ export default function CreatePage() {
 
       {stage === "building" && <Building withPhotos={media.length > 0} />}
 
+      {stage === "pay" && result && draft && (
+        <>
+          <h1>Get your website</h1>
+          <p className="hint">
+            Your website is saved. After payment it goes live on its own address, and you can keep updating it with your private
+            edit link.
+          </p>
+          <PayPanel
+            slug={result.slug}
+            editKey={result.editKey}
+            siteType={draft.siteType}
+            due={PRICES[draft.siteType]}
+            onLive={(l) => {
+              setLive(l);
+              setStage("done");
+              window.scrollTo({ top: 0 });
+            }}
+          />
+          <p className="hint" style={{ marginTop: 12 }}>
+            Want another look first?{" "}
+            <a href={`/p/${result.slug}`} target="_blank" rel="noreferrer">
+              Open the preview
+            </a>
+          </p>
+        </>
+      )}
+
       {stage === "done" && result && (
         <>
           <h1>Your website is live 🎉</h1>
           <div className="success">
-            <strong>Share this link</strong> in your WhatsApp status, Instagram bio and with customers:
+            <strong>Your website address.</strong> Share it in your WhatsApp status, Instagram bio and with customers:
             <div className="link-box">
-              <input readOnly value={`${origin}/p/${result.slug}`} onFocus={(e) => e.target.select()} aria-label="Website link" />
-              <CopyButton text={`${origin}/p/${result.slug}`} />
-              <a className="btn" href={`/p/${result.slug}`} target="_blank" rel="noreferrer">
+              <input readOnly value={live?.url ?? ""} onFocus={(e) => e.target.select()} aria-label="Website address" />
+              <CopyButton text={live?.url ?? ""} />
+              <a className="btn" href={live?.url} target="_blank" rel="noreferrer">
                 Open
               </a>
             </div>
           </div>
           <div className="notice">
-            <strong>Save your private edit link.</strong> Use it to change prices by voice, update photos and see orders. Anyone with
-            it can change your website, so don’t share it.
+            <strong>Save your private edit link.</strong> Use it to change prices by voice, update photos, see orders and put
+            changes live. Anyone with it can change your website, so don’t share it.
             <div className="link-box">
               <input readOnly aria-label="Private edit link" value={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} onFocus={(e) => e.target.select()} />
               <CopyButton text={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} />
@@ -227,7 +257,7 @@ export default function CreatePage() {
             <a
               className="btn wa"
               style={{ marginTop: 10 }}
-              href={`https://wa.me/${result.whatsapp}?text=${encodeURIComponent(`Test order from my SiteGenie website (${origin}/p/${result.slug})`)}`}
+              href={`https://wa.me/${result.whatsapp}?text=${encodeURIComponent(`Test order from my website (${live?.url ?? ""})`)}`}
               target="_blank"
               rel="noreferrer"
             >

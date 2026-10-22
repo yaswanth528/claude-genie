@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { interpretEdit } from "@/lib/ai";
 import { applyPatch, contentOf, undoLast, validateItems, withChange } from "@/lib/catalogue";
 import { cleanContent } from "@/lib/draft";
+import { amountDue } from "@/lib/publish";
 import type { Patch, Site } from "@/lib/schema";
 import { getSite, keyMatches, saveSite } from "@/lib/store";
 
@@ -21,6 +22,9 @@ const ownerView = (s: Site) => ({
   whatsapp: s.whatsapp,
   updatedAt: s.updatedAt,
   canUndo: (s.history?.length ?? 0) > 0,
+  payment: s.payment ?? null,
+  live: s.live ?? null,
+  due: amountDue(s),
 });
 
 async function save(next: Site, message: string) {

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { fontVariables } from "@/lib/fonts";
 import "./globals.css";
 import "./app.css";
-import "./site.css";
 
 export const metadata: Metadata = {
   title: "SiteGenie — speak, get your website",

@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { formatPrice, orderText, orderTotal, whatsappLink } from "@/lib/catalogue";
 import type { Media, Order, SiteContent } from "@/lib/schema";
+import { SITE_CSS } from "@/lib/siteCss";
 import { themeVars } from "@/lib/themes";
 
 type Props = {
@@ -72,6 +73,7 @@ export function SiteView({ site, preview }: Props) {
 
   return (
     <div className="site-box">
+      <style dangerouslySetInnerHTML={{ __html: SITE_CSS }} />
     <div className={`site theme-${site.theme.id} ${preview ? "is-preview" : ""}`} style={vars}>
       <header className="s-header">
         <div className="s-wrap s-header-row">
@@ -144,7 +146,7 @@ export function SiteView({ site, preview }: Props) {
                     {it.image ? (
                       <>
                         <MediaBox media={it.image} />
-                        {it.image.generated && <span className="s-ai-tag">Illustration</span>}
+                        {it.image.generated && <span className="s-ai-tag">{it.image.credit ?? "Illustration"}</span>}
                       </>
                     ) : (
                       <div className="s-card-mono">{initials(it.name || "?")}</div>

@@ -113,7 +113,8 @@ export async function planSite(transcript: string, media: UploadedMedia[]): Prom
 
 // ---------- Images for slots the owner didn't fill ----------
 
-export async function generateImage(prompt: string, aspect: "16:9" | "1:1" | "4:3"): Promise<Buffer | null> {
+// Returns the JPEG bytes, null on a one-off failure, or "quota" when this key can't generate images.
+export async function generateImage(prompt: string, aspect: "16:9" | "1:1" | "4:3"): Promise<Buffer | null | "quota"> {
   try {
     const interaction = await client().interactions.create({
       model: IMAGE_MODEL,
@@ -125,8 +126,9 @@ export async function generateImage(prompt: string, aspect: "16:9" | "1:1" | "4:
     return data ? Buffer.from(data, "base64") : null;
   } catch (err) {
     // A missing picture shouldn't stop the website being built.
-    console.error("Image generation failed:", (err as Error).message);
-    return null;
+    const msg = (err as Error).message;
+    console.error("Image generation failed:", msg);
+    return /\b429\b|rate limit|quota/i.test(msg) ? "quota" : null;
   }
 }
 

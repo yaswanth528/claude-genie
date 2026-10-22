@@ -1,3 +1,7 @@
+// Styles for generated business websites. Kept as a string so the same CSS ships inside each
+// standalone customer website (lib/standalone.ts) and is injected by SiteView in the app.
+// Every colour and font comes from the theme variables set on .site (lib/themes.ts).
+export const SITE_CSS = `
 /* Generated business websites. Every colour and font comes from the theme variables
    set on .site (lib/themes.ts), so one stylesheet serves all six themes. */
 
@@ -250,3 +254,4 @@
   .site *, .site *::before { transition: none !important; }
   .s-card:hover, .s-btn:hover { transform: none; }
 }
+`;

@@ -99,3 +99,18 @@
 .orders { display: grid; gap: 12px; }
 .order header { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .order .btn { margin-top: 10px; }
+
+/* Payment */
+.pay { display: grid; gap: 14px; margin-top: 16px; }
+.pay-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.pay-plan { font-weight: 700; color: var(--muted); font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.pay-amount { font-family: var(--display, inherit); font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.test-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--warn-bg); border: 1px solid var(--warn-line); white-space: nowrap; }
+.pay-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.pay-list li::before { content: "\2713"; color: var(--wa); font-weight: 800; margin-right: 8px; }
+.hint.small { font-size: 0.8rem; }
+.live-card { display: grid; gap: 8px; margin-top: 16px; }
+.live-url { font-weight: 700; word-break: break-all; }
+.pill { display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+.pill.ok { background: #e8f6ee; color: #12693a; }
+.pill.warn { background: var(--warn-bg); color: #7a5200; }

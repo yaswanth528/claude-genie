@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { generateImage, planSite, type UploadedMedia } from "@/lib/ai";
-import { saveMedia } from "@/lib/media";
+import { planSite, type UploadedMedia } from "@/lib/ai";
+import { findPicture } from "@/lib/images";
 import { THEME_IDS, type Draft, type Media } from "@/lib/schema";
 
 export const maxDuration = 120; // planning + parallel image generation
@@ -45,25 +45,25 @@ export async function POST(req: Request) {
     const spoken = transcript.toLowerCase();
     const unitSaid = (unit: string | null) =>
       unit && unit.toLowerCase().replace(/\bper\b/g, "").split(/\W+/).filter(Boolean).some((w) => spoken.includes(w)) ? unit : null;
-    const items = plan.items.map(({ mediaIndex, imagePrompt, ...it }) => {
+    const items = plan.items.map(({ mediaIndex, imagePrompt, imageQuery, ...it }) => {
       it.unit = unitSaid(it.unit);
       const m = take(mediaIndex);
       // A video matched to a product is better shown in the gallery.
       if (m?.kind === "video") gallery.push(m);
-      return { ...it, image: m?.kind === "image" ? { ...m, alt: it.name } : null, imagePrompt };
+      return { ...it, image: m?.kind === "image" ? { ...m, alt: it.name } : null, imagePrompt, imageQuery };
     });
     plan.galleryMediaIndexes.map(take).forEach((m) => m && gallery.push(m));
     uploads.forEach((u, i) => {
       if (!used.has(i)) gallery.push({ url: u.url, kind: u.kind, generated: false, alt: u.name });
     });
 
-    // Fill empty slots with AI illustrations, in parallel.
+    // Fill empty slots with AI illustrations or stock photos, in parallel.
     const jobs: Promise<void>[] = [];
     let heroMedia = hero;
     if (allowGenerated && !heroMedia) {
       jobs.push(
-        generateImage(plan.heroImagePrompt, "16:9").then(async (bytes) => {
-          if (bytes) heroMedia = { url: await saveMedia(bytes, "image/jpeg", "generated"), kind: "image", generated: true, alt: plan.category };
+        findPicture({ prompt: plan.heroImagePrompt, query: plan.heroImageQuery, aspect: "16:9", alt: plan.category }).then((m) => {
+          heroMedia = m;
         }),
       );
     }
@@ -73,8 +73,8 @@ export async function POST(req: Request) {
         .slice(0, MAX_GENERATED - (heroMedia ? 0 : 1))
         .forEach((it) =>
           jobs.push(
-            generateImage(it.imagePrompt, "1:1").then(async (bytes) => {
-              if (bytes) it.image = { url: await saveMedia(bytes, "image/jpeg", "generated"), kind: "image", generated: true, alt: it.name };
+            findPicture({ prompt: it.imagePrompt, query: it.imageQuery, aspect: "1:1", alt: it.name }).then((m) => {
+              it.image = m;
             }),
           ),
         );
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
       hours: plan.hours,
       hero: heroMedia,
       gallery,
-      items: items.map(({ imagePrompt: _p, ...it }) => it),
+      items: items.map(({ imagePrompt: _p, imageQuery: _q, ...it }) => it),
       whatsapp: "",
     };
     return NextResponse.json(draft);

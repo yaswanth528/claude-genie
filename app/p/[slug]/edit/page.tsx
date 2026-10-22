@@ -2,14 +2,15 @@
 import { use, useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { MicButton } from "@/components/MicButton";
+import { PayPanel } from "@/components/PayPanel";
 import { SiteEditor } from "@/components/SiteEditor";
 import { LANGUAGES } from "@/components/useSpeech";
 import { formatPrice } from "@/lib/catalogue";
-import type { Order, Patch, Product, SiteContent } from "@/lib/schema";
+import type { Live, Order, Patch, Payment, Product, SiteContent } from "@/lib/schema";
 
 type Snapshot = { businessName: string; items: Product[] };
 type Preview = { patch: Patch; before: Snapshot; after: Snapshot; errors: string[] };
-type Owner = SiteContent & { slug: string; whatsapp: string; updatedAt: string; canUndo: boolean };
+type Owner = SiteContent & { slug: string; whatsapp: string; updatedAt: string; canUndo: boolean; payment: Payment | null; live: Live | null; due: number };
 type Tab = "voice" | "site" | "orders";
 
 export default function EditPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -88,11 +89,20 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
 
   async function saveForm() {
     if (!form) return;
-    const { slug: _s, whatsapp: _w, updatedAt: _u, canUndo: _c, ...content } = form;
+    const { slug: _s, whatsapp: _w, updatedAt: _u, canUndo: _c, payment: _p, live: _l, due: _d, ...content } = form;
     const data = await call(`/api/pages/${slug}`, "PUT", { content });
     if (data) {
       loaded(data);
       setNotice("Saved. Your website is updated.");
+    }
+  }
+
+  async function pushLive() {
+    const data = await call(`/api/deploy/${slug}`, "POST");
+    if (data && current) {
+      setCurrent({ ...current, live: data.live });
+      setForm((f) => (f ? { ...f, live: data.live } : f));
+      setNotice("Your live website is updated.");
     }
   }
 
@@ -134,10 +144,25 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
             </button>
           )}
           <a className="btn ghost sm" href={`/p/${slug}`} target="_blank" rel="noreferrer">
-            View website ↗
+            Preview ↗
           </a>
         </div>
       </div>
+
+      {current && <LiveStatus owner={current} busy={busy} onPush={pushLive} />}
+      {current && current.due > 0 && (
+        <PayPanel
+          slug={slug}
+          editKey={key}
+          siteType={current.siteType}
+          due={current.due}
+          upgrade={!!current.payment}
+          onLive={(l) => {
+            call(`/api/pages/${slug}`, "GET").then((d) => d && loaded(d));
+            setNotice(`Your website is live at ${l.url}`);
+          }}
+        />
+      )}
 
       <div className="seg tabs" role="tablist">
         <button role="tab" aria-selected={tab === "voice"} className={tab === "voice" ? "on" : ""} onClick={() => setTab("voice")}>
@@ -305,5 +330,34 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
         </div>
       )}
     </main>
+  );
+}
+
+function LiveStatus({ owner, busy, onPush }: { owner: Owner; busy: boolean; onPush: () => void }) {
+  if (!owner.live)
+    return owner.payment ? (
+      <div className="card live-card">
+        <span className="pill warn">Paid · not live yet</span>
+        <button className="btn" onClick={onPush} disabled={busy}>
+          {busy ? "Putting it live…" : "Put my website live"}
+        </button>
+      </div>
+    ) : null;
+  const behind = owner.live.updatedAt !== owner.updatedAt;
+  return (
+    <div className="card live-card">
+      <div className="row tight" style={{ marginTop: 0, justifyContent: "space-between" }}>
+        <span className={`pill ${behind ? "warn" : "ok"}`}>{behind ? "Changes not live yet" : "Live"}</span>
+        <span className="hint small">Last put live {new Date(owner.live.deployedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</span>
+      </div>
+      <a className="live-url" href={owner.live.url} target="_blank" rel="noreferrer">
+        {owner.live.url} ↗
+      </a>
+      {behind && owner.due === 0 && (
+        <button className="btn" onClick={onPush} disabled={busy}>
+          {busy ? "Updating…" : "Update live website"}
+        </button>
+      )}
+    </div>
   );
 }
