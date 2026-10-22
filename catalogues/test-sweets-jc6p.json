@@ -1,0 +1,53 @@
+{
+  "businessName": "Test Sweets",
+  "category": "sweets",
+  "language": "English",
+  "siteType": "static",
+  "theme": {
+    "id": "kitchen",
+    "accent": 0,
+    "heroStyle": "full"
+  },
+  "headline": "Fresh and Delicious Traditional Sweets",
+  "subheadline": "We sell authentic sweets like Kaju Katli, Mysore Pak, and Gulab Jamun in Malleshwaram.",
+  "about": "Test Sweets offers a variety of delicious traditional sweets prepared fresh for our customers. Visit us in Malleshwaram between 9 am and 10 pm.",
+  "highlights": [
+    "Open 9 am to 10 pm",
+    "Located in Malleshwaram"
+  ],
+  "area": "Malleshwaram",
+  "address": null,
+  "hours": "9 am to 10 pm",
+  "hero": null,
+  "gallery": [],
+  "items": [
+    {
+      "name": "Kaju Katli",
+      "price": 900,
+      "unit": "per kg",
+      "lowConfidence": false,
+      "description": "Rich and smooth traditional cashew fudge.",
+      "image": null
+    },
+    {
+      "name": "Mysore Pak",
+      "price": 600,
+      "unit": "per kg",
+      "lowConfidence": false,
+      "description": "Traditional ghee-rich sweet from Karnataka.",
+      "image": null
+    },
+    {
+      "name": "Gulab Jamun",
+      "price": 20,
+      "unit": "each",
+      "lowConfidence": false,
+      "description": "Soft and juicy milk-solid balls in sugar syrup.",
+      "image": null
+    }
+  ],
+  "slug": "test-sweets-jc6p",
+  "whatsapp": "919876543210",
+  "editKeyHash": "031dee6770033b71f5a6ed7c78351e70c383c4f06f22d22180c9bd784c53c106",
+  "updatedAt": "2026-10-22T11:28:04.829Z"
+}
