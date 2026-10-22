@@ -46,6 +46,10 @@ export type Catalogue = {
   items: Item[];
   editKeyHash: string;
   updatedAt: string;
+  // Earlier versions, newest first, for one-step undo (capped in lib/catalogue.ts).
+  history?: Snapshot[];
 };
 
-export type PublicCatalogue = Omit<Catalogue, "editKeyHash">;
+export type Snapshot = { businessName: string; items: Item[]; updatedAt: string };
+
+export type PublicCatalogue = Omit<Catalogue, "editKeyHash" | "history">;

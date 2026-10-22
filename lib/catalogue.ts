@@ -1,6 +1,26 @@
 // Deterministic rules: validation, patch application, slugs and WhatsApp links.
 // No AI in here — this is the "Logic" and "Script" stages from the MVP scope.
-import type { Item, Patch } from "./schema";
+import type { Catalogue, Item, Patch } from "./schema";
+
+const HISTORY_LIMIT = 10;
+
+// Apply new content and remember the current version so it can be undone.
+export function withChange(c: Catalogue, next: { businessName: string; items: Item[] }): Catalogue {
+  const snapshot = { businessName: c.businessName, items: c.items, updatedAt: c.updatedAt };
+  return {
+    ...c,
+    ...next,
+    updatedAt: new Date().toISOString(),
+    history: [snapshot, ...(c.history ?? [])].slice(0, HISTORY_LIMIT),
+  };
+}
+
+// Restore the most recent earlier version.
+export function undoLast(c: Catalogue): Catalogue | null {
+  const [previous, ...rest] = c.history ?? [];
+  if (!previous) return null;
+  return { ...c, businessName: previous.businessName, items: previous.items, updatedAt: new Date().toISOString(), history: rest };
+}
 
 export function validateItems(items: Item[]): string[] {
   const errors: string[] = [];

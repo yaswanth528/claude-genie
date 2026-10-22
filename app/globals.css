@@ -125,6 +125,9 @@ textarea { min-height: 110px; resize: vertical; }
 .diff li.changed { background: var(--warn-bg); border-radius: 6px; }
 .diff ul { list-style: none; padding: 0; margin: 0; }
 .diff li { padding: 4px 6px; }
+.diff li.removed { text-decoration: line-through; }
+ul.plain { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 4px; }
+ul.plain li { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
 .notice { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 10px; padding: 10px 14px; margin-top: 16px; }
 .success { background: #e8f6ee; border: 1px solid #a8dcbc; border-radius: 10px; padding: 14px; margin-top: 16px; }
 .link-box { display: flex; gap: 8px; margin-top: 8px; }

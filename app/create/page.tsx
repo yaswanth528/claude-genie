@@ -1,7 +1,9 @@
 "use client";
 import { useCallback, useState } from "react";
 import { Logo } from "@/components/Logo";
+import { CopyButton } from "@/components/CopyButton";
 import { MicButton } from "@/components/MicButton";
+import { ReadBack } from "@/components/ReadBack";
 import { LANGUAGES } from "@/components/useSpeech";
 import type { Extraction, Item } from "@/lib/schema";
 
@@ -9,7 +11,7 @@ type Stage = "speak" | "confirm" | "done";
 
 export default function CreatePage() {
   const [stage, setStage] = useState<Stage>("speak");
-  const [lang, setLang] = useState("kn-IN");
+  const [lang, setLang] = useState("Kannada");
   const [transcript, setTranscript] = useState("");
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -19,7 +21,7 @@ export default function CreatePage() {
   const [language, setLanguage] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [items, setItems] = useState<Item[]>([]);
-  const [result, setResult] = useState<{ slug: string; editKey: string } | null>(null);
+  const [result, setResult] = useState<{ slug: string; editKey: string; whatsapp: string } | null>(null);
 
   const onText = useCallback((t: string) => setTranscript(t), []);
 
@@ -92,12 +94,12 @@ export default function CreatePage() {
           <label htmlFor="lang">Language</label>
           <select id="lang" value={lang} onChange={(e) => setLang(e.target.value)}>
             {LANGUAGES.map((l) => (
-              <option key={l.code} value={l.code}>
+              <option key={l.name} value={l.name}>
                 {l.label}
               </option>
             ))}
           </select>
-          <MicButton lang={lang} onText={onText} />
+          <MicButton language={lang} onText={onText} />
           <label htmlFor="transcript">What we heard (you can edit or type)</label>
           <textarea id="transcript" value={transcript} onChange={(e) => setTranscript(e.target.value)} />
           {errors.length > 0 && (
@@ -122,6 +124,7 @@ export default function CreatePage() {
             Check every price. Prices in <span style={{ background: "var(--warn-bg)" }}>yellow</span> might be misheard.
             Nothing goes live until you publish.
           </p>
+          <ReadBack businessName={businessName} items={items} language={lang} />
           <label htmlFor="bn">Business name</label>
           <input id="bn" value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
           <label htmlFor="wa">Your WhatsApp number (orders come here)</label>
@@ -187,7 +190,8 @@ export default function CreatePage() {
           <div className="success">
             <strong>Share this link</strong> in your WhatsApp or Instagram bio:
             <div className="link-box">
-              <input readOnly value={`${origin}/p/${result.slug}`} onFocus={(e) => e.target.select()} />
+              <input readOnly value={`${origin}/p/${result.slug}`} onFocus={(e) => e.target.select()} aria-label="Shop link" />
+              <CopyButton text={`${origin}/p/${result.slug}`} />
               <a className="btn" href={`/p/${result.slug}`} target="_blank" rel="noreferrer">
                 Open
               </a>
@@ -198,12 +202,29 @@ export default function CreatePage() {
             <div className="link-box">
               <input
                 readOnly
+                aria-label="Private edit link"
                 value={`${origin}/p/${result.slug}/edit#key=${result.editKey}`}
                 onFocus={(e) => e.target.select()}
               />
+              <CopyButton text={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} />
             </div>
           </div>
-          <p className="hint">Tip: place a test order from your own phone to check messages reach you.</p>
+          <div className="card" style={{ marginTop: 16 }}>
+            <strong>Check that orders reach you</strong>
+            <p className="hint">
+              Send yourself a test order. If it opens WhatsApp with your own chat, you’re set. Your number is also shown
+              on your page, so customers can still reach you if a message doesn’t go through.
+            </p>
+            <a
+              className="btn wa"
+              style={{ marginTop: 10 }}
+              href={`https://wa.me/${result.whatsapp}?text=${encodeURIComponent(`Test order from my SiteGenie page (${origin}/p/${result.slug})`)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Send a test order
+            </a>
+          </div>
         </>
       )}
     </main>

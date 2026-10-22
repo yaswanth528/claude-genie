@@ -1,20 +1,20 @@
 "use client";
 import { useSpeech } from "./useSpeech";
 
-export function MicButton({ lang, onText }: { lang: string; onText: (t: string) => void }) {
-  const { supported, listening, error, start, stop } = useSpeech(lang, onText);
-  if (!supported)
-    return <p className="hint">Voice input needs Chrome or Edge. You can type below instead.</p>;
+export function MicButton({ language, onText }: { language: string; onText: (t: string) => void }) {
+  const { supported, state, seconds, error, start, stop } = useSpeech(language, onText);
+  if (!supported) return <p className="hint">This browser can't record audio. You can type below instead.</p>;
   return (
     <div className="mic-wrap">
       <button
         type="button"
-        className={`mic ${listening ? "on" : ""}`}
-        onClick={listening ? stop : start}
-        aria-pressed={listening}
+        className={`mic ${state === "recording" ? "on" : ""}`}
+        onClick={state === "recording" ? stop : start}
+        disabled={state === "transcribing"}
+        aria-pressed={state === "recording"}
       >
         <span className="mic-dot" aria-hidden />
-        {listening ? "Stop" : "Tap and speak"}
+        {state === "recording" ? `Stop · 0:${String(seconds).padStart(2, "0")}` : state === "transcribing" ? "Listening to your recording…" : "Tap and speak"}
       </button>
       {error && <p className="error">{error}</p>}
     </div>

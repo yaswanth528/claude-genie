@@ -1,67 +1,96 @@
 "use client";
-// Browser speech-to-text (Web Speech API, works in Chrome/Edge on Android and desktop).
-// The MVP scope lists Sarvam / IndicConformer as the open STT decision; this is the
-// zero-cost stand-in until that is chosen. Owners can always type instead.
+// Records the owner's voice with MediaRecorder and sends it to /api/transcribe,
+// where Gemini turns it into text. Owners can always type instead.
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type Recognition = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  start(): void;
-  stop(): void;
-  onresult: ((e: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
-  onend: (() => void) | null;
-  onerror: ((e: { error: string }) => void) | null;
-};
+export type RecorderState = "idle" | "recording" | "transcribing";
+const MAX_SECONDS = 60;
 
-export function useSpeech(lang: string, onText: (text: string) => void) {
-  const [supported, setSupported] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const rec = useRef<Recognition | null>(null);
-  const finalText = useRef("");
-
-  useEffect(() => {
-    const w = window as unknown as Record<string, new () => Recognition>;
-    setSupported(Boolean(w.SpeechRecognition || w.webkitSpeechRecognition));
-  }, []);
-
-  const start = useCallback(() => {
-    const w = window as unknown as Record<string, new () => Recognition>;
-    const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
-    if (!Ctor) return;
-    const r = new Ctor();
-    r.lang = lang;
-    r.continuous = true;
-    r.interimResults = true;
-    finalText.current = "";
-    r.onresult = (e) => {
-      let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const res = e.results[i];
-        if (res.isFinal) finalText.current += res[0].transcript + " ";
-        else interim += res[0].transcript;
-      }
-      onText((finalText.current + interim).trim());
-    };
-    r.onerror = (e) => setError(e.error === "not-allowed" ? "Microphone permission was blocked." : `Mic error: ${e.error}`);
-    r.onend = () => setListening(false);
-    setError(null);
-    rec.current = r;
-    r.start();
-    setListening(true);
-  }, [lang, onText]);
-
-  const stop = useCallback(() => rec.current?.stop(), []);
-
-  return { supported, listening, error, start, stop };
+function pickMimeType(): string | undefined {
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+  return candidates.find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t));
 }
 
+export function useSpeech(language: string, onText: (text: string) => void) {
+  const [supported, setSupported] = useState(false);
+  const [state, setState] = useState<RecorderState>("idle");
+  const [seconds, setSeconds] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    setSupported(typeof window !== "undefined" && !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== "undefined");
+    return () => {
+      if (timer.current) clearInterval(timer.current);
+      recorder.current?.stream.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  const upload = useCallback(
+    async (blob: Blob) => {
+      setState("transcribing");
+      try {
+        const form = new FormData();
+        form.append("audio", blob, "recording");
+        form.append("language", language);
+        const res = await fetch("/api/transcribe", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) setError(data.error ?? "Couldn't understand the recording.");
+        else onText(data.transcript);
+      } catch {
+        setError("Network error while sending the recording. Try again.");
+      } finally {
+        setState("idle");
+      }
+    },
+    [language, onText],
+  );
+
+  const stop = useCallback(() => {
+    if (timer.current) clearInterval(timer.current);
+    if (recorder.current?.state === "recording") recorder.current.stop();
+  }, []);
+
+  const start = useCallback(async () => {
+    setError(null);
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setError("Microphone permission was blocked. Allow it in your browser settings, or type below.");
+      return;
+    }
+    const mimeType = pickMimeType();
+    const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    const chunks: Blob[] = [];
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    rec.onstop = () => {
+      stream.getTracks().forEach((t) => t.stop());
+      const blob = new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" });
+      if (blob.size > 0) upload(blob);
+      else setState("idle");
+    };
+    recorder.current = rec;
+    rec.start();
+    setSeconds(0);
+    setState("recording");
+    timer.current = setInterval(() => {
+      setSeconds((s) => {
+        if (s + 1 >= MAX_SECONDS) stop();
+        return s + 1;
+      });
+    }, 1000);
+  }, [stop, upload]);
+
+  return { supported, state, seconds, error, start, stop };
+}
+
+// The language name is passed to Gemini as a hint; the code is for read-back speech.
 export const LANGUAGES = [
-  { code: "kn-IN", label: "ಕನ್ನಡ Kannada" },
-  { code: "hi-IN", label: "हिन्दी Hindi" },
-  { code: "en-IN", label: "English (India)" },
-  { code: "ta-IN", label: "தமிழ் Tamil" },
-  { code: "te-IN", label: "తెలుగు Telugu" },
+  { name: "Kannada", code: "kn-IN", label: "ಕನ್ನಡ Kannada" },
+  { name: "Hindi", code: "hi-IN", label: "हिन्दी Hindi" },
+  { name: "English", code: "en-IN", label: "English" },
+  { name: "Tamil", code: "ta-IN", label: "தமிழ் Tamil" },
+  { name: "Telugu", code: "te-IN", label: "తెలుగు Telugu" },
 ];

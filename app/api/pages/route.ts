@@ -38,5 +38,5 @@ export async function POST(req: Request) {
     console.error(err);
     return NextResponse.json({ errors: ["Couldn't save the page. Try again."] }, { status: 502 });
   }
-  return NextResponse.json({ slug: catalogue.slug, editKey });
+  return NextResponse.json({ slug: catalogue.slug, editKey, whatsapp: catalogue.whatsapp });
 }

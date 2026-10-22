@@ -73,7 +73,7 @@ export default function Home() {
           <div className="card">
             <p>
               Say “change the cotton kurti price to 849”. You see a before and after, and the page updates only when
-              you approve it. No freelancer, no fee per change.
+              you approve it. Changed your mind? Undo the last change in one tap. No freelancer, no fee per change.
             </p>
           </div>
         </section>

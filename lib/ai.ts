@@ -37,6 +37,38 @@ async function generateJson<T extends z.ZodType>(schema: T, input: string): Prom
   return parsed.data;
 }
 
+// Speech-to-text: the PDF's open decision, resolved as Gemini audio understanding.
+const AUDIO_TYPES: Record<string, string> = {
+  "audio/webm": "audio/webm",
+  "audio/ogg": "audio/ogg",
+  "audio/mp4": "audio/m4a", // iPhone Safari records AAC in an MP4 container
+  "audio/x-m4a": "audio/m4a",
+  "audio/m4a": "audio/m4a",
+  "audio/aac": "audio/aac",
+  "audio/mpeg": "audio/mpeg",
+  "audio/mp3": "audio/mp3",
+  "audio/wav": "audio/wav",
+};
+
+export function supportedAudioType(mime: string): string | null {
+  return AUDIO_TYPES[mime.split(";")[0].trim().toLowerCase()] ?? null;
+}
+
+export async function transcribeAudio(base64: string, mimeType: string, language: string): Promise<string> {
+  const interaction = await client().interactions.create({
+    model: process.env.GEMINI_TRANSCRIBE_MODEL || MODEL,
+    input: [
+      {
+        type: "text",
+        text: `Transcribe this recording of a shop owner describing their products and prices. They mostly speak ${language}, possibly mixed with English or Hindi.
+Write exactly what was said, in the script of the language spoken. Write every price as digits (e.g. 799). Output only the transcript, no commentary. If there is no speech, output nothing.`,
+      },
+      { type: "audio", data: base64, mime_type: mimeType },
+    ],
+  });
+  return (interaction.output_text ?? "").trim();
+}
+
 export async function extractCatalogue(transcript: string): Promise<Extraction> {
   return generateJson(ExtractionSchema, `${EXTRACT_RULES}\n\nTranscript:\n${transcript}`);
 }

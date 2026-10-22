@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ShopPage({ params }: Props) {
   const c = await getCatalogue((await params).slug);
   if (!c) notFound();
-  const { editKeyHash: _omit, ...pub } = c;
+  const { editKeyHash: _key, history: _history, ...pub } = c;
 
   return (
     <main className="narrow">
