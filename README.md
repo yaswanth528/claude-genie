@@ -5,7 +5,7 @@ Voice-to-Page for MSMEs. An owner speaks for about 20 seconds and gets a shareab
 ## The journey
 
 1. **Speak** (`/create`): the phone records about 20 seconds of audio and Gemini transcribes it (Kannada, Hindi, English or a mix). You can also type.
-2. **Extract**: Gemini (`gemini-3.8-flash`, structured JSON output) turns the transcript into business name + items + prices, and flags prices that may be misheard.
+2. **Extract**: Gemini (`gemini-3.5-flash-lite` by default, structured JSON output) turns the transcript into business name + items + prices, and flags prices that may be misheard.
 3. **Read-back**: the list is shown (and can be read aloud); the owner fixes anything and confirms. Rules check that every item has a name and a price, that no price is negative and that there are no duplicates.
 4. **Publish**: the catalogue is saved and the owner gets a public link (`/p/<slug>`) and a private edit link.
 5. **Order**: the customer picks quantities and taps *Order on WhatsApp*, which opens `wa.me/<owner>` with the item list filled in.

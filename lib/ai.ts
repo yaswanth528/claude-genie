@@ -8,12 +8,18 @@ function client() {
   if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not set. Add it to .env.local and restart.");
   return (_client ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }));
 }
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+// Flash-Lite answered as accurately as 3.8 Flash on our product-list tests at about a third of the latency.
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+const TRANSCRIBE_MODEL = process.env.GEMINI_TRANSCRIBE_MODEL || MODEL;
+// "low" works on every current model. "minimal" is rejected by 3.8 Flash, and on Lite it
+// dropped spoken items from transcripts in our tests, so we don't use it.
+const thinking = (_model: string) => ({ thinking_level: "low" as const });
 
 const EXTRACT_RULES = `You turn a small Indian business owner's spoken description into a product catalogue.
 The transcript may mix languages (Kannada, Hindi, English, Hinglish) and may contain speech-to-text errors.
 Rules:
-- Only include items the owner actually said. Never invent items, prices or a business name.
+- Only include items the owner actually said. Never invent items, prices, units or a business name.
+- unit and tagline stay null unless the owner said them (e.g. "per kg").
 - Prices are in rupees. Convert spoken numbers ("saat sau ninyanve", "seven ninety nine") to digits.
 - Set lowConfidence to true when a price or name could plausibly be misheard (e.g. 79 vs 799, a garbled word).
 - Write product names the way the owner would on a shop page; keep them short.`;
@@ -30,6 +36,8 @@ async function generateJson<T extends z.ZodType>(schema: T, input: string): Prom
     model: MODEL,
     input,
     response_format: { type: "text", mime_type: "application/json", schema: jsonSchema },
+    // Light thinking keeps the read-back quick; the owner checks every value anyway.
+    generation_config: thinking(MODEL),
   });
   if (!interaction.output_text) throw new Error("No response from the model");
   const parsed = schema.safeParse(JSON.parse(interaction.output_text));
@@ -56,7 +64,7 @@ export function supportedAudioType(mime: string): string | null {
 
 export async function transcribeAudio(base64: string, mimeType: string, language: string): Promise<string> {
   const interaction = await client().interactions.create({
-    model: process.env.GEMINI_TRANSCRIBE_MODEL || MODEL,
+    model: TRANSCRIBE_MODEL,
     input: [
       {
         type: "text",
@@ -65,6 +73,7 @@ Write exactly what was said, in the script of the language spoken. Write every p
       },
       { type: "audio", data: base64, mime_type: mimeType },
     ],
+    generation_config: thinking(TRANSCRIBE_MODEL),
   });
   return (interaction.output_text ?? "").trim();
 }
