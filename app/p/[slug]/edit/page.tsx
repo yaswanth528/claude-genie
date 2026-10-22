@@ -45,6 +45,10 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
   // The key lives in the URL fragment so it never reaches server logs.
   useEffect(() => setKey(new URLSearchParams(window.location.hash.slice(1)).get("key") ?? ""), []);
   const [denied, setDenied] = useState(false);
+  const [loginAvailable, setLoginAvailable] = useState(false);
+  useEffect(() => {
+    if (denied) fetch("/api/auth/me").then((r) => r.json()).then((d) => setLoginAvailable(!!d.loginAvailable)).catch(() => {});
+  }, [denied]);
   const onText = useCallback((t: string) => setRequest(t), []);
 
   const call = useCallback(
@@ -139,13 +143,18 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
     return (
       <main className="narrow">
         <Logo />
-        <h1>Log in to edit</h1>
-        <p className="hint">Log in with the WhatsApp number on this website, or open the private edit link you got when you published.</p>
-        <div className="row">
-          <a className="btn" href="/login">
-            Log in with WhatsApp
-          </a>
-        </div>
+        <h1>Open your private edit link</h1>
+        <p className="hint">
+          To edit this website, open the private edit link you got when you published it (it ends with “#key=…”).
+          {loginAvailable && " Or log in with the WhatsApp number on this website."}
+        </p>
+        {loginAvailable && (
+          <div className="row">
+            <a className="btn" href="/login">
+              Log in with WhatsApp
+            </a>
+          </div>
+        )}
       </main>
     );
 

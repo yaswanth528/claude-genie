@@ -10,6 +10,7 @@ import { SiteEditor } from "@/components/SiteEditor";
 import { SiteView } from "@/components/site/SiteView";
 import type { Uploaded } from "@/components/upload";
 import { LANGUAGES } from "@/components/useSpeech";
+import { normaliseWhatsapp } from "@/lib/catalogue";
 import { PRICES } from "@/lib/prices";
 import type { Draft, Live } from "@/lib/schema";
 
@@ -57,6 +58,8 @@ export default function CreatePage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
   const [live, setLive] = useState<Live | null>(null);
+  const [whatsapp, setWhatsapp] = useState("");
+  const whatsappOk = normaliseWhatsapp(whatsapp) !== null;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [recordings, setRecordings] = useState<string[]>([]);
@@ -113,7 +116,7 @@ export default function CreatePage() {
         setStage("speak");
         return;
       }
-      setDraft({ ...(data as Draft), whatsapp: draft?.whatsapp ?? "" });
+      setDraft({ ...(data as Draft), whatsapp: draft?.whatsapp || whatsapp });
       setStage("review");
       window.scrollTo({ top: 0 });
     } catch {
@@ -228,6 +231,19 @@ export default function CreatePage() {
             Speak for 20–60 seconds: your shop’s name, what you sell with prices, and anything customers should know (area,
             timings, delivery).
           </p>
+          <label htmlFor="wa-first">Your WhatsApp number</label>
+          <input
+            id="wa-first"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="98765 43210"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            aria-describedby="wa-first-hint"
+          />
+          <p id="wa-first-hint" className={whatsapp && !whatsappOk ? "error" : "hint small"}>
+            {whatsapp && !whatsappOk ? "Enter a 10-digit mobile number." : "Customers’ orders come to this number on WhatsApp."}
+          </p>
           <label htmlFor="lang">Language</label>
           <select id="lang" value={lang} onChange={(e) => setLang(e.target.value)}>
             {LANGUAGES.map((l) => (
@@ -250,10 +266,11 @@ export default function CreatePage() {
 
           {errorBox}
           <div className="row">
-            <button className="btn" onClick={check} disabled={transcript.trim().length < 5}>
+            <button className="btn" onClick={check} disabled={transcript.trim().length < 5 || !whatsappOk}>
               Build my website
             </button>
           </div>
+          {!whatsappOk && transcript.trim().length >= 5 && <p className="hint small">Add your WhatsApp number above to continue.</p>}
         </>
       )}
 

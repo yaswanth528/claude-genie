@@ -2,6 +2,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { whatsappLoginReady } from "@/lib/whatsapp";
 
 // Images in ./images are copied to public/images (scripts/sync-images.mjs). Brand files
 // (SiteGenie-*) are used as the logo/icon; anything else shows up in the gallery.
@@ -23,9 +24,11 @@ export default function Home() {
       <header className="wrap nav">
         <Logo />
         <div className="row tight" style={{ marginTop: 0 }}>
-          <Link href="/login" className="btn ghost sm">
-            Log in
-          </Link>
+          {whatsappLoginReady() && (
+            <Link href="/login" className="btn ghost sm">
+              Log in
+            </Link>
+          )}
           <Link href="/create" className="btn">
             Make my website
           </Link>
