@@ -157,14 +157,14 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
                   <input aria-label="Product name" value={it.name} onChange={(e) => setItem(i, { name: e.target.value })} />
                   <input
                     aria-label={`Price of ${it.name}`}
-                    className="price"
+                    className="price-in"
                     inputMode="decimal"
                     placeholder="₹"
                     value={it.price ?? ""}
                     onChange={(e) => setItem(i, { price: e.target.value === "" ? null : Number(e.target.value), lowConfidence: false })}
                   />
                 </div>
-                <input aria-label={`Description of ${it.name}`} placeholder="Short description" value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} />
+                <textarea rows={2} aria-label={`Description of ${it.name}`} placeholder="Short description" value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} />
                 <div className="row tight">
                   <FileButton label={up.busy === `p${i}` ? "Uploading…" : it.image ? "Change photo" : "Add photo"} accept="image/*" disabled={!!up.busy} onFile={(f) => up.run(`p${i}`, f, (m) => setItem(i, { image: { ...m, alt: it.name } }))} />
                   {it.image && (

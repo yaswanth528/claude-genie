@@ -1,6 +1,6 @@
-// Pictures for slots the owner didn't fill: a Gemini illustration when the key allows image
-// generation, otherwise a free Pexels stock photo (PEXELS_API_KEY), otherwise nothing and
-// the site uses its photo-free design.
+// Pictures for slots the owner didn't fill, in order: a Gemini illustration (when the key
+// allows image generation), a free Pixabay photo (PIXABAY_API_KEY), a Pexels photo
+// (PEXELS_API_KEY). With none available the site uses its photo-free design.
 import { generateImage } from "./ai";
 import { saveMedia } from "./media";
 import type { Media } from "./schema";
@@ -51,6 +51,43 @@ async function fromPexels(query: string, aspect: "16:9" | "1:1", alt: string): P
   }
 }
 
+type PixabayHit = { largeImageURL: string; tags: string; user: string };
+
+// Pixabay: free key, commercial use allowed, no credit required. Their terms ask apps to
+// store the image rather than hotlink it, so it's copied into our media storage.
+async function fromPixabay(query: string, aspect: "16:9" | "1:1", alt: string): Promise<Media | null> {
+  const key = process.env.PIXABAY_API_KEY;
+  if (!key || !query.trim()) return null;
+  try {
+    const url = `https://pixabay.com/api/?${new URLSearchParams({
+      key,
+      q: query.slice(0, 90),
+      image_type: "photo",
+      orientation: aspect === "16:9" ? "horizontal" : "all",
+      safesearch: "true",
+      per_page: "3",
+    })}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error("Pixabay search failed:", res.status);
+      return null;
+    }
+    const hit = ((await res.json()) as { hits?: PixabayHit[] }).hits?.[0];
+    if (!hit) return null;
+    const img = await fetch(hit.largeImageURL);
+    if (!img.ok) return null;
+    const saved = await saveMedia(Buffer.from(await img.arrayBuffer()), "image/jpeg", "generated");
+    return { url: saved, kind: "image", generated: true, alt, credit: `Photo: ${hit.user} / Pixabay` };
+  } catch (err) {
+    console.error("Pixabay failed:", (err as Error).message);
+    return null;
+  }
+}
+
 export async function findPicture(opts: { prompt: string; query: string; aspect: "16:9" | "1:1"; alt: string }): Promise<Media | null> {
-  return (await fromGemini(opts.prompt, opts.aspect, opts.alt)) ?? (await fromPexels(opts.query, opts.aspect, opts.alt));
+  return (
+    (await fromGemini(opts.prompt, opts.aspect, opts.alt)) ??
+    (await fromPixabay(opts.query, opts.aspect, opts.alt)) ??
+    (await fromPexels(opts.query, opts.aspect, opts.alt))
+  );
 }

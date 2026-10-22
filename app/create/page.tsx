@@ -141,7 +141,11 @@ export default function CreatePage() {
                 <button className="btn" onClick={publish} disabled={busy}>
                   {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
                 </button>
-                <button className="btn ghost" onClick={() => setStage("speak")} disabled={busy}>
+                <button
+                  className="btn ghost"
+                  disabled={busy}
+                  onClick={() => window.confirm("Go back and build again? Changes you made here will be lost.") && setStage("speak")}
+                >
                   Start again
                 </button>
               </div>
