@@ -1,26 +1,10 @@
-// Deterministic rules: validation, patch application, slugs and WhatsApp links.
+// Deterministic rules: validation, patch application, undo, slugs and WhatsApp links.
 // No AI in here — this is the "Logic" and "Script" stages from the MVP scope.
-import type { Catalogue, Item, Patch } from "./schema";
+import type { Item, Order, Patch, Product, Site, SiteContent } from "./schema";
 
 const HISTORY_LIMIT = 10;
 
-// Apply new content and remember the current version so it can be undone.
-export function withChange(c: Catalogue, next: { businessName: string; items: Item[] }): Catalogue {
-  const snapshot = { businessName: c.businessName, items: c.items, updatedAt: c.updatedAt };
-  return {
-    ...c,
-    ...next,
-    updatedAt: new Date().toISOString(),
-    history: [snapshot, ...(c.history ?? [])].slice(0, HISTORY_LIMIT),
-  };
-}
-
-// Restore the most recent earlier version.
-export function undoLast(c: Catalogue): Catalogue | null {
-  const [previous, ...rest] = c.history ?? [];
-  if (!previous) return null;
-  return { ...c, businessName: previous.businessName, items: previous.items, updatedAt: new Date().toISOString(), history: rest };
-}
+export const formatPrice = (p: number | null) => (p === null ? "—" : `₹${p.toLocaleString("en-IN")}`);
 
 export function validateItems(items: Item[]): string[] {
   const errors: string[] = [];
@@ -44,7 +28,12 @@ export function normaliseWhatsapp(input: string): string | null {
   return digits.length >= 11 && digits.length <= 15 ? digits : null;
 }
 
-export function applyPatch(items: Item[], businessName: string, patch: Patch) {
+export function contentOf(site: Site): SiteContent {
+  const { slug: _s, whatsapp: _w, editKeyHash: _k, updatedAt: _u, history: _h, ...content } = site;
+  return content;
+}
+
+export function applyPatch(items: Product[], businessName: string, patch: Patch) {
   const next = items.map((it) => ({ ...it }));
   let name = businessName;
   const removals: number[] = [];
@@ -58,7 +47,8 @@ export function applyPatch(items: Item[], businessName: string, patch: Patch) {
         if (target && op.name) target.name = op.name;
         break;
       case "add":
-        if (op.name) next.push({ name: op.name, price: op.price, unit: null, lowConfidence: false });
+        if (op.name)
+          next.push({ name: op.name, price: op.price, unit: null, lowConfidence: false, description: "", image: null });
         break;
       case "remove":
         if (target) removals.push(op.index!);
@@ -68,10 +58,25 @@ export function applyPatch(items: Item[], businessName: string, patch: Patch) {
         break;
     }
   }
+  return { businessName: name, items: next.filter((_, i) => !removals.includes(i)) };
+}
+
+// Apply new content and remember the current version so it can be undone.
+export function withChange(site: Site, next: Partial<SiteContent>): Site {
+  const snapshot = { content: contentOf(site), updatedAt: site.updatedAt };
   return {
-    businessName: name,
-    items: next.filter((_, i) => !removals.includes(i)),
+    ...site,
+    ...next,
+    updatedAt: new Date().toISOString(),
+    history: [snapshot, ...(site.history ?? [])].slice(0, HISTORY_LIMIT),
   };
+}
+
+// Restore the most recent earlier version.
+export function undoLast(site: Site): Site | null {
+  const [previous, ...rest] = site.history ?? [];
+  if (!previous) return null;
+  return { ...site, ...previous.content, updatedAt: new Date().toISOString(), history: rest };
 }
 
 export function slugify(name: string): string {
@@ -85,18 +90,26 @@ export function slugify(name: string): string {
   return `${base || "shop"}-${suffix}`;
 }
 
-export function whatsappOrderLink(
-  whatsapp: string,
-  businessName: string,
-  lines: { name: string; qty: number; price: number | null }[],
-) {
-  const total = lines.reduce((sum, l) => sum + (l.price ?? 0) * l.qty, 0);
-  const text = [
+type Line = { name: string; qty: number; price: number | null };
+export const orderTotal = (lines: Line[]) => lines.reduce((s, l) => s + (l.price ?? 0) * l.qty, 0);
+
+export function orderText(businessName: string, lines: Line[], customer?: Order["customer"], orderId?: string) {
+  return [
     `Hi ${businessName}, I'd like to order:`,
     ...lines.map((l) => `• ${l.name} × ${l.qty}${l.price !== null ? ` — ${formatPrice(l.price * l.qty)}` : ""}`),
-    `Total: ${formatPrice(total)}`,
+    `Total: ${formatPrice(orderTotal(lines))}`,
+    ...(customer
+      ? [
+          "",
+          `Name: ${customer.name}`,
+          `Phone: ${customer.phone}`,
+          `Deliver to: ${customer.address}`,
+          ...(customer.note ? [`Note: ${customer.note}`] : []),
+        ]
+      : []),
+    ...(orderId ? [`Order ID: ${orderId}`] : []),
   ].join("\n");
-  return `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;
 }
 
-export const formatPrice = (p: number | null) => (p === null ? "—" : `₹${p.toLocaleString("en-IN")}`);
+export const whatsappLink = (whatsapp: string, text: string) =>
+  `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;

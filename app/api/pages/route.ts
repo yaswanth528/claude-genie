@@ -1,43 +1,28 @@
 import { NextResponse } from "next/server";
-import { normaliseWhatsapp, slugify, validateItems } from "@/lib/catalogue";
-import type { Catalogue, Item } from "@/lib/schema";
-import { hashKey, newEditKey, saveCatalogue } from "@/lib/store";
+import { slugify } from "@/lib/catalogue";
+import { cleanDraft } from "@/lib/draft";
+import type { Site } from "@/lib/schema";
+import { hashKey, newEditKey, saveSite } from "@/lib/store";
 
-// Publish a confirmed read-back as a new page.
+// Publish a reviewed website draft.
 export async function POST(req: Request) {
-  const body = (await req.json()) as {
-    businessName?: string;
-    tagline?: string | null;
-    language?: string;
-    whatsapp?: string;
-    items?: Item[];
-  };
-  const businessName = body.businessName?.trim();
-  const whatsapp = normaliseWhatsapp(body.whatsapp ?? "");
-  const items = (body.items ?? []).map((it) => ({ ...it, name: it.name.trim(), lowConfidence: false }));
-
-  const errors = validateItems(items);
-  if (!businessName) errors.unshift("Add your business name.");
-  if (!whatsapp) errors.unshift("Add a valid WhatsApp number.");
+  const { content, whatsapp, errors } = cleanDraft(await req.json().catch(() => null));
   if (errors.length) return NextResponse.json({ errors }, { status: 400 });
 
   const editKey = newEditKey();
-  const catalogue: Catalogue = {
-    slug: slugify(businessName!),
-    businessName: businessName!,
-    tagline: body.tagline?.trim() || null,
-    language: body.language ?? "",
+  const site: Site = {
+    ...content,
+    slug: slugify(content.businessName),
     whatsapp: whatsapp!,
-    items,
     editKeyHash: hashKey(editKey),
     updatedAt: new Date().toISOString(),
   };
   try {
-    await saveCatalogue(catalogue, `Create page ${catalogue.slug}`);
+    await saveSite(site, `Create site ${site.slug}`);
   } catch (err) {
     console.error(err);
     const msg = (err as Error).message;
-    return NextResponse.json({ errors: [msg.startsWith("Saving needs") ? msg : "Couldn't save the page. Try again."] }, { status: 502 });
+    return NextResponse.json({ errors: [msg.startsWith("Saving needs") ? msg : "Couldn't save the website. Try again."] }, { status: 502 });
   }
-  return NextResponse.json({ slug: catalogue.slug, editKey, whatsapp: catalogue.whatsapp });
+  return NextResponse.json({ slug: site.slug, editKey, whatsapp: site.whatsapp });
 }

@@ -1,23 +1,45 @@
 import { z } from "zod";
 
+export const THEME_IDS = ["boutique", "kitchen", "fresh", "studio", "craft", "bazaar"] as const;
+export type ThemeId = (typeof THEME_IDS)[number];
+
 export const ItemSchema = z.object({
   name: z.string().describe("Product name as the owner said it, cleaned up"),
   price: z.number().nullable().describe("Price in rupees; null if not said or unclear"),
-  unit: z.string().nullable().describe("e.g. 'per kg', 'per piece'; null if not said"),
-  lowConfidence: z
-    .boolean()
-    .describe("True if the name or price might be misheard (e.g. 79 vs 799)"),
+  unit: z.string().nullable().describe("e.g. 'per kg', 'per piece'; null unless the owner said it"),
+  lowConfidence: z.boolean().describe("True if the name or price might be misheard (e.g. 79 vs 799)"),
 });
 
-// What the model returns from a spoken description.
-export const ExtractionSchema = z.object({
+// What the model returns when planning a website from the owner's words (and photos).
+export const SitePlanSchema = z.object({
   businessName: z.string().nullable(),
-  tagline: z.string().nullable().describe("One short line about the business, only if said"),
   language: z.string().describe("Language(s) the owner spoke, e.g. 'Kannada', 'Hinglish'"),
-  items: z.array(ItemSchema),
+  category: z.string().describe("Short business type in English, e.g. 'women's ethnic wear', 'bakery', 'kirana store'"),
+  themeId: z.enum(THEME_IDS).describe(
+    "boutique: clothing, sarees, beauty, salons. kitchen: food, bakery, sweets, restaurants, tiffin. fresh: grocery, kirana, fruits, vegetables, dairy, organic. studio: services, tuition, repairs, consultants, fitness. craft: handmade, jewellery, pottery, home decor, gifts. bazaar: electronics, mobiles, hardware, general stores, anything else.",
+  ),
+  accent: z.number().describe("0, 1 or 2: which of the theme's three colour options suits this business best"),
+  heroStyle: z.enum(["full", "split"]).describe("full: big photo behind the headline. split: headline beside the photo"),
+  headline: z.string().describe("Short, warm homepage headline (max 8 words) in the owner's language or English"),
+  subheadline: z.string().describe("One sentence saying what they sell and to whom, using only what they said"),
+  about: z.string().nullable().describe("2-3 sentences about the business using only facts the owner said; null if they said nothing beyond products"),
+  highlights: z.array(z.string()).describe("Up to 3 short selling points the owner actually said (e.g. 'Home delivery in Jayanagar'). Empty if none said."),
+  area: z.string().nullable().describe("Area/locality/city if said"),
+  address: z.string().nullable().describe("Full address if said"),
+  hours: z.string().nullable().describe("Opening hours if said"),
+  items: z.array(
+    ItemSchema.extend({
+      description: z.string().describe("One short line describing the product, using only what was said or what the product name itself means. No invented claims."),
+      mediaIndex: z.number().nullable().describe("Index of the uploaded photo that shows this product; null if none matches"),
+      imagePrompt: z.string().describe("If no uploaded photo matches: a description for an illustrative product photo, plain background, no text"),
+    }),
+  ),
+  heroMediaIndex: z.number().nullable().describe("Index of the uploaded photo or video best suited as the main banner; null if none"),
+  galleryMediaIndexes: z.array(z.number()).describe("Indexes of uploaded media not used above that are worth showing in a gallery"),
+  heroImagePrompt: z.string().describe("If there is no suitable upload: a description for a wide banner photo that sets the mood of this business, no text or logos"),
 });
 
-// What the model returns from a voice edit: a patch, never a whole catalogue.
+// What the model returns from a voice edit: a patch, never a whole site.
 export const PatchSchema = z.object({
   ops: z.array(
     z.object({
@@ -34,22 +56,57 @@ export const PatchSchema = z.object({
 });
 
 export type Item = z.infer<typeof ItemSchema>;
-export type Extraction = z.infer<typeof ExtractionSchema>;
+export type SitePlan = z.infer<typeof SitePlanSchema>;
 export type Patch = z.infer<typeof PatchSchema>;
 
-export type Catalogue = {
-  slug: string;
+export type Media = {
+  url: string;
+  kind: "image" | "video";
+  generated: boolean; // true = AI illustration, not the owner's own photo
+  alt: string;
+};
+
+export type Product = Item & { description: string; image: Media | null };
+
+export type SiteContent = {
   businessName: string;
-  tagline: string | null;
+  category: string;
   language: string;
+  siteType: "static" | "dynamic";
+  theme: { id: ThemeId; accent: number; heroStyle: "full" | "split" };
+  headline: string;
+  subheadline: string;
+  about: string | null;
+  highlights: string[];
+  area: string | null;
+  address: string | null;
+  hours: string | null;
+  hero: Media | null;
+  gallery: Media[];
+  items: Product[];
+};
+
+// A draft is what the review screen edits before publishing.
+export type Draft = SiteContent & { whatsapp: string };
+
+export type Site = SiteContent & {
+  slug: string;
   whatsapp: string; // digits only, with country code
-  items: Item[];
   editKeyHash: string;
   updatedAt: string;
   // Earlier versions, newest first, for one-step undo (capped in lib/catalogue.ts).
   history?: Snapshot[];
 };
 
-export type Snapshot = { businessName: string; items: Item[]; updatedAt: string };
+export type Snapshot = { content: SiteContent; updatedAt: string };
 
-export type PublicCatalogue = Omit<Catalogue, "editKeyHash" | "history">;
+export type PublicSite = Omit<Site, "editKeyHash" | "history">;
+
+export type Order = {
+  id: string;
+  slug: string;
+  createdAt: string;
+  customer: { name: string; phone: string; address: string; note: string };
+  lines: { name: string; qty: number; price: number | null }[];
+  total: number;
+};

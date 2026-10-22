@@ -1,35 +1,26 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCatalogue } from "@/lib/store";
-import { OrderList } from "./OrderList";
+import { SiteView } from "@/components/site/SiteView";
+import { contentOf } from "@/lib/catalogue";
+import { getSite } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const c = await getCatalogue((await params).slug);
-  return c ? { title: c.businessName, description: c.tagline ?? `Order from ${c.businessName} on WhatsApp` } : {};
+  const s = await getSite((await params).slug);
+  if (!s) return {};
+  const image = s.hero?.kind === "image" ? s.hero.url : s.items.find((i) => i.image)?.image?.url;
+  return {
+    title: s.businessName,
+    description: s.subheadline || `Order from ${s.businessName} on WhatsApp`,
+    openGraph: { title: s.businessName, description: s.subheadline, images: image ? [image] : undefined },
+  };
 }
 
-export default async function ShopPage({ params }: Props) {
-  const c = await getCatalogue((await params).slug);
-  if (!c) notFound();
-  const { editKeyHash: _key, history: _history, ...pub } = c;
-
-  return (
-    <main className="narrow">
-      <header className="shop-head">
-        <h1>{pub.businessName}</h1>
-        {pub.tagline && <p>{pub.tagline}</p>}
-      </header>
-      <OrderList catalogue={pub} />
-      <p className="hint" style={{ marginTop: 24 }}>
-        Or message us directly on WhatsApp: <a href={`https://wa.me/${pub.whatsapp}`}>+{pub.whatsapp}</a>
-      </p>
-      <p className="hint">
-        Made with <a href="/">SiteGenie</a>
-      </p>
-    </main>
-  );
+export default async function SitePage({ params }: Props) {
+  const s = await getSite((await params).slug);
+  if (!s) notFound();
+  return <SiteView site={{ ...contentOf(s), whatsapp: s.whatsapp, slug: s.slug }} />;
 }

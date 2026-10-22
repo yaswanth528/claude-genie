@@ -23,7 +23,7 @@ export default function Home() {
       <header className="wrap nav">
         <Logo />
         <Link href="/create" className="btn">
-          Make my page
+          Make my website
         </Link>
       </header>
 
@@ -31,11 +31,11 @@ export default function Home() {
         <section className="hero">
           <div>
             <h1>
-              Speak for 20 seconds. <em>Get your shop page.</em>
+              Speak for 20 seconds. <em>Get your website.</em>
             </h1>
             <p className="lead">
-              Tell us your products and prices in your own language. You get a page to share on WhatsApp and
-              Instagram, and customers order straight to your WhatsApp.
+              Tell us about your shop in your own language. Add photos if you have them. You get a beautiful website
+              with your products, prices and WhatsApp ordering, or a full cart and checkout.
             </p>
             <Link href="/create" className="btn">
               Try it free
@@ -53,17 +53,17 @@ export default function Home() {
             <div className="card">
               <div className="num">1</div>
               <h3>Speak</h3>
-              <p>Say your business name, products and prices. Kannada, Hindi, English or a mix is fine.</p>
+              <p>Say your business name, what you sell and the prices. Kannada, Hindi, English or a mix is fine. Add photos or videos if you like.</p>
             </div>
             <div className="card">
               <div className="num">2</div>
               <h3>Check</h3>
-              <p>We read back what we heard. Fix anything that looks wrong — nothing goes live until you confirm.</p>
+              <p>AI designs a website for your kind of business. See it live, fix any price, change the look. Nothing goes live until you publish.</p>
             </div>
             <div className="card">
               <div className="num">3</div>
               <h3>Share</h3>
-              <p>Put the link in your WhatsApp or Instagram bio. Orders arrive as a ready-made WhatsApp message.</p>
+              <p>Put the link in your WhatsApp status or Instagram bio. Orders arrive on your WhatsApp, ready to confirm.</p>
             </div>
           </div>
         </section>
@@ -94,16 +94,16 @@ export default function Home() {
           <h2>Pricing</h2>
           <div className="pricing">
             <div className="card">
-              <span className="tag">Available now</span>
-              <h3>Shop page</h3>
+              <span className="tag">Static website</span>
+              <h3>Showcase</h3>
               <div className="price">₹1,999</div>
-              <p>One-time. A catalogue page with WhatsApp ordering. Unlimited voice changes. No yearly fee.</p>
+              <p>One-time. Your products, photos, about and contact, with ordering on WhatsApp. Unlimited voice changes. No yearly fee.</p>
             </div>
             <div className="card">
-              <span className="tag">Coming later</span>
+              <span className="tag">Dynamic website</span>
               <h3>Online store</h3>
               <div className="price">₹1,999 + ₹3,000/yr</div>
-              <p>Everything in the shop page, plus cart and online payment.</p>
+              <p>Everything in Showcase, plus a cart, a checkout form with delivery address, and an orders list for you.</p>
             </div>
           </div>
           <p className="hint">Custom domain optional, paid separately. Prices are a proposal and may change.</p>
