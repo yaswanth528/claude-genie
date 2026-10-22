@@ -6,12 +6,13 @@ import { upload as blobUpload } from "@vercel/blob/client";
 
 export type Uploaded = { url: string; kind: "image" | "video"; name: string };
 
-let modePromise: Promise<"blob" | "local"> | null = null;
+type Mode = { mode: "blob" | "server"; maxBytes: number };
+let modePromise: Promise<Mode> | null = null;
 const uploadMode = () =>
   (modePromise ??= fetch("/api/upload")
     .then((r) => r.json())
-    .then((d) => (d.mode === "blob" ? "blob" : "local"))
-    .catch(() => "local" as const));
+    .then((d) => ({ mode: d.mode === "blob" ? ("blob" as const) : ("server" as const), maxBytes: Number(d.maxBytes) || 4 * 1024 * 1024 }))
+    .catch(() => ({ mode: "server" as const, maxBytes: 4 * 1024 * 1024 })));
 
 async function shrinkImage(file: File): Promise<Blob> {
   if (file.type === "image/gif") return file;
@@ -38,7 +39,10 @@ export async function uploadFile(file: File, onProgress?: (pct: number) => void)
   const ext = type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
   const name = file.name.replace(/\.[^.]+$/, "").slice(0, 60) || kind;
 
-  if ((await uploadMode()) === "blob") {
+  const { mode, maxBytes } = await uploadMode();
+  if (body.size > maxBytes)
+    throw new Error(`${file.name} is too big (max ${Math.floor(maxBytes / 1024 / 1024)} MB).${kind === "video" ? " Try a shorter clip." : ""}`);
+  if (mode === "blob") {
     const blob = await blobUpload(`uploads/${kind}.${ext}`, body, {
       access: "public",
       handleUploadUrl: "/api/upload",

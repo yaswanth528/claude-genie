@@ -1,12 +1,15 @@
-// Photo/video storage. Vercel Blob when BLOB_READ_WRITE_TOKEN is set (Vercel adds it when
-// you create a Blob store); otherwise files are written to ./data/uploads and served
-// by /api/media/<name> for local development.
+// Photo/video storage on Vercel Blob. Vercel connects a store either with
+// BLOB_READ_WRITE_TOKEN or with BLOB_STORE_ID (automatic OIDC sign-in on Vercel).
+// Without either, files go to ./data/uploads and are served by /api/media/<name> (local dev).
 import { put } from "@vercel/blob";
 import { randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const blobEnabled = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+export const blobEnabled = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+// Phones can upload straight to Blob (big videos OK) only with a read-write token;
+// otherwise uploads pass through this server (about 4 MB per file on Vercel).
+export const directUploads = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 const localDir = join(process.cwd(), "data", "uploads");
 
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"];
