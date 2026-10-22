@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { formatPrice, upiLink } from "./catalogue";
 import { categoriesOf, localText, type LocalText } from "./localize";
 import type { Media, Site } from "./schema";
+import { jsonLd, ogImageUrl } from "./seo";
 import { SITE_CSS } from "./siteCss";
 import { themeVars } from "./themes";
 
@@ -155,7 +156,8 @@ export async function renderStandalone(site: Site, appOrigin: string): Promise<s
     [/[\u0D00-\u0D7F]/, "Noto+Sans+Malayalam"],
   ];
   for (const [re, fam] of scripts) if (re.test(allText)) fonts.push(`family=${fam}:wght@400;600;700`);
-  const ogImage = site.hero?.kind === "image" ? site.hero.url : site.items.find((i) => i.image)?.image?.url;
+  const ogImage = ogImageUrl(appOrigin, site);
+  const pageUrl = site.live?.url ?? `${appOrigin}/p/${site.slug}`;
 
   const config = {
     slug: site.slug,
@@ -190,7 +192,8 @@ export async function renderStandalone(site: Site, appOrigin: string): Promise<s
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(site.businessName)}</title><meta name="description" content="${esc(site.subheadline)}">
-<meta property="og:title" content="${esc(site.businessName)}"><meta property="og:description" content="${esc(site.subheadline)}">${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">` : ""}
+<meta property="og:type" content="website"><meta property="og:url" content="${esc(pageUrl)}"><meta property="og:title" content="${esc(site.businessName)}"><meta property="og:description" content="${esc(site.subheadline)}"><meta property="og:image" content="${esc(ogImage)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="${esc(pageUrl)}">
+<script type="application/ld+json">${jsonLd(site, pageUrl, appOrigin)}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?${fonts.join("&")}&display=swap">
 <style>${FONT_VARS}html,body{margin:0}${SITE_CSS}.site [hidden],.site[hidden]{display:none!important}.s-checkout label{display:grid;gap:4px}.s-upi-qr svg{width:110px;height:110px;display:block}</style></head>
