@@ -1,10 +1,13 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { limit } from "@/lib/ratelimit";
 import { hashCode, MAX_ATTEMPTS, OWNER_COOKIE, sessionCookie } from "@/lib/owner";
 import { deleteChallenge, getChallenge, updateChallenge } from "@/lib/store";
 
 // Step 2: check the code and log the owner in for 30 days.
 export async function POST(req: Request) {
+  const stop = await limit(req, "loginVerify");
+  if (stop) return stop;
   const { challenge, code } = (await req.json().catch(() => ({}))) as { challenge?: string; code?: string };
   const c = challenge ? await getChallenge(challenge) : null;
   if (!c || c.expires < Date.now()) return NextResponse.json({ error: "This code has expired. Ask for a new one." }, { status: 400 });

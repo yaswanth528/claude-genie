@@ -19,9 +19,12 @@ async function cf<T>(path: string, init: RequestInit = {}): Promise<CfResponse<T
 }
 
 const SCHEMA = [
-  `CREATE TABLE IF NOT EXISTS docs (path TEXT PRIMARY KEY, body TEXT NOT NULL, updated_at TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS docs (path TEXT PRIMARY KEY, body TEXT NOT NULL, updated_at TEXT NOT NULL, rev INTEGER NOT NULL DEFAULT 0)`,
   `CREATE TABLE IF NOT EXISTS visits (slug TEXT NOT NULL, day TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (slug, day))`,
+  `CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, window_start INTEGER NOT NULL, count INTEGER NOT NULL)`,
 ];
+// Changes for databases created before a column existed; "duplicate column" errors are expected.
+const MIGRATIONS = [`ALTER TABLE docs ADD COLUMN rev INTEGER NOT NULL DEFAULT 0`];
 
 let dbIdPromise: Promise<string> | null = null;
 
@@ -37,22 +40,35 @@ async function databaseId(): Promise<string> {
     id = created.result.uuid;
   }
   for (const sql of SCHEMA) await raw(id, sql, []);
+  for (const sql of MIGRATIONS) await raw(id, sql, []).catch(() => {});
   return id;
 }
 
-async function raw<T>(id: string, sql: string, params: unknown[]): Promise<T[]> {
-  const res = await cf<{ results: T[]; success: boolean }[]>(`/d1/database/${id}/query`, {
+type QueryResult<T> = { results: T[]; meta: { changes: number } };
+
+async function rawFull<T>(id: string, sql: string, params: unknown[]): Promise<QueryResult<T>> {
+  const res = await cf<{ results: T[]; success: boolean; meta?: { changes?: number } }[]>(`/d1/database/${id}/query`, {
     method: "POST",
     body: JSON.stringify({ sql, params }),
   });
   if (!res.success) throw new Error(`Cloudflare D1 query failed: ${res.errors.map((e) => e.message).join("; ")}`);
-  return res.result[0]?.results ?? [];
+  return { results: res.result[0]?.results ?? [], meta: { changes: res.result[0]?.meta?.changes ?? 0 } };
 }
+const raw = async <T>(id: string, sql: string, params: unknown[]) => (await rawFull<T>(id, sql, params)).results;
 
-export async function query<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
+function dbId() {
   dbIdPromise ??= databaseId().catch((err) => {
     dbIdPromise = null; // retry next time
     throw err;
   });
-  return raw<T>(await dbIdPromise, sql, params);
+  return dbIdPromise;
+}
+
+export async function query<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
+  return raw<T>(await dbId(), sql, params);
+}
+
+// For writes where we need to know how many rows changed (conditional updates).
+export async function execute(sql: string, params: unknown[] = []): Promise<number> {
+  return (await rawFull(await dbId(), sql, params)).meta.changes;
 }

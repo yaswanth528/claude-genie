@@ -3,7 +3,7 @@ import { deployToPages } from "./cloudflare";
 import { PRICES } from "./prices";
 import type { Site } from "./schema";
 import { renderStandalone } from "./standalone";
-import { saveSite } from "./store";
+import { ConflictError, getSiteRev, saveSite } from "./store";
 
 
 // What the owner has to pay now for their current site type.
@@ -19,10 +19,20 @@ export const paymentMode = (): "test" | "live" | "off" =>
 
 export async function deploySite(site: Site, appOrigin: string): Promise<Site> {
   const { project, url } = await deployToPages(site.slug, await renderStandalone(site, appOrigin));
-  const now = new Date().toISOString();
-  const next: Site = { ...site, live: { provider: "cloudflare", project, url, deployedAt: now, updatedAt: site.updatedAt } };
-  await saveSite(next, `Deploy ${site.slug} to ${url}`);
-  return next;
+  const live = { provider: "cloudflare" as const, project, url, deployedAt: new Date().toISOString(), updatedAt: site.updatedAt };
+  // Record the deploy on the newest saved version, so a deploy never undoes a newer edit.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { site: latest, rev } = await getSiteRev(site.slug);
+    if (!latest) break;
+    const next: Site = { ...latest, live };
+    try {
+      await saveSite(next, `Deploy ${site.slug} to ${url}`, rev);
+      return next;
+    } catch (err) {
+      if (!(err instanceof ConflictError)) throw err;
+    }
+  }
+  return { ...site, live };
 }
 
 export const appOrigin = (req: Request) => process.env.APP_URL?.replace(/\/$/, "") || new URL(req.url).origin;

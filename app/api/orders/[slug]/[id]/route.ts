@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { applyDeliveryRules, buildLines, buyerCanChange, money, publicOrder, statusOf, totalOf } from "@/lib/orders";
 import { canEdit } from "@/lib/owner";
 import { ORDER_STATUSES, type Order, type OrderStatus, type Site } from "@/lib/schema";
-import { getOrder, getSite, hashKey, saveOrder } from "@/lib/store";
+import { ConflictError, getOrderRev, getSite, hashKey, saveOrder } from "@/lib/store";
 
 type Ctx = { params: Promise<{ slug: string; id: string }> };
 
@@ -17,12 +17,12 @@ function buyerToken(req: Request, order: Order): boolean {
 
 async function load(req: Request, ctx: Ctx) {
   const { slug, id } = await ctx.params;
-  const [site, order] = await Promise.all([getSite(slug), getOrder(slug, id)]);
+  const [site, { order, rev }] = await Promise.all([getSite(slug), getOrderRev(slug, id)]);
   if (!site || !order) return { error: NextResponse.json({ error: "Order not found." }, { status: 404 }) };
   const owner = canEdit(req, site);
   const buyer = buyerToken(req, order);
   if (!owner && !buyer) return { error: NextResponse.json({ error: "This order link isn't valid." }, { status: 403 }) };
-  return { site, order, owner, buyer };
+  return { site, order, rev, owner, buyer };
 }
 
 // What the "My order" page needs: the order plus the shop's look and products.
@@ -113,8 +113,9 @@ export async function PUT(req: Request, ctx: Ctx) {
 
   order = { ...order, total: totalOf(order) };
   try {
-    await saveOrder(order);
+    await saveOrder(order, r.rev);
   } catch (err) {
+    if (err instanceof ConflictError) return NextResponse.json({ error: err.message }, { status: 409 });
     console.error(err);
     return NextResponse.json({ error: "Couldn't save. Try again." }, { status: 502 });
   }

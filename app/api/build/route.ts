@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { limit } from "@/lib/ratelimit";
 import { planSite, type UploadedMedia } from "@/lib/ai";
 import { findPicture } from "@/lib/images";
 import { THEME_IDS, type Draft, type Media } from "@/lib/schema";
@@ -20,6 +21,8 @@ function validMedia(m: unknown): m is UploadedMedia {
 
 // Turn what the owner said (plus any uploads) into a full website draft for review.
 export async function POST(req: Request) {
+  const stop = (await limit(req, "build")) ?? (await limit(req, "buildAll", { global: true }));
+  if (stop) return stop;
   const body = (await req.json().catch(() => ({}))) as { transcript?: string; media?: unknown[]; generateImages?: boolean };
   const transcript = body.transcript?.trim() ?? "";
   if (transcript.length < 5) return NextResponse.json({ error: "Say or type a bit more about your business." }, { status: 400 });

@@ -1,5 +1,6 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
+import { limit } from "@/lib/ratelimit";
 import { directUploads, IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, saveMedia, VIDEO_TYPES } from "@/lib/media";
 
 // Through-server uploads are capped by Vercel's request size limit.
@@ -11,6 +12,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const stop = await limit(req, "upload");
+  if (stop) return stop;
   const type = req.headers.get("content-type") ?? "";
 
   // Vercel Blob client-upload handshake: hand the browser a short-lived token.

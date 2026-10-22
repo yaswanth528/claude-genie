@@ -7,7 +7,7 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { d1Ready, query } from "./d1";
+import { d1Ready, execute, query } from "./d1";
 import type { Order, Site } from "./schema";
 
 const { GITHUB_TOKEN, GITHUB_REPO, GITHUB_BRANCH = "main" } = process.env;
@@ -61,6 +61,31 @@ async function listGitHub(dir: string): Promise<string[]> {
 
 // ---------- Generic documents ----------
 
+// Thrown when a document changed between reading and saving (someone else saved first).
+export class ConflictError extends Error {
+  constructor() {
+    super("This was just changed by someone else. Reload and try again.");
+  }
+}
+
+// A document's version: D1 row version, GitHub file sha, or null (missing / local files).
+export type Rev = number | string | null;
+
+async function readDocRev<T>(path: string): Promise<{ doc: T | null; rev: Rev }> {
+  switch (backend()) {
+    case "d1": {
+      const rows = await query<{ body: string; rev: number }>("SELECT body, rev FROM docs WHERE path = ?", [path]);
+      return rows[0] ? { doc: JSON.parse(rows[0].body) as T, rev: rows[0].rev } : { doc: null, rev: null };
+    }
+    case "github": {
+      const r = await readGitHub<T>(path);
+      return r ? { doc: r.doc, rev: r.sha } : { doc: null, rev: null };
+    }
+    default:
+      return { doc: await readDoc<T>(path), rev: null };
+  }
+}
+
 async function readDoc<T>(path: string): Promise<T | null> {
   switch (backend()) {
     case "d1": {
@@ -78,21 +103,34 @@ async function readDoc<T>(path: string): Promise<T | null> {
   }
 }
 
-async function writeDoc(path: string, doc: unknown, message: string): Promise<void> {
+// Saves a document. With `expected` (from readDocRev), the save only happens if nobody
+// else saved in between; otherwise it throws ConflictError.
+async function writeDoc(path: string, doc: unknown, message: string, expected?: Rev): Promise<void> {
   const json = JSON.stringify(doc, null, 2) + "\n";
+  const now = new Date().toISOString();
   switch (backend()) {
-    case "d1":
-      await query(
-        "INSERT INTO docs (path, body, updated_at) VALUES (?, ?, ?) ON CONFLICT(path) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at",
-        [path, json, new Date().toISOString()],
-      );
+    case "d1": {
+      if (expected === undefined) {
+        await query(
+          "INSERT INTO docs (path, body, updated_at, rev) VALUES (?, ?, ?, 1) ON CONFLICT(path) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at, rev = docs.rev + 1",
+          [path, json, now],
+        );
+        return;
+      }
+      const changed =
+        expected === null
+          ? await execute("INSERT OR IGNORE INTO docs (path, body, updated_at, rev) VALUES (?, ?, ?, 1)", [path, json, now])
+          : await execute("UPDATE docs SET body = ?, updated_at = ?, rev = rev + 1 WHERE path = ? AND rev = ?", [json, now, path, expected]);
+      if (changed === 0) throw new ConflictError();
       return;
+    }
     case "github": {
-      const existing = await readGitHub(path);
+      const sha = expected === undefined ? (await readGitHub(path))?.sha : expected;
       const res = await gh(path, {
         method: "PUT",
-        body: JSON.stringify({ message, content: Buffer.from(json).toString("base64"), branch: GITHUB_BRANCH, ...(existing ? { sha: existing.sha } : {}) }),
+        body: JSON.stringify({ message, content: Buffer.from(json).toString("base64"), branch: GITHUB_BRANCH, ...(sha ? { sha } : {}) }),
       });
+      if (res.status === 409 || res.status === 422) throw new ConflictError();
       if (!res.ok) throw new Error(`GitHub save failed: ${res.status}`);
       return;
     }
@@ -179,9 +217,16 @@ export async function getSite(slug: string): Promise<Site | null> {
   return doc ? upgrade(doc) : null;
 }
 
-export async function saveSite(site: Site, message: string): Promise<void> {
+// The site together with its version, for edits that must not overwrite someone else's.
+export async function getSiteRev(slug: string): Promise<{ site: Site | null; rev: Rev }> {
+  if (!validSlug(slug)) return { site: null, rev: null };
+  const { doc, rev } = await readDocRev<Site>(`catalogues/${slug}.json`);
+  return { site: doc ? upgrade(doc) : null, rev };
+}
+
+export async function saveSite(site: Site, message: string, expected?: Rev): Promise<void> {
   if (!validSlug(site.slug)) throw new Error("Invalid page name");
-  await writeDoc(`catalogues/${site.slug}.json`, site, message);
+  await writeDoc(`catalogues/${site.slug}.json`, site, message, expected);
 }
 
 export async function listSites(): Promise<Site[]> {
@@ -195,14 +240,19 @@ export async function deleteSite(slug: string): Promise<void> {
   if (backend() === "d1") await query("DELETE FROM visits WHERE slug = ?", [slug]);
 }
 
-export async function saveOrder(order: Order): Promise<void> {
+export async function saveOrder(order: Order, expected?: Rev): Promise<void> {
   if (!validSlug(order.slug)) throw new Error("Invalid page name");
-  await writeDoc(`catalogues/orders/${order.slug}/${order.id}.json`, order, `New order on ${order.slug}`);
+  await writeDoc(`catalogues/orders/${order.slug}/${order.id}.json`, order, `Order on ${order.slug}`, expected);
 }
 
 export async function getOrder(slug: string, id: string): Promise<Order | null> {
-  if (!validSlug(slug) || !/^[a-z0-9-]{6,40}$/.test(id)) return null;
-  return readDoc<Order>(`catalogues/orders/${slug}/${id}.json`);
+  return (await getOrderRev(slug, id)).order;
+}
+
+export async function getOrderRev(slug: string, id: string): Promise<{ order: Order | null; rev: Rev }> {
+  if (!validSlug(slug) || !/^[a-z0-9-]{6,40}$/.test(id)) return { order: null, rev: null };
+  const { doc, rev } = await readDocRev<Order>(`catalogues/orders/${slug}/${id}.json`);
+  return { order: doc, rev };
 }
 
 export async function listOrders(slug: string): Promise<Order[]> {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { canEdit } from "@/lib/owner";
 import { amountDue, appOrigin, deploySite, paymentMode } from "@/lib/publish";
-import { getSite, newId, saveSite } from "@/lib/store";
+import { ConflictError, getSiteRev, newId, saveSite } from "@/lib/store";
 
 export const maxDuration = 60;
 type Ctx = { params: Promise<{ slug: string }> };
@@ -10,7 +10,7 @@ type Ctx = { params: Promise<{ slug: string }> };
 // Test mode records a simulated payment; a real gateway (e.g. Razorpay) plugs in here.
 export async function POST(req: Request, { params }: Ctx) {
   const { slug } = await params;
-  const site = await getSite(slug);
+  const { site, rev } = await getSiteRev(slug);
   if (!site) return NextResponse.json({ error: "Website not found" }, { status: 404 });
   if (!canEdit(req, site)) return NextResponse.json({ error: "Log in with WhatsApp or open your private edit link." }, { status: 403 });
 
@@ -24,8 +24,9 @@ export async function POST(req: Request, { params }: Ctx) {
       payment: { plan: site.siteType, amount: due + (site.payment?.amount ?? 0), mode: "test", reference: `TEST-${newId()}`, paidAt: new Date().toISOString() },
     };
     try {
-      await saveSite(paid, `Test payment ₹${due} for ${slug}`);
+      await saveSite(paid, `Test payment ₹${due} for ${slug}`, rev);
     } catch (err) {
+      if (err instanceof ConflictError) return NextResponse.json({ error: err.message }, { status: 409 });
       console.error(err);
       return NextResponse.json({ error: "Couldn't record the payment. Try again." }, { status: 502 });
     }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { limit } from "@/lib/ratelimit";
 import { normaliseWhatsapp } from "@/lib/catalogue";
 import { CODE_MINUTES, hashCode, newCode } from "@/lib/owner";
 import { lastCodeSentAt, newId, saveChallenge, sitesForPhone } from "@/lib/store";
@@ -6,6 +7,8 @@ import { sendLoginCode, whatsappLoginReady } from "@/lib/whatsapp";
 
 // Step 1 of owner login: send a 6-digit code to the WhatsApp number on their website.
 export async function POST(req: Request) {
+  const stop = await limit(req, "loginCode");
+  if (stop) return stop;
   if (!whatsappLoginReady())
     return NextResponse.json({ error: "WhatsApp login isn't set up yet. Use the private edit link you got when you published." }, { status: 503 });
   const { phone: input } = (await req.json().catch(() => ({}))) as { phone?: string };

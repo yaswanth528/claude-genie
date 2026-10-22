@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
+import { limit } from "@/lib/ratelimit";
 import { applyDeliveryRules, buildLines, orderLink, publicOrder, totalOf } from "@/lib/orders";
 import { canEdit } from "@/lib/owner";
 import { appOrigin } from "@/lib/publish";
@@ -20,6 +21,8 @@ const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice
 // A buyer places an order on a dynamic (cart) website. Prices come from the saved site,
 // not the browser. The buyer gets a private link to see, change or cancel the order.
 export async function POST(req: Request, { params }: Ctx) {
+  const stop = await limit(req, "order", { cors: CORS });
+  if (stop) return stop;
   const { slug } = await params;
   const site = await getSite(slug);
   if (!site) return json({ error: "Website not found" }, 404);

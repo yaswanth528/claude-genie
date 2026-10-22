@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { limit } from "@/lib/ratelimit";
 import { slugify } from "@/lib/catalogue";
 import { cleanDraft } from "@/lib/draft";
 import type { Site } from "@/lib/schema";
@@ -6,6 +7,8 @@ import { hashKey, newEditKey, saveSite } from "@/lib/store";
 
 // Publish a reviewed website draft.
 export async function POST(req: Request) {
+  const stop = await limit(req, "publish");
+  if (stop) return stop;
   const { content, whatsapp, errors } = cleanDraft(await req.json().catch(() => null));
   if (errors.length) return NextResponse.json({ errors }, { status: 400 });
 

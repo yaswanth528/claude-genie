@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
+import { limit } from "@/lib/ratelimit";
 import { supportedAudioType, transcribeAudio } from "@/lib/ai";
 
 const MAX_BYTES = 4 * 1024 * 1024; // ~4 MB keeps us under Vercel's request limit; 60 s of speech is far less
 
 export async function POST(req: Request) {
+  const stop = await limit(req, "transcribe");
+  if (stop) return stop;
   let form: FormData;
   try {
     form = await req.formData();
