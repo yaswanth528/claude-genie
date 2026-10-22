@@ -1,0 +1,52 @@
+{
+  "businessName": "SiteGenie Test Boutique",
+  "category": "women's ethnic wear",
+  "language": "English",
+  "siteType": "static",
+  "theme": {
+    "id": "boutique",
+    "accent": 0,
+    "heroStyle": "full"
+  },
+  "headline": "Handmade Ethnic Wear in Jayanagar",
+  "subheadline": "We sell handmade cotton kurtis, silk sarees, and cotton dupattas.",
+  "about": "Located in Jayanagar, Bangalore, we offer a lovely collection of traditional wear. Visit us between 10 am and 9 pm, Tuesday closed.",
+  "highlights": [
+    "Home delivery available in Jayanagar"
+  ],
+  "area": "Jayanagar, Bangalore",
+  "address": null,
+  "hours": "10 am to 9 pm, closed Tuesday",
+  "hero": null,
+  "gallery": [],
+  "items": [
+    {
+      "name": "Cotton Kurti",
+      "price": 799,
+      "unit": "per piece",
+      "lowConfidence": false,
+      "description": "Handmade cotton kurti",
+      "image": null
+    },
+    {
+      "name": "Silk Saree",
+      "price": 2499,
+      "unit": "per piece",
+      "lowConfidence": false,
+      "description": "Elegant silk saree",
+      "image": null
+    },
+    {
+      "name": "Cotton Dupatta",
+      "price": 299,
+      "unit": "per piece",
+      "lowConfidence": false,
+      "description": "Cotton dupatta",
+      "image": null
+    }
+  ],
+  "slug": "sitegenie-test-boutique-olz2",
+  "whatsapp": "919876543210",
+  "editKeyHash": "085e0f882a561f62651abfe5be97db79bf51ad2dc7768a124955f249f6e31ba0",
+  "updatedAt": "2026-10-22T10:41:47.173Z"
+}
