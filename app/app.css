@@ -183,7 +183,9 @@
 .bar { width: 100%; max-width: 26px; min-height: 2px; background: var(--brand); border-radius: 4px 4px 0 0; align-self: end; }
 .bar-n { font-size: 0.68rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .bar-d { font-size: 0.68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.seg.tabs { flex-wrap: wrap; }
+.seg.tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+.seg.tabs::-webkit-scrollbar { display: none; }
+.seg.tabs button { white-space: nowrap; flex-shrink: 0; }
 
 /* Admin */
 .admin { max-width: 1180px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 60px max(16px, env(safe-area-inset-left, 0px)); }
