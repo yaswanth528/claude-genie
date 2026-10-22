@@ -1,0 +1,26 @@
+{
+  "id": "mvjlitv4-c58250",
+  "slug": "sri-lakshmi-silks-41fk",
+  "createdAt": "2026-10-22T13:47:50.320Z",
+  "customer": {
+    "name": "Test Customer",
+    "phone": "9876501234",
+    "address": "12 Test Road",
+    "note": ""
+  },
+  "lines": [
+    {
+      "name": "Cotton kurti",
+      "price": 799,
+      "qty": 2,
+      "option": "M"
+    },
+    {
+      "name": "Cotton kurti",
+      "price": 799,
+      "qty": 1,
+      "option": "S"
+    }
+  ],
+  "total": 2397
+}
