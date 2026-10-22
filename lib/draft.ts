@@ -9,7 +9,8 @@ export const isMediaUrl = (url: unknown): url is string =>
   typeof url === "string" &&
   (/^\/api\/media\/[a-z0-9-]+\.[a-z0-9]{2,5}$/.test(url) ||
     /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\/[\w./-]+$/.test(url) ||
-    /^https:\/\/images\.pexels\.com\/photos\/[\w./?=&%-]+$/.test(url));
+    /^https:\/\/images\.pexels\.com\/photos\/[\w./?=&%-]+$/.test(url) ||
+    /^https:\/\/images\.unsplash\.com\/[\w./?=&%-]+$/.test(url));
 
 function media(v: unknown): Media | null {
   const m = v as Media;

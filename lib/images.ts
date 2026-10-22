@@ -1,6 +1,6 @@
 // Pictures for slots the owner didn't fill, in order: a Gemini illustration (when the key
-// allows image generation), a free Pixabay photo (PIXABAY_API_KEY), a Pexels photo
-// (PEXELS_API_KEY). With none available the site uses its photo-free design.
+// allows image generation), an Unsplash photo (UNSPLASH_ACCESS_KEY), a Pixabay photo
+// (PIXABAY_API_KEY), a Pexels photo (PEXELS_API_KEY). With none available the site uses its photo-free design.
 import { generateImage } from "./ai";
 import { saveMedia } from "./media";
 import type { Media } from "./schema";
@@ -51,6 +51,42 @@ async function fromPexels(query: string, aspect: "16:9" | "1:1", alt: string): P
   }
 }
 
+type UnsplashPhoto = {
+  alt_description: string | null;
+  urls: { regular: string };
+  user: { name: string };
+  links: { download_location: string };
+};
+
+// Unsplash: free key (UNSPLASH_ACCESS_KEY). Their API rules: hotlink the image from
+// images.unsplash.com, credit the photographer, and ping download_location when a photo is used.
+async function fromUnsplash(query: string, aspect: "16:9" | "1:1", alt: string): Promise<Media | null> {
+  const key = process.env.UNSPLASH_ACCESS_KEY;
+  if (!key || !query.trim()) return null;
+  const headers = { Authorization: `Client-ID ${key}`, "Accept-Version": "v1" };
+  try {
+    const url = `https://api.unsplash.com/search/photos?${new URLSearchParams({
+      query: query.slice(0, 80),
+      per_page: "1",
+      orientation: aspect === "16:9" ? "landscape" : "squarish",
+      content_filter: "high",
+    })}`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      console.error("Unsplash search failed:", res.status);
+      return null;
+    }
+    const photo = ((await res.json()) as { results?: UnsplashPhoto[] }).results?.[0];
+    if (!photo) return null;
+    fetch(photo.links.download_location, { headers }).catch(() => {}); // required "download" event
+    const sized = `${photo.urls.regular}${photo.urls.regular.includes("?") ? "&" : "?"}w=${aspect === "16:9" ? 1600 : 900}`;
+    return { url: sized, kind: "image", generated: true, alt: photo.alt_description || alt, credit: `Photo: ${photo.user.name} / Unsplash` };
+  } catch (err) {
+    console.error("Unsplash failed:", (err as Error).message);
+    return null;
+  }
+}
+
 type PixabayHit = { largeImageURL: string; tags: string; user: string };
 
 // Pixabay: free key, commercial use allowed, no credit required. Their terms ask apps to
@@ -87,6 +123,7 @@ async function fromPixabay(query: string, aspect: "16:9" | "1:1", alt: string): 
 export async function findPicture(opts: { prompt: string; query: string; aspect: "16:9" | "1:1"; alt: string }): Promise<Media | null> {
   return (
     (await fromGemini(opts.prompt, opts.aspect, opts.alt)) ??
+    (await fromUnsplash(opts.query, opts.aspect, opts.alt)) ??
     (await fromPixabay(opts.query, opts.aspect, opts.alt)) ??
     (await fromPexels(opts.query, opts.aspect, opts.alt))
   );
