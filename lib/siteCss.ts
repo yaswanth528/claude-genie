@@ -9,7 +9,7 @@ export const SITE_CSS = `
    the review screen behaves exactly like a real phone. */
 .site-box { container: site / inline-size; }
 .site {
-  --s-gap: clamp(16px, 4vw, 28px);
+  --s-gap: clamp(16px, 4cqi, 28px);
   background: var(--s-bg);
   color: var(--s-ink);
   font-family: var(--s-body);
@@ -82,13 +82,13 @@ export const SITE_CSS = `
 
 /* Hero */
 .s-hero { position: relative; overflow: hidden; }
-.s-hero-split { padding-block: clamp(40px, 7vw, 88px); }
+.s-hero-split { padding-block: clamp(40px, 7cqi, 88px); }
 .s-hero-split .s-hero-inner { display: grid; gap: 32px; align-items: center; }
 @container site (min-width: 860px) { .s-hero-split .s-hero-inner { grid-template-columns: 1.05fr 0.95fr; gap: 56px; } }
 .s-hero-copy { display: grid; gap: 18px; max-width: 620px; }
-.s-hero h1 { font-size: clamp(2.4rem, 6.4vw, 4.6rem); }
-.theme-bazaar .s-hero h1 { font-size: clamp(2.2rem, 5.8vw, 4.2rem); }
-.s-lead { font-size: clamp(1.05rem, 1.6vw, 1.25rem); color: var(--s-muted); max-width: 52ch; }
+.s-hero h1 { font-size: clamp(2.1rem, 9cqi, 4.6rem); overflow-wrap: break-word; hyphens: auto; }
+.theme-bazaar .s-hero h1 { font-size: clamp(2rem, 8cqi, 4.2rem); }
+.s-lead { font-size: clamp(1.05rem, 1.6cqi, 1.25rem); color: var(--s-muted); max-width: 52ch; }
 .s-eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--s-accent); }
 .s-hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
 .s-hero-media { border-radius: calc(var(--s-radius) * 1.5); overflow: hidden; aspect-ratio: 4 / 3.4; background: var(--s-soft); box-shadow: 0 30px 60px -30px rgba(0,0,0,.35); }
@@ -100,19 +100,19 @@ export const SITE_CSS = `
     radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--s-accent) 18%, transparent), transparent 60%),
     repeating-linear-gradient(45deg, var(--s-soft) 0 14px, color-mix(in srgb, var(--s-soft) 70%, var(--s-bg)) 14px 28px);
 }
-.s-hero-mono { font-size: clamp(4rem, 12vw, 8rem); }
+.s-hero-mono { font-size: clamp(4rem, 12cqi, 8rem); }
 
 .s-hero-full { min-height: clamp(520px, 82vh, 760px); display: flex; align-items: flex-end; color: #fff; }
 .is-preview .s-hero-full { min-height: 560px; }
 .s-hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .s-hero-full::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 20%, rgba(0,0,0,.72) 100%); }
-.s-hero-full .s-hero-inner { position: relative; z-index: 1; padding-block: 56px clamp(48px, 8vw, 88px); width: 100%; }
+.s-hero-full .s-hero-inner { position: relative; z-index: 1; padding-block: 56px clamp(48px, 8cqi, 88px); width: 100%; }
 .s-hero-full .s-lead { color: rgba(255,255,255,.88); }
 .s-hero-full .s-eyebrow { color: #fff; opacity: .9; }
 .site .s-hero-full .s-btn-ghost { color: #fff; }
 
 /* No banner photo: a type-led banner with soft colour shapes. */
-.s-hero-type { padding-block: clamp(64px, 11vw, 140px); text-align: center; isolation: isolate; }
+.s-hero-type { padding-block: clamp(64px, 11cqi, 140px); text-align: center; isolation: isolate; }
 .s-hero-type::before {
   content: ""; position: absolute; inset: -20% -10%; z-index: -1;
   background:
@@ -121,7 +121,7 @@ export const SITE_CSS = `
     var(--s-soft);
 }
 .s-hero-type .s-hero-copy { margin-inline: auto; justify-items: center; max-width: 820px; }
-.s-hero-type h1 { font-size: clamp(2.6rem, 8vw, 5.6rem); }
+.s-hero-type h1 { font-size: clamp(2.2rem, 10cqi, 5.6rem); }
 .s-hero-type .s-hero-cta { justify-content: center; }
 
 /* Highlights */
@@ -130,9 +130,9 @@ export const SITE_CSS = `
 .s-highlights-row p::before { content: "✦ "; opacity: .7; }
 
 /* Sections */
-.s-section { padding-block: clamp(56px, 8vw, 104px); }
-.s-section-head { display: grid; gap: 8px; margin-bottom: clamp(24px, 4vw, 40px); max-width: 640px; }
-.s-section-head h2, .s-about h2, .s-contact h2 { font-size: clamp(1.9rem, 4vw, 3rem); }
+.s-section { padding-block: clamp(56px, 8cqi, 104px); }
+.s-section-head { display: grid; gap: 8px; margin-bottom: clamp(24px, 4cqi, 40px); max-width: 640px; }
+.s-section-head h2, .s-about h2, .s-contact h2 { font-size: clamp(1.9rem, 4cqi, 3rem); }
 .s-section-head p { color: var(--s-muted); }
 
 /* Products */
@@ -145,7 +145,7 @@ export const SITE_CSS = `
 .s-grid-text .s-card { padding: 22px 22px 18px; border: 1px solid var(--s-line); background: var(--s-surface); position: relative; }
 .theme-boutique .s-grid-text .s-card { border: 0; border-top: 1px solid var(--s-ink); border-radius: 0; background: transparent; padding-inline: 0; }
 .s-grid-text .s-card-body { padding: 0; gap: 8px; }
-.s-grid-text .s-card h3 { font-family: var(--s-display); font-weight: var(--s-display-weight); font-size: clamp(1.4rem, 3vw, 1.9rem); text-transform: var(--s-heading-case); letter-spacing: var(--s-tracking); }
+.s-grid-text .s-card h3 { font-family: var(--s-display); font-weight: var(--s-display-weight); font-size: clamp(1.4rem, 3cqi, 1.9rem); text-transform: var(--s-heading-case); letter-spacing: var(--s-tracking); }
 .s-grid-text .s-price { font-size: 1.3rem; }
 .s-card-num { font-size: .8rem; font-weight: 700; letter-spacing: .14em; color: var(--s-accent); margin-bottom: 10px; display: block; font-variant-numeric: tabular-nums; }
 .s-card {
@@ -160,10 +160,11 @@ export const SITE_CSS = `
 .theme-boutique .s-card-media { aspect-ratio: 3 / 4; }
 .s-card-media img, .s-card-media video { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
 .s-card:hover .s-card-media img { transform: scale(1.04); }
-.s-card-mono { font-size: clamp(2rem, 6vw, 3rem); }
+.s-card-mono { font-size: clamp(2rem, 6cqi, 3rem); }
 .s-ai-tag {
-  position: absolute; left: 8px; bottom: 8px; font-size: .68rem; font-weight: 600; letter-spacing: .02em;
-  padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.55); color: #fff;
+  position: absolute; left: 6px; bottom: 6px; max-width: calc(100% - 12px); font-size: .62rem; font-weight: 600; line-height: 1.5;
+  padding: 1px 7px; border-radius: 999px; background: rgba(0,0,0,.5); color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .s-card-body { display: flex; flex-direction: column; gap: 6px; padding: 14px 14px 16px; flex: 1; }
 .theme-boutique .s-card-body { padding-inline: 2px; }
