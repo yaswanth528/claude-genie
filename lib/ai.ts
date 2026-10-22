@@ -5,7 +5,12 @@ import { ExtractionSchema, PatchSchema, type Extraction, type Item, type Patch }
 // Created on first use so `next build` doesn't need an API key.
 let _client: GoogleGenAI | null = null;
 function client() {
-  if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not set. Add it to .env.local and restart.");
+  if (!process.env.GEMINI_API_KEY)
+    throw new Error(
+      process.env.VERCEL
+        ? "GEMINI_API_KEY is not set. Add it in Vercel → Settings → Environment Variables, then redeploy."
+        : "GEMINI_API_KEY is not set. Add it to .env.local and restart.",
+    );
   return (_client ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }));
 }
 // Flash-Lite answered as accurately as 3.8 Flash on our product-list tests at about a third of the latency.

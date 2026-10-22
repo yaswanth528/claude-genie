@@ -69,6 +69,8 @@ export async function saveCatalogue(catalogue: Catalogue, message: string): Prom
     if (!res.ok) throw new Error(`GitHub save failed: ${res.status}`);
     return;
   }
+  if (process.env.VERCEL)
+    throw new Error("Saving needs GITHUB_TOKEN and GITHUB_REPO in Vercel → Settings → Environment Variables (then redeploy).");
   await mkdir(localDir, { recursive: true });
   await writeFile(join(localDir, `${catalogue.slug}.json`), json);
 }

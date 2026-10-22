@@ -36,7 +36,8 @@ export async function POST(req: Request) {
     await saveCatalogue(catalogue, `Create page ${catalogue.slug}`);
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ errors: ["Couldn't save the page. Try again."] }, { status: 502 });
+    const msg = (err as Error).message;
+    return NextResponse.json({ errors: [msg.startsWith("Saving needs") ? msg : "Couldn't save the page. Try again."] }, { status: 502 });
   }
   return NextResponse.json({ slug: catalogue.slug, editKey, whatsapp: catalogue.whatsapp });
 }
