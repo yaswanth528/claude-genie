@@ -46,4 +46,4 @@ Payments/UPI, address capture, logins, custom domains and analytics (per the MVP
 | `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` + `AUTH_SECRET` | Owner login with a WhatsApp code |
 | `GITHUB_TOKEN` + `GITHUB_REPO` | Older storage (import into D1 from `/admin`) |
 
-Variables only reach the site after a new deployment.
+Variables only reach the site after a new deployment (Deployments → ⋯ → Redeploy).
