@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+.env
+.env.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+# Local catalogue store used when GitHub storage isn't configured
+data/
+# Copied from the project root by scripts/sync-images.mjs
+public/images/
