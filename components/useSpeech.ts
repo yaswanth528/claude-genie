@@ -88,9 +88,9 @@ export function useSpeech(language: string, onText: (text: string) => void) {
 
 // The language name is passed to Gemini as a hint; the code is for read-back speech.
 export const LANGUAGES = [
+  { name: "English", code: "en-IN", label: "English" },
   { name: "Kannada", code: "kn-IN", label: "ಕನ್ನಡ Kannada" },
   { name: "Hindi", code: "hi-IN", label: "हिन्दी Hindi" },
-  { name: "English", code: "en-IN", label: "English" },
   { name: "Tamil", code: "ta-IN", label: "தமிழ் Tamil" },
   { name: "Telugu", code: "te-IN", label: "తెలుగు Telugu" },
 ];

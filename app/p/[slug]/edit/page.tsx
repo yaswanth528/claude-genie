@@ -14,7 +14,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
   const { slug } = use(params);
   const [key, setKey] = useState<string | null | undefined>(undefined);
   const [current, setCurrent] = useState<Current | null>(null);
-  const [lang, setLang] = useState("Kannada");
+  const [lang, setLang] = useState("English");
   const [request, setRequest] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
   const [busy, setBusy] = useState(false);

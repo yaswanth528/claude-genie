@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Send the recording as form data." }, { status: 400 });
   }
   const audio = form.get("audio");
-  const language = String(form.get("language") || "Kannada").slice(0, 40);
+  const language = String(form.get("language") || "English").slice(0, 40);
   if (!(audio instanceof Blob) || audio.size === 0)
     return NextResponse.json({ error: "We didn't get any audio. Try recording again." }, { status: 400 });
   if (audio.size > MAX_BYTES)

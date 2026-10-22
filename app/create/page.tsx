@@ -11,7 +11,7 @@ type Stage = "speak" | "confirm" | "done";
 
 export default function CreatePage() {
   const [stage, setStage] = useState<Stage>("speak");
-  const [lang, setLang] = useState("Kannada");
+  const [lang, setLang] = useState("English");
   const [transcript, setTranscript] = useState("");
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
