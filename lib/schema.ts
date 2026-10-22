@@ -27,6 +27,7 @@ export const SitePlanSchema = z.object({
   area: z.string().nullable().describe("Area/locality/city if said"),
   address: z.string().nullable().describe("Full address if said"),
   hours: z.string().nullable().describe("Opening hours if said"),
+  whatsapp: z.string().nullable().describe("The WhatsApp or phone number if the owner said one, digits only (e.g. '9876543210'); null if not said"),
   items: z.array(
     ItemSchema.extend({
       description: z.string().describe("One short line describing the product, using only what was said or what the product name itself means. No invented claims."),

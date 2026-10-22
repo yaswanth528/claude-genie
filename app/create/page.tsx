@@ -58,8 +58,7 @@ export default function CreatePage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
   const [live, setLive] = useState<Live | null>(null);
-  const [whatsapp, setWhatsapp] = useState("");
-  const whatsappOk = normaliseWhatsapp(whatsapp) !== null;
+  const [confirmWa, setConfirmWa] = useState(false); // the "Where should orders come?" sheet
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [recordings, setRecordings] = useState<string[]>([]);
@@ -116,7 +115,7 @@ export default function CreatePage() {
         setStage("speak");
         return;
       }
-      setDraft({ ...(data as Draft), whatsapp: draft?.whatsapp || whatsapp });
+      setDraft({ ...(data as Draft), whatsapp: draft?.whatsapp || (data as Draft).whatsapp || "" });
       setStage("review");
       window.scrollTo({ top: 0 });
     } catch {
@@ -125,14 +124,22 @@ export default function CreatePage() {
     }
   }
 
-  async function publish() {
+  async function publish(whatsappNumber?: string) {
     if (!draft) return;
+    const toSave = whatsappNumber !== undefined ? { ...draft, whatsapp: whatsappNumber } : draft;
+    if (whatsappNumber !== undefined) setDraft(toSave);
     setBusy(true);
     setErrors([]);
     try {
-      const res = await fetch("/api/pages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) });
+      const res = await fetch("/api/pages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toSave) });
       const data = await res.json();
-      if (!res.ok) return setErrors(data.errors ?? ["Couldn't publish."]);
+      if (!res.ok) {
+        setErrors(data.errors ?? ["Couldn't publish."]);
+        setPane("edit"); // show the errors next to the fields that need fixing
+        setConfirmWa(false);
+        return;
+      }
+      setConfirmWa(false);
       setResult(data);
       setStage("pay");
       window.scrollTo({ top: 0 });
@@ -183,7 +190,7 @@ export default function CreatePage() {
             <div className="publish-bar">
               {errorBox}
               <div className="row">
-                <button className="btn" onClick={publish} disabled={busy}>
+                <button className="btn" onClick={() => setConfirmWa(true)} disabled={busy}>
                   {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
                 </button>
                 <button
@@ -196,6 +203,15 @@ export default function CreatePage() {
               </div>
             </div>
           </aside>
+          {confirmWa && (
+            <WhatsappSheet
+              initial={draft.whatsapp}
+              busy={busy}
+              error={errors.find((e) => /whatsapp/i.test(e)) ?? null}
+              onCancel={() => setConfirmWa(false)}
+              onConfirm={(n) => publish(n)}
+            />
+          )}
           <section className={`review-preview ${pane === "preview" ? "show" : ""}`} aria-label="Website preview">
             <div className={`device ${device}`}>
               <div className="device-scroll">
@@ -203,7 +219,7 @@ export default function CreatePage() {
               </div>
             </div>
             <div className="preview-cta mobile-only">
-              <button className="btn" onClick={publish} disabled={busy}>
+              <button className="btn" onClick={() => setConfirmWa(true)} disabled={busy}>
                 {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
               </button>
               <button className="btn ghost" onClick={() => setPane("edit")}>
@@ -231,19 +247,6 @@ export default function CreatePage() {
             Speak for 20–60 seconds: your shop’s name, what you sell with prices, and anything customers should know (area,
             timings, delivery).
           </p>
-          <label htmlFor="wa-first">Your WhatsApp number</label>
-          <input
-            id="wa-first"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="98765 43210"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-            aria-describedby="wa-first-hint"
-          />
-          <p id="wa-first-hint" className={whatsapp && !whatsappOk ? "error" : "hint small"}>
-            {whatsapp && !whatsappOk ? "Enter a 10-digit mobile number." : "Customers’ orders come to this number on WhatsApp."}
-          </p>
           <label htmlFor="lang">Language</label>
           <select id="lang" value={lang} onChange={(e) => setLang(e.target.value)}>
             {LANGUAGES.map((l) => (
@@ -266,11 +269,10 @@ export default function CreatePage() {
 
           {errorBox}
           <div className="row">
-            <button className="btn" onClick={check} disabled={transcript.trim().length < 5 || !whatsappOk}>
+            <button className="btn" onClick={check} disabled={transcript.trim().length < 5}>
               Build my website
             </button>
           </div>
-          {!whatsappOk && transcript.trim().length >= 5 && <p className="hint small">Add your WhatsApp number above to continue.</p>}
         </>
       )}
 
@@ -388,5 +390,50 @@ export default function CreatePage() {
         </>
       )}
     </main>
+  );
+}
+
+// "Where should orders come?" — confirms the owner's WhatsApp number right before publishing.
+function WhatsappSheet({
+  initial,
+  busy,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  initial: string;
+  busy: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: (n: string) => void;
+}) {
+  const [value, setValue] = useState(initial);
+  const ok = normaliseWhatsapp(value) !== null;
+  return (
+    <div className="sheet-wrap" role="dialog" aria-modal="true" aria-labelledby="wa-sheet-title">
+      <button className="sheet-scrim" onClick={onCancel} aria-label="Close" />
+      <form
+        className="sheet"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (ok) onConfirm(value);
+        }}
+      >
+        <h2 id="wa-sheet-title">Where should orders come?</h2>
+        <p className="hint">Customers’ orders and messages will come to this WhatsApp number. It’s shown on your website.</p>
+        <label htmlFor="wa-sheet">Your WhatsApp number</label>
+        <input id="wa-sheet" inputMode="tel" autoComplete="tel" placeholder="98765 43210" value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
+        {value && !ok && <p className="error">Enter a 10-digit mobile number.</p>}
+        {error && <p className="error">{error}</p>}
+        <div className="row">
+          <button className="btn" disabled={!ok || busy}>
+            {busy ? "Saving…" : "Confirm and continue"}
+          </button>
+          <button type="button" className="btn ghost" onClick={onCancel} disabled={busy}>
+            Back
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { limit } from "@/lib/ratelimit";
 import { planSite, type UploadedMedia } from "@/lib/ai";
 import { findPicture } from "@/lib/images";
+import { normaliseWhatsapp } from "@/lib/catalogue";
 import { THEME_IDS, type Draft, type Media } from "@/lib/schema";
 
 export const maxDuration = 120; // planning + parallel image generation
@@ -112,7 +113,8 @@ export async function POST(req: Request) {
       hero: heroMedia,
       gallery,
       items: items.map(({ imagePrompt: _p, imageQuery: _q, ...it }) => it),
-      whatsapp: "",
+      // A number the owner said, checked so a misheard one isn't silently used.
+      whatsapp: (plan.whatsapp && normaliseWhatsapp(plan.whatsapp)?.slice(-10)) || "",
     };
     return NextResponse.json(draft);
   } catch (err) {
