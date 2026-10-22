@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { extractCatalogue } from "@/lib/claude";
+import { extractCatalogue } from "@/lib/ai";
 
 export async function POST(req: Request) {
   const { transcript } = (await req.json()) as { transcript?: string };

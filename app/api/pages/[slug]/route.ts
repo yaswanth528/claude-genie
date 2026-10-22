@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { applyPatch, validateItems } from "@/lib/catalogue";
-import { interpretEdit } from "@/lib/claude";
+import { interpretEdit } from "@/lib/ai";
 import type { Patch } from "@/lib/schema";
 import { getCatalogue, keyMatches, saveCatalogue } from "@/lib/store";
 

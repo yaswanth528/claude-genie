@@ -5,11 +5,11 @@ Voice-to-Page for MSMEs. An owner speaks for about 20 seconds and gets a shareab
 ## The journey
 
 1. **Speak** (`/create`): the browser's speech recognition turns speech into text. You can also type.
-2. **Extract**: Claude (`claude-opus-5-5`, structured output) turns the transcript into business name + items + prices, and flags prices that may be misheard.
+2. **Extract**: Gemini (`gemini-3.8-flash`, structured JSON output) turns the transcript into business name + items + prices, and flags prices that may be misheard.
 3. **Read-back**: the owner fixes anything and confirms. Rules check that every item has a name and a price, that no price is negative and that there are no duplicates.
 4. **Publish**: the catalogue is saved and the owner gets a public link (`/p/<slug>`) and a private edit link.
 5. **Order**: the customer picks quantities and taps *Order on WhatsApp*, which opens `wa.me/<owner>` with the item list filled in.
-6. **Voice edit** (`/p/<slug>/edit#key=…`): Claude turns "change the kurti price to 799" into a patch. The owner sees a before/after, and the page updates only after they approve.
+6. **Voice edit** (`/p/<slug>/edit#key=…`): Gemini turns "change the kurti price to 799" into a patch. The owner sees a before/after, and the page updates only after they approve.
 
 AI is used only for messy speech (steps 2 and 6). Everything else is deterministic code in `lib/catalogue.ts`.
 
@@ -17,7 +17,7 @@ AI is used only for messy speech (steps 2 and 6). Everything else is determinist
 
 ```bash
 npm install
-cp .env.example .env.local   # add ANTHROPIC_API_KEY
+cp .env.example .env.local   # add GEMINI_API_KEY
 npm run dev
 ```
 

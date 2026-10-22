@@ -9,7 +9,7 @@ export const ItemSchema = z.object({
     .describe("True if the name or price might be misheard (e.g. 79 vs 799)"),
 });
 
-// What Claude returns from a spoken description.
+// What the model returns from a spoken description.
 export const ExtractionSchema = z.object({
   businessName: z.string().nullable(),
   tagline: z.string().nullable().describe("One short line about the business, only if said"),
@@ -17,7 +17,7 @@ export const ExtractionSchema = z.object({
   items: z.array(ItemSchema),
 });
 
-// What Claude returns from a voice edit: a patch, never a whole catalogue.
+// What the model returns from a voice edit: a patch, never a whole catalogue.
 export const PatchSchema = z.object({
   ops: z.array(
     z.object({

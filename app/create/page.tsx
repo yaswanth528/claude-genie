@@ -86,8 +86,8 @@ export default function CreatePage() {
         <>
           <h1>Tell us about your shop</h1>
           <p className="hint">
-            About 20 seconds: your business name, then each product and its price. Example: “Lakshmi Kurtis. Cotton
-            kurti 799, silk kurti 1499, dupatta 299.”
+            About 20 seconds: your business name, then each product and its price. Example: “[your shop name]. Cotton
+            kurti 799, silk kurti 1499.”
           </p>
           <label htmlFor="lang">Language</label>
           <select id="lang" value={lang} onChange={(e) => setLang(e.target.value)}>
