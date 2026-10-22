@@ -100,7 +100,7 @@ type Line = { name: string; qty: number; price: number | null; option?: string |
 export const lineName = (l: Line) => (l.option ? `${l.name} (${l.option})` : l.name);
 export const orderTotal = (lines: Line[]) => lines.reduce((s, l) => s + (l.price ?? 0) * l.qty, 0);
 
-export function orderText(businessName: string, lines: Line[], customer?: Order["customer"], orderId?: string) {
+export function orderText(businessName: string, lines: Line[], customer?: Order["customer"], orderId?: string, link?: string) {
   return [
     `Hi ${businessName}, I'd like to order:`,
     ...lines.map((l) => `• ${lineName(l)} × ${l.qty}${l.price !== null ? ` — ${formatPrice(l.price * l.qty)}` : ""}`),
@@ -115,6 +115,7 @@ export function orderText(businessName: string, lines: Line[], customer?: Order[
         ]
       : []),
     ...(orderId ? [`Order ID: ${orderId}`] : []),
+    ...(link ? ["", `See or change this order: ${link}`] : []),
   ].join("\n");
 }
 

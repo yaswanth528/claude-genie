@@ -3,7 +3,7 @@ import { canEdit } from "@/lib/owner";
 import { interpretEdit } from "@/lib/ai";
 import { applyPatch, contentOf, undoLast, validateItems, withChange } from "@/lib/catalogue";
 import { cleanContent } from "@/lib/draft";
-import { amountDue } from "@/lib/publish";
+import { amountDue, appOrigin, deploySite } from "@/lib/publish";
 import type { Patch, Site } from "@/lib/schema";
 import { getSite, saveSite } from "@/lib/store";
 
@@ -28,9 +28,17 @@ const ownerView = (s: Site) => ({
   due: amountDue(s),
 });
 
-async function save(next: Site, message: string) {
+async function save(next: Site, message: string, req: Request) {
   try {
     await saveSite(next, message);
+    // Paid sites update their own live website automatically.
+    if (next.live && amountDue(next) === 0) {
+      try {
+        next = await deploySite(next, appOrigin(req));
+      } catch (err) {
+        console.error("Auto-deploy failed:", err); // saved; the owner can retry "Update live website"
+      }
+    }
     return NextResponse.json(ownerView(next));
   } catch (err) {
     console.error(err);
@@ -82,13 +90,13 @@ export async function PUT(req: Request, { params }: Ctx) {
     const after = applyPatch(site.items, site.businessName, body.patch);
     const errors = validateItems(after.items);
     if (errors.length) return NextResponse.json({ errors }, { status: 400 });
-    return save(withChange(site, after), `Voice edit on ${slug}`);
+    return save(withChange(site, after), `Voice edit on ${slug}`, req);
   }
 
   if (body.content) {
     const { content, errors } = cleanContent(body.content);
     if (errors.length) return NextResponse.json({ errors }, { status: 400 });
-    return save(withChange(site, content), `Edit site ${slug}`);
+    return save(withChange(site, content), `Edit site ${slug}`, req);
   }
 
   return NextResponse.json({ error: "Nothing to save." }, { status: 400 });
@@ -101,5 +109,5 @@ export async function DELETE(req: Request, { params }: Ctx) {
   if (error) return error;
   const restored = undoLast(site);
   if (!restored) return NextResponse.json({ error: "There's nothing to undo." }, { status: 409 });
-  return save(restored, `Undo last change on ${slug}`);
+  return save(restored, `Undo last change on ${slug}`, req);
 }

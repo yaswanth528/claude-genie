@@ -3,12 +3,13 @@ import { use, useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { MicButton } from "@/components/MicButton";
 import { Insights } from "@/components/Insights";
+import { OrderCard } from "@/components/OrderCard";
 import { PayPanel } from "@/components/PayPanel";
 import { SharePanel } from "@/components/SharePanel";
 import { SiteEditor } from "@/components/SiteEditor";
 import { LANGUAGES } from "@/components/useSpeech";
 import { formatPrice } from "@/lib/catalogue";
-import type { Live, Order, Patch, Payment, Product, SiteContent } from "@/lib/schema";
+import type { Live, Order, OrderStatus, Patch, Payment, Product, SiteContent } from "@/lib/schema";
 
 type Snapshot = { businessName: string; items: Product[] };
 type Preview = { patch: Patch; before: Snapshot; after: Snapshot; errors: string[] };
@@ -24,7 +25,8 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
   const [lang, setLang] = useState("English");
   const [request, setRequest] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
-  const [orders, setOrders] = useState<Order[] | null>(null);
+  const [orders, setOrders] = useState<(Order & { status: OrderStatus })[] | null>(null);
+  const [orderFilter, setOrderFilter] = useState<"open" | "all">("open");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -333,37 +335,30 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
               <p>No orders yet. When customers check out on your website, their orders appear here.</p>
             </div>
           ) : (
-            <div className="orders">
-              {orders.map((o) => (
-                <article key={o.id} className="card order">
-                  <header>
-                    <strong>{o.customer.name}</strong>
-                    <span className="hint">{new Date(o.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</span>
-                  </header>
-                  <ul className="plain">
-                    {o.lines.map((l, i) => (
-                      <li key={i}>
-                        <span>
-                          {l.name} × {l.qty}
-                        </span>
-                        <span>{formatPrice((l.price ?? 0) * l.qty)}</span>
-                      </li>
-                    ))}
-                    <li>
-                      <strong>Total</strong>
-                      <strong>{formatPrice(o.total)}</strong>
-                    </li>
-                  </ul>
-                  <p className="hint">
-                    {o.customer.phone} · {o.customer.address}
-                    {o.customer.note ? ` · “${o.customer.note}”` : ""}
-                  </p>
-                  <a className="btn wa sm" href={`https://wa.me/${o.customer.phone.replace(/\D/g, "").replace(/^(\d{10})$/, "91$1")}`} target="_blank" rel="noreferrer">
-                    WhatsApp {o.customer.name.split(" ")[0]}
-                  </a>
-                </article>
-              ))}
-            </div>
+            <>
+              <div className="seg" role="group" aria-label="Show orders" style={{ marginBottom: 12 }}>
+                {(["open", "all"] as const).map((f) => (
+                  <button key={f} className={orderFilter === f ? "on" : ""} onClick={() => setOrderFilter(f)}>
+                    {f === "open" ? `Open (${orders.filter((o) => !["delivered", "cancelled"].includes(o.status)).length})` : `All (${orders.length})`}
+                  </button>
+                ))}
+              </div>
+              <div className="orders">
+                {orders
+                  .filter((o) => orderFilter === "all" || !["delivered", "cancelled"].includes(o.status))
+                  .map((o) => (
+                    <OrderCard
+                      key={o.id}
+                      order={o}
+                      slug={slug}
+                      editKey={key}
+                      businessName={current?.businessName ?? ""}
+                      products={current?.items ?? []}
+                      onSaved={(next) => setOrders((list) => (list ?? []).map((x) => (x.id === next.id ? next : x)))}
+                    />
+                  ))}
+              </div>
+            </>
           )}
         </div>
       )}

@@ -107,7 +107,7 @@ ${dynamic ? cartHtml(u) : ""}
 
 const cartHtml = (u: LocalText["ui"]) => `<div class="s-drawer-wrap" data-cart hidden role="dialog" aria-modal="true" aria-label="${esc(u.cart)}"><button class="s-drawer-scrim" data-act="close-cart" aria-label="Close cart"></button><div class="s-drawer">
 <div class="s-drawer-head"><h2 data-cart-title>${esc(u.cart)}</h2><button class="s-close" data-act="close-cart" aria-label="Close">×</button></div>
-<div data-placed hidden class="s-placed"><p data-placed-text></p><a class="s-btn s-btn-wa" data-placed-link target="_blank" rel="noreferrer">${esc(u.orderOnWa)}</a></div>
+<div data-placed hidden class="s-placed"><p data-placed-text></p><a class="s-btn s-btn-wa" data-placed-link target="_blank" rel="noreferrer">${esc(u.orderOnWa)}</a><a class="s-btn s-btn-ghost" data-track-link target="_blank" rel="noreferrer" hidden>View or change my order</a></div>
 <p class="s-muted" data-empty>${esc(u.empty)}</p>
 <form class="s-checkout" data-form><ul class="s-lines" data-lines></ul><p class="s-total"><span>${esc(u.total)}</span><strong data-total></strong></p>
 <label>${esc(u.yourName)}<input name="name" autocomplete="name" required></label>
@@ -172,7 +172,7 @@ function opt(i){return C.items[i].options.length?(choice[i]||0):-1}
 function lines(){var o=[];Object.keys(cart).forEach(function(k){var p=k.split(":"),i=+p[0],j=+p[1],it=C.items[i];if(it&&cart[k]>0)o.push({key:k,index:i,name:it.name,price:it.price,option:j>=0?it.options[j]:null,qty:cart[k]})});return o}
 function total(l){return l.reduce(function(s,x){return s+(x.price||0)*x.qty},0)}
 function nm(x){return x.option?x.name+" ("+x.option+")":x.name}
-function text(l,c,id){var t=["Hi "+C.name+", I'd like to order:"];l.forEach(function(x){t.push("\\u2022 "+nm(x)+" \\u00D7 "+x.qty+(x.price!=null?" \\u2014 "+rs(x.price*x.qty):""))});t.push("Total: "+rs(total(l)));if(c){t.push("","Name: "+c.name,"Phone: "+c.phone,"Deliver to: "+c.address);if(c.note)t.push("Note: "+c.note)}if(id)t.push("Order ID: "+id);return t.join("\\n")}
+function text(l,c,id,link){var t=["Hi "+C.name+", I'd like to order:"];l.forEach(function(x){t.push("\\u2022 "+nm(x)+" \\u00D7 "+x.qty+(x.price!=null?" \\u2014 "+rs(x.price*x.qty):""))});t.push("Total: "+rs(total(l)));if(c){t.push("","Name: "+c.name,"Phone: "+c.phone,"Deliver to: "+c.address);if(c.note)t.push("Note: "+c.note)}if(id)t.push("Order ID: "+id);if(link)t.push("","See or change this order: "+link);return t.join("\\n")}
 function wa(t){return "https://wa.me/"+C.wa+"?text="+encodeURIComponent(t)}
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function root(){return $('.site[data-lang="'+lang+'"]')||$(".site")}
@@ -204,9 +204,9 @@ else if(a==="open-cart"){$("[data-cart]",R).hidden=false;$("[data-placed]",R).hi
 else if(a==="close-cart"){$("[data-cart]",R).hidden=true;render()}});
 $$("[data-form]").forEach(function(form){form.addEventListener("submit",function(e){e.preventDefault();var R=root(),f=new FormData(form),c={name:f.get("name"),phone:f.get("phone"),address:f.get("address"),note:f.get("note")||""},l=lines(),btn=$("[data-submit]",R),er=$("[data-errors]",R);
 btn.disabled=true;er.hidden=true;
-function done(t,id){$("[data-placed-text]",R).textContent=(id?"Order "+id+" is saved. ":"")+"Tap below to send it to "+C.name+" on WhatsApp so they can confirm.";$("[data-placed-link]",R).href=wa(t);$("[data-placed]",R).hidden=false;cart={};form.reset();btn.disabled=false;render()}
+function done(t,id,track){var tl=$("[data-track-link]",R);if(tl){tl.hidden=!track;if(track)tl.href=track}$("[data-placed-text]",R).textContent=(id?"Order "+id+" is saved. ":"")+"Tap below to send it to "+C.name+" on WhatsApp so they can confirm.";$("[data-placed-link]",R).href=wa(t);$("[data-placed]",R).hidden=false;cart={};form.reset();btn.disabled=false;render()}
 fetch(C.api,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customer:c,lines:l.map(function(x){return{index:x.index,qty:x.qty,option:x.option}})})})
 .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})}).then(function(r){if(!r.ok||!r.d.order){btn.disabled=false;er.hidden=false;er.innerHTML="";(r.d.errors||[r.d.error||"Couldn't place the order."]).forEach(function(m){var p=document.createElement("p");p.textContent=m;er.appendChild(p)});return}
-var o=r.d.order;done(text(o.lines,o.customer,o.id),o.id)})
+var o=r.d.order;done(text(o.lines,o.customer,o.id,r.d.link),o.id,r.d.link)})
 .catch(function(){done(text(l,c))})})});
 render()})();`;

@@ -402,7 +402,7 @@ function CartDrawer({
   const [customer, setCustomer] = useState({ name: "", phone: "", address: "", note: "" });
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const [placed, setPlaced] = useState<{ link: string; id?: string } | null>(null);
+  const [placed, setPlaced] = useState<{ link: string; id?: string; track?: string } | null>(null);
   const set = (k: keyof typeof customer) => (e: { target: { value: string } }) => setCustomer((c) => ({ ...c, [k]: e.target.value }));
 
   async function checkout(e: React.FormEvent) {
@@ -419,10 +419,10 @@ function CartDrawer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customer, lines: lines.map((l) => ({ index: l.index, qty: l.qty, option: l.option })) }),
       });
-      const data = (await res.json()) as { errors?: string[]; error?: string; order?: Order };
+      const data = (await res.json()) as { errors?: string[]; error?: string; order?: Order; link?: string };
       if (!res.ok || !data.order) return setErrors(data.errors ?? [data.error ?? "Couldn't place the order."]);
       const o = data.order;
-      setPlaced({ link: whatsappLink(site.whatsapp, orderText(site.businessName, o.lines, o.customer, o.id)), id: o.id });
+      setPlaced({ link: whatsappLink(site.whatsapp, orderText(site.businessName, o.lines, o.customer, o.id, data.link)), id: o.id, track: data.link });
       onPlaced();
     } catch {
       setErrors(["Network error. Check your connection and try again."]);
@@ -450,6 +450,11 @@ function CartDrawer({
             <a className="s-btn s-btn-wa" href={placed.link} target="_blank" rel="noreferrer">
               {ui.orderOnWa}
             </a>
+            {placed.track && (
+              <a className="s-btn s-btn-ghost" href={placed.track} target="_blank" rel="noreferrer">
+                View or change my order
+              </a>
+            )}
             {preview && <p className="s-muted">Preview: orders aren’t saved until the site is published.</p>}
           </div>
         ) : lines.length === 0 ? (

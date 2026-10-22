@@ -1,8 +1,10 @@
+import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
+import { buildLines, orderLink, publicOrder, totalOf } from "@/lib/orders";
 import { canEdit } from "@/lib/owner";
-import { orderTotal } from "@/lib/catalogue";
+import { appOrigin } from "@/lib/publish";
 import type { Order } from "@/lib/schema";
-import { getSite, listOrders, newId, saveOrder } from "@/lib/store";
+import { getSite, hashKey, listOrders, newId, saveOrder } from "@/lib/store";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -15,8 +17,8 @@ export function OPTIONS() {
 }
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-// A customer places an order on a dynamic (cart) website. Prices come from the saved
-// site, not the browser, so the total can't be tampered with.
+// A buyer places an order on a dynamic (cart) website. Prices come from the saved site,
+// not the browser. The buyer gets a private link to see, change or cancel the order.
 export async function POST(req: Request, { params }: Ctx) {
   const { slug } = await params;
   const site = await getSite(slug);
@@ -37,30 +39,33 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!customer.name) errors.push("Add your name.");
   if (customer.phone.replace(/\D/g, "").length < 10) errors.push("Add a phone number we can call.");
   if (!customer.address) errors.push("Add a delivery address.");
-
-  const valid = (body.lines ?? []).filter(
-    (l) => Number.isInteger(l.index) && l.index! >= 0 && l.index! < site.items.length && Number.isInteger(l.qty) && l.qty! > 0 && l.qty! <= 99,
-  );
-  const lines = valid.map((l) => {
-    const item = site.items[l.index!];
-    // Only accept an option the product really has; products with options need one.
-    const option = item.options?.length ? (item.options.includes(l.option ?? "") ? l.option! : item.options[0]) : null;
-    return { name: item.name, price: item.price, qty: l.qty!, option };
-  });
-  const soldOut = valid.filter((l) => site.items[l.index!].inStock === false).map((l) => site.items[l.index!].name);
-  if (soldOut.length) errors.push(`Sorry, ${soldOut.join(", ")} ${soldOut.length > 1 ? "are" : "is"} out of stock.`);
-  if (lines.length === 0) errors.push("Your cart is empty.");
+  const built = buildLines(site, body.lines);
+  errors.push(...built.errors.map((e) => (e === "The order has no items." ? "Your cart is empty." : e)));
   if (errors.length) return json({ errors }, 400);
 
-  const order: Order = { id: newId(), slug, createdAt: new Date().toISOString(), customer, lines, total: orderTotal(lines) };
+  const token = randomBytes(18).toString("base64url");
+  const now = new Date().toISOString();
+  const order: Order = {
+    id: newId(),
+    slug,
+    createdAt: now,
+    updatedAt: now,
+    customer,
+    lines: built.lines,
+    total: totalOf({ lines: built.lines }),
+    status: "new",
+    tokenHash: hashKey(token),
+    events: [{ at: now, by: "buyer", text: "Order placed" }],
+  };
+  const link = orderLink(appOrigin(req), order, token);
   try {
     await saveOrder(order);
   } catch (err) {
     console.error(err);
-    // Still let the customer send the order on WhatsApp.
-    return json({ order, saved: false });
+    // Still let the buyer send the order on WhatsApp.
+    return json({ order: publicOrder(order), saved: false });
   }
-  return json({ order, saved: true });
+  return json({ order: publicOrder(order), saved: true, link });
 }
 
 // The owner's order list.
@@ -69,5 +74,5 @@ export async function GET(req: Request, { params }: Ctx) {
   const site = await getSite(slug);
   if (!site) return NextResponse.json({ error: "Website not found" }, { status: 404 });
   if (!canEdit(req, site)) return NextResponse.json({ error: "Log in with WhatsApp or open your private edit link." }, { status: 403 });
-  return NextResponse.json({ orders: await listOrders(slug) });
+  return NextResponse.json({ orders: (await listOrders(slug)).map(publicOrder) });
 }

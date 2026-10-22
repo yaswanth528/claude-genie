@@ -200,6 +200,11 @@ export async function saveOrder(order: Order): Promise<void> {
   await writeDoc(`catalogues/orders/${order.slug}/${order.id}.json`, order, `New order on ${order.slug}`);
 }
 
+export async function getOrder(slug: string, id: string): Promise<Order | null> {
+  if (!validSlug(slug) || !/^[a-z0-9-]{6,40}$/.test(id)) return null;
+  return readDoc<Order>(`catalogues/orders/${slug}/${id}.json`);
+}
+
 export async function listOrders(slug: string): Promise<Order[]> {
   if (!validSlug(slug)) return [];
   const orders = await listDocs<Order>(`catalogues/orders/${slug}`);

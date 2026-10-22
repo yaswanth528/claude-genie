@@ -164,11 +164,23 @@ export type Snapshot = { content: SiteContent; updatedAt: string };
 
 export type PublicSite = Omit<Site, "editKeyHash" | "history" | "payment" | "live">;
 
+export const ORDER_STATUSES = ["new", "confirmed", "out_for_delivery", "delivered", "cancelled"] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export type OrderLine = { name: string; qty: number; price: number | null; option?: string | null };
+
 export type Order = {
   id: string;
   slug: string;
   createdAt: string;
+  updatedAt?: string;
   customer: { name: string; phone: string; address: string; note: string };
-  lines: { name: string; qty: number; price: number | null; option?: string | null }[];
-  total: number;
+  lines: OrderLine[];
+  discount?: number; // rupees taken off by the owner
+  deliveryCharge?: number; // rupees added by the owner
+  total: number; // items - discount + delivery
+  status?: OrderStatus; // missing on older orders = "new"
+  tokenHash?: string; // the buyer's private "My order" link
+  changedByBuyer?: boolean; // buyer edited it since the owner last looked
+  events?: { at: string; by: "buyer" | "owner"; text: string }[];
 };
