@@ -2,7 +2,9 @@
 import { use, useCallback, useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
 import { MicButton } from "@/components/MicButton";
+import { Insights } from "@/components/Insights";
 import { PayPanel } from "@/components/PayPanel";
+import { SharePanel } from "@/components/SharePanel";
 import { SiteEditor } from "@/components/SiteEditor";
 import { LANGUAGES } from "@/components/useSpeech";
 import { formatPrice } from "@/lib/catalogue";
@@ -11,7 +13,7 @@ import type { Live, Order, Patch, Payment, Product, SiteContent } from "@/lib/sc
 type Snapshot = { businessName: string; items: Product[] };
 type Preview = { patch: Patch; before: Snapshot; after: Snapshot; errors: string[] };
 type Owner = SiteContent & { slug: string; whatsapp: string; updatedAt: string; canUndo: boolean; payment: Payment | null; live: Live | null; due: number };
-type Tab = "voice" | "site" | "orders";
+type Tab = "voice" | "site" | "orders" | "share" | "insights";
 
 export default function EditPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -176,6 +178,12 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
             Orders
           </button>
         )}
+        <button role="tab" aria-selected={tab === "insights"} className={tab === "insights" ? "on" : ""} onClick={() => setTab("insights")}>
+          Insights
+        </button>
+        <button role="tab" aria-selected={tab === "share"} className={tab === "share" ? "on" : ""} onClick={() => setTab("share")}>
+          Share
+        </button>
       </div>
 
       {error && (
@@ -284,6 +292,26 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
             </div>
           </div>
         </>
+      )}
+
+      {tab === "insights" && current && key && (
+        <div style={{ marginTop: 16 }}>
+          <Insights slug={slug} editKey={key} dynamic={current.siteType === "dynamic"} />
+        </div>
+      )}
+
+      {tab === "share" && current && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <strong>Tell your customers</strong>
+          {!current.live && <p className="hint">Your website isn’t live yet, so this uses your preview link.</p>}
+          <SharePanel
+            url={current.live?.url ?? `${window.location.origin}/p/${slug}`}
+            businessName={current.businessName}
+            headline={current.headline}
+            themeId={current.theme.id}
+            accent={current.theme.accent}
+          />
+        </div>
       )}
 
       {tab === "orders" && (

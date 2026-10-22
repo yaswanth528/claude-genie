@@ -59,3 +59,9 @@ export async function deployToPages(slug: string, html: string): Promise<{ proje
   if (!deployed.success) throw new Error(`Cloudflare: deployment failed (${deployed.errors.map((e) => e.message).join("; ")})`);
   return { project: name, url: `https://${subdomain}` };
 }
+
+export async function deleteProject(project: string): Promise<void> {
+  if (!cloudflareReady()) return;
+  const res = await cf<unknown>(`/pages/projects/${project}`, { method: "DELETE" });
+  if (!res.success && !res.errors.some((e) => e.code === 8000007)) throw new Error(res.errors.map((e) => e.message).join("; "));
+}

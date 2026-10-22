@@ -5,6 +5,7 @@ import { Logo } from "@/components/Logo";
 import { MediaPicker } from "@/components/MediaPicker";
 import { MicButton } from "@/components/MicButton";
 import { PayPanel } from "@/components/PayPanel";
+import { SharePanel } from "@/components/SharePanel";
 import { SiteEditor } from "@/components/SiteEditor";
 import { SiteView } from "@/components/site/SiteView";
 import type { Uploaded } from "@/components/upload";
@@ -347,6 +348,13 @@ export default function CreatePage() {
               <CopyButton text={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} />
             </div>
           </div>
+          {live && draft && (
+            <div className="card" style={{ marginTop: 16 }}>
+              <strong>Tell your customers</strong>
+              <p className="hint">Post the status image on WhatsApp and print the poster for your counter.</p>
+              <SharePanel url={live.url} businessName={draft.businessName} headline={draft.headline} themeId={draft.theme.id} accent={draft.theme.accent} />
+            </div>
+          )}
           <div className="card" style={{ marginTop: 16 }}>
             <strong>Check that orders reach you</strong>
             <p className="hint">Send yourself a test order. If WhatsApp opens your own chat, you’re set.</p>

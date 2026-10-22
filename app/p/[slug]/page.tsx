@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SiteView } from "@/components/site/SiteView";
+import { VisitPing } from "@/components/VisitPing";
 import { contentOf } from "@/lib/catalogue";
 import { getSite } from "@/lib/store";
 
@@ -22,5 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SitePage({ params }: Props) {
   const s = await getSite((await params).slug);
   if (!s) notFound();
-  return <SiteView site={{ ...contentOf(s), whatsapp: s.whatsapp, slug: s.slug }} />;
+  return (
+    <>
+      <VisitPing slug={s.slug} />
+      <SiteView site={{ ...contentOf(s), whatsapp: s.whatsapp, slug: s.slug }} />
+    </>
+  );
 }
