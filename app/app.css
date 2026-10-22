@@ -114,7 +114,7 @@
 .pay { display: grid; gap: 14px; margin-top: 16px; }
 .pay-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .pay-plan { font-weight: 700; color: var(--muted); font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; }
-.pay-amount { font-family: var(--display, inherit); font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pay-amount { color: var(--ink); font-family: var(--display, inherit); font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .test-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--warn-bg); border: 1px solid var(--warn-line); white-space: nowrap; }
 .pay-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
 .pay-list li::before { content: "\2713"; color: var(--wa); font-weight: 800; margin-right: 8px; }
