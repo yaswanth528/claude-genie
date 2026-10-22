@@ -1,5 +1,5 @@
 // Order rules shared by the place-order, buyer and owner endpoints.
-import { formatPrice, lineName, orderTotal, shortId } from "./catalogue";
+import { deliveryFor, formatPrice, lineName, orderTotal, shortId } from "./catalogue";
 import type { Order, OrderLine, OrderStatus, Site } from "./schema";
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -45,6 +45,16 @@ export function buildLines(site: Site, raw: RawLine[] | undefined, previous?: Or
   return { lines, errors };
 }
 
+// The shop's minimum order and delivery charge for these lines.
+export function applyDeliveryRules(site: Site, lines: OrderLine[]): { deliveryCharge: number; error: string | null } {
+  const items = orderTotal(lines);
+  const min = site.delivery?.minOrder;
+  return {
+    deliveryCharge: deliveryFor(site.delivery, items),
+    error: min && items < min ? `The minimum order is ${formatPrice(min)}. Add a little more to your cart.` : null,
+  };
+}
+
 // What a buyer or owner may see (never the token hash).
 export function publicOrder(o: Order) {
   const { tokenHash: _t, ...rest } = o;
@@ -59,7 +69,7 @@ export function orderSummary(o: Order, site: Pick<Site, "businessName">, link?: 
     ...lines,
     ...(o.discount ? [`Discount: −${formatPrice(o.discount)}`] : []),
     ...(o.deliveryCharge ? [`Delivery: ${formatPrice(o.deliveryCharge)}`] : []),
-    `Total: ${formatPrice(totalOf(o))}`,
+    `Total: ${formatPrice(totalOf(o))}${o.paid ? " (paid)" : ""}`,
     ...(link ? ["", `See your order: ${link}`] : []),
   ].join("\n");
 }

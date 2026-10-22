@@ -1,6 +1,18 @@
 // Checks and cleans a website draft coming from the browser before it is saved.
 import { normaliseWhatsapp, validateItems } from "./catalogue";
-import { THEME_IDS, TranslationSchema, type Draft, type Media, type Product, type SiteContent, type Translation } from "./schema";
+import { THEME_IDS, TranslationSchema, type Delivery, type Draft, type Media, type Product, type SiteContent, type Translation } from "./schema";
+
+// UPI IDs look like name@bank (e.g. lakshmi.silks@okaxis).
+export const UPI_RE = /^[a-zA-Z0-9._-]{2,256}@[a-zA-Z][a-zA-Z0-9.-]{1,64}$/;
+
+const rupees = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.min(Math.round(v), 1_000_000) : null);
+
+function delivery(v: unknown): Delivery | null {
+  const d = v as Delivery;
+  if (!d || typeof d !== "object") return null;
+  const out: Delivery = { areas: optStr(d.areas, 200), charge: rupees(d.charge), freeAbove: rupees(d.freeAbove), minOrder: rupees(d.minOrder) };
+  return out.areas || out.charge || out.freeAbove || out.minOrder ? out : null;
+}
 
 function translation(v: unknown): Translation | null {
   const t = v as Translation;
@@ -86,8 +98,11 @@ export function cleanContent(input: unknown): { content: SiteContent; errors: st
     gallery: Array.isArray(d.gallery) ? d.gallery.map(media).filter((m): m is Media => m !== null).slice(0, 24) : [],
     items,
     translation: translation(d.translation),
+    upiId: typeof d.upiId === "string" && UPI_RE.test(d.upiId.trim()) ? d.upiId.trim() : null,
+    delivery: delivery(d.delivery),
   };
   const errors = validateItems(items);
+  if (typeof d.upiId === "string" && d.upiId.trim() && !content.upiId) errors.push("The UPI ID doesn't look right. It should look like name@bank.");
   if (!content.businessName) errors.unshift("Add your business name.");
   if (!content.headline) content.headline = content.businessName;
   return { content, errors };

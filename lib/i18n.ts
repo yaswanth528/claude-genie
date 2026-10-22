@@ -34,6 +34,17 @@ export const UI_EN = {
   placeOrder: "Place order",
   payNote: "Pay the shop directly when they confirm your order.",
   empty: "Your cart is empty.",
+  delivery: "Delivery",
+  deliveryTo: "We deliver to",
+  deliveryCharge: "Delivery charge",
+  freeAbove: "Free delivery above",
+  minOrder: "Minimum order",
+  belowMin: "Add a little more: the minimum order is",
+  payUpi: "Pay with UPI",
+  upiHint: "Pay the shop directly with GPay, PhonePe, Paytm or any UPI app.",
+  samplePhoto: "Sample photo",
+  photosBy: "Sample photos",
+  close: "Close",
 } as const;
 
 export type UiKey = keyof typeof UI_EN;

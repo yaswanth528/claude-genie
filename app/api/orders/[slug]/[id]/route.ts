@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { buildLines, buyerCanChange, money, publicOrder, statusOf, totalOf } from "@/lib/orders";
+import { applyDeliveryRules, buildLines, buyerCanChange, money, publicOrder, statusOf, totalOf } from "@/lib/orders";
 import { canEdit } from "@/lib/owner";
 import { ORDER_STATUSES, type Order, type OrderStatus, type Site } from "@/lib/schema";
 import { getOrder, getSite, hashKey, saveOrder } from "@/lib/store";
@@ -33,6 +33,8 @@ function view(site: Site, order: Order, owner: boolean) {
     owner,
     shop: {
       businessName: site.businessName,
+      upiId: site.upiId ?? null,
+      delivery: site.delivery ?? null,
       whatsapp: site.whatsapp,
       theme: site.theme,
       items: site.items.map((i) => ({ name: i.name, price: i.price, unit: i.unit, options: i.options ?? [], inStock: i.inStock !== false })),
@@ -65,6 +67,7 @@ export async function PUT(req: Request, ctx: Ctx) {
     discount?: number;
     deliveryCharge?: number;
     seen?: boolean;
+    paid?: boolean;
   };
 
   if (!owner) {
@@ -74,8 +77,10 @@ export async function PUT(req: Request, ctx: Ctx) {
       order = stamp({ ...order, status: "cancelled", changedByBuyer: true }, "buyer", "Cancelled by buyer");
     } else {
       const built = buildLines(site, body.lines, order.lines);
+      const rules = applyDeliveryRules(site, built.lines);
+      if (rules.error) built.errors.push(rules.error);
       if (built.errors.length) return NextResponse.json({ errors: built.errors }, { status: 400 });
-      order = stamp({ ...order, lines: built.lines, changedByBuyer: true }, "buyer", "Changed by buyer");
+      order = stamp({ ...order, lines: built.lines, deliveryCharge: rules.deliveryCharge || undefined, changedByBuyer: true }, "buyer", "Changed by buyer");
     }
   } else {
     const changes: string[] = [];
@@ -99,6 +104,10 @@ export async function PUT(req: Request, ctx: Ctx) {
       order = { ...order, status: body.status as OrderStatus };
     }
     if (body.seen) order = { ...order, changedByBuyer: false };
+    if (typeof body.paid === "boolean" && body.paid !== !!order.paid) {
+      order = { ...order, paid: body.paid };
+      changes.push(body.paid ? "marked paid" : "marked unpaid");
+    }
     if (changes.length) order = stamp(order, "owner", changes.join(", "));
   }
 

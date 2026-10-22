@@ -127,6 +127,15 @@ export type SiteContent = {
   gallery: Media[];
   items: Product[];
   translation?: Translation | null;
+  upiId?: string | null; // owner's UPI ID; buyers pay the shop directly
+  delivery?: Delivery | null;
+};
+
+export type Delivery = {
+  areas: string | null; // e.g. "Jayanagar, JP Nagar, BTM"
+  charge: number | null; // rupees per order
+  freeAbove: number | null; // free delivery when items total at least this
+  minOrder: number | null; // smallest order accepted (items total)
 };
 
 // A draft is what the review screen edits before publishing.
@@ -182,5 +191,6 @@ export type Order = {
   status?: OrderStatus; // missing on older orders = "new"
   tokenHash?: string; // the buyer's private "My order" link
   changedByBuyer?: boolean; // buyer edited it since the owner last looked
+  paid?: boolean; // owner marked the payment received
   events?: { at: string; by: "buyer" | "owner"; text: string }[];
 };

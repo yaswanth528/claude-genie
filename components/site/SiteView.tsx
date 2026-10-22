@@ -2,8 +2,9 @@
 // Renders a business website from its content. Used for the live preview link (/p/<slug>)
 // and for the preview on the review screen. lib/standalone.ts renders the same markup for
 // customers' separately hosted sites.
+import QRCode from "qrcode";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { formatPrice, lineName, orderText, orderTotal, shortId, whatsappLink } from "@/lib/catalogue";
+import { deliveryFor, formatPrice, lineName, orderText, orderTotal, shortId, upiLink, whatsappLink } from "@/lib/catalogue";
 import { categoriesOf, localText } from "@/lib/localize";
 import type { Media, Order, SiteContent } from "@/lib/schema";
 import { SITE_CSS } from "@/lib/siteCss";
@@ -39,6 +40,13 @@ export function SiteView({ site, preview }: Props) {
   const [cartOpen, setCartOpen] = useState(false);
   const [alt, setAlt] = useState(false); // showing the translation?
   const [filter, setFilter] = useState<string | null>(null);
+  const [view, setView] = useState<number | null>(null); // product opened in the big view
+  const [upiQr, setUpiQr] = useState<string | null>(null);
+  const upi = site.upiId ? upiLink(site.upiId, site.businessName, undefined, "Order") : null;
+  useEffect(() => {
+    if (upi) QRCode.toDataURL(upi, { width: 200, margin: 1 }).then(setUpiQr).catch(() => setUpiQr(null));
+  }, [upi]);
+  const credits = [...new Set(site.items.map((i) => i.image?.credit).concat(site.hero?.credit).filter((c): c is string => !!c))];
   const dynamic = site.siteType === "dynamic";
   const storageKey = site.slug ? `sg-cart2-${site.slug}` : null;
   const L = localText(site, alt && !!site.translation);
@@ -195,11 +203,11 @@ export function SiteView({ site, preview }: Props) {
                 return (
                   <article key={i} className={`s-card ${out ? "is-out" : ""}`}>
                     {anyImages && (
-                      <div className="s-card-media">
+                      <div className="s-card-media" onClick={() => setView(i)} role="presentation">
                         {it.image ? (
                           <>
                             <MediaBox media={it.image} />
-                            {it.image.generated && <span className="s-ai-tag">{it.image.credit ?? "Illustration"}</span>}
+                            {it.image.generated && <span className="s-ai-tag">{u.samplePhoto}</span>}
                           </>
                         ) : (
                           <div className="s-card-mono">{initials(it.name || "?")}</div>
@@ -209,7 +217,11 @@ export function SiteView({ site, preview }: Props) {
                     )}
                     {!anyImages && <span className="s-card-num">{String(i + 1).padStart(2, "0")}</span>}
                     <div className="s-card-body">
-                      <h3>{it.name}</h3>
+                      <h3>
+                        <button className="s-card-title" onClick={() => setView(i)}>
+                          {it.name}
+                        </button>
+                      </h3>
                       {it.description && <p className="s-card-desc">{it.description}</p>}
                       {!!it.options?.length && (
                         <div className="s-opts" role="radiogroup" aria-label={it.optionName ?? "Options"}>
@@ -329,6 +341,29 @@ export function SiteView({ site, preview }: Props) {
                   {u.maps} ↗
                 </a>
               )}
+            {site.delivery && (
+              <ul className="s-contact-list s-delivery">
+                {site.delivery.areas && (
+                  <li>
+                    <span>{u.deliveryTo}</span>
+                    {site.delivery.areas}
+                  </li>
+                )}
+                {!!site.delivery.charge && (
+                  <li>
+                    <span>{u.deliveryCharge}</span>
+                    {formatPrice(site.delivery.charge)}
+                    {site.delivery.freeAbove ? ` · ${u.freeAbove} ${formatPrice(site.delivery.freeAbove)}` : ""}
+                  </li>
+                )}
+                {!!site.delivery.minOrder && (
+                  <li>
+                    <span>{u.minOrder}</span>
+                    {formatPrice(site.delivery.minOrder)}
+                  </li>
+                )}
+              </ul>
+            )}
             </div>
             <div className="s-contact-card">
               <p className="s-muted">WhatsApp</p>
@@ -336,16 +371,48 @@ export function SiteView({ site, preview }: Props) {
               <a className="s-btn" href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer">
                 {u.messageOnWa}
               </a>
+              {upi && (
+                <div className="s-upi">
+                  <p className="s-muted">{u.upiHint}</p>
+                  <div className="s-upi-row">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {upiQr && <img src={upiQr} alt={`UPI QR code for ${site.upiId}`} width={110} height={110} />}
+                    <div>
+                      <p className="s-upi-id">{site.upiId}</p>
+                      <a className="s-btn s-btn-ghost s-btn-sm" href={upi}>
+                        {u.payUpi}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
 
         <footer className="s-footer">
           <div className="s-wrap s-footer-row">
-            <span>© {L.businessName}</span>
+            <span>
+              © {L.businessName}
+              {credits.length > 0 && <small className="s-credits"> · {u.photosBy}: {credits.map((c) => c.replace(/^Photo: /, "")).join(", ")}</small>}
+            </span>
             <a href="/">Made with SiteGenie</a>
           </div>
         </footer>
+
+        {view !== null && L.items[view] && (
+          <ProductView
+            item={L.items[view]}
+            index={view}
+            ui={u}
+            dynamic={dynamic}
+            option={optIndex(view)}
+            qty={cart[keyOf(view, optIndex(view))] ?? 0}
+            onOption={(j) => setChoice((c) => ({ ...c, [view]: j }))}
+            onChange={(d) => change(keyOf(view, optIndex(view)), d)}
+            onClose={() => setView(null)}
+          />
+        )}
 
         {!dynamic && count > 0 && (
           <div className="s-orderbar">
@@ -365,6 +432,8 @@ export function SiteView({ site, preview }: Props) {
           <CartDrawer
             site={site}
             ui={u}
+            delivery={deliveryFor(site.delivery, total)}
+            minOrder={site.delivery?.minOrder ?? null}
             lines={lines}
             total={total}
             preview={preview}
@@ -383,6 +452,8 @@ type Line = { key: string; index: number; optIndex: number; name: string; price:
 function CartDrawer({
   site,
   ui,
+  delivery,
+  minOrder,
   lines,
   total,
   preview,
@@ -392,6 +463,8 @@ function CartDrawer({
 }: {
   site: Props["site"];
   ui: ReturnType<typeof localText>["ui"];
+  delivery: number;
+  minOrder: number | null;
   lines: Line[];
   total: number;
   preview?: boolean;
@@ -478,10 +551,21 @@ function CartDrawer({
                 </li>
               ))}
             </ul>
+            {delivery > 0 && (
+              <p className="s-total s-sub">
+                <span>{ui.delivery}</span>
+                <span>{formatPrice(delivery)}</span>
+              </p>
+            )}
             <p className="s-total">
               <span>{ui.total}</span>
-              <strong>{formatPrice(total)}</strong>
+              <strong>{formatPrice(total + delivery)}</strong>
             </p>
+            {!!minOrder && total < minOrder && (
+              <p className="s-errors">
+                {ui.belowMin} {formatPrice(minOrder)}.
+              </p>
+            )}
             <label htmlFor="c-name">{ui.yourName}</label>
             <input id="c-name" value={customer.name} onChange={set("name")} autoComplete="name" required />
             <label htmlFor="c-phone">{ui.phone}</label>
@@ -497,12 +581,87 @@ function CartDrawer({
                 ))}
               </div>
             )}
-            <button className="s-btn s-btn-block" disabled={busy}>
-              {busy ? "…" : `${ui.placeOrder} · ${formatPrice(total)}`}
+            <button className="s-btn s-btn-block" disabled={busy || (!!minOrder && total < minOrder)}>
+              {busy ? "…" : `${ui.placeOrder} · ${formatPrice(total + delivery)}`}
             </button>
             <p className="s-muted s-small">{ui.payNote}</p>
           </form>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ProductView({
+  item,
+  index,
+  ui,
+  dynamic,
+  option,
+  qty,
+  onOption,
+  onChange,
+  onClose,
+}: {
+  item: ReturnType<typeof localText>["items"][number];
+  index: number;
+  ui: ReturnType<typeof localText>["ui"];
+  dynamic: boolean;
+  option: number;
+  qty: number;
+  onOption: (j: number) => void;
+  onChange: (d: number) => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const out = item.inStock === false;
+  return (
+    <div className="s-drawer-wrap s-pv-wrap" role="dialog" aria-modal="true" aria-label={item.name} data-index={index}>
+      <button className="s-drawer-scrim" onClick={onClose} aria-label={ui.close} />
+      <div className="s-pv">
+        <button className="s-close s-pv-close" onClick={onClose} aria-label={ui.close}>
+          ×
+        </button>
+        {item.image && <MediaBox media={item.image} className="s-pv-img" eager />}
+        <div className="s-pv-body">
+          <h2>{item.name}</h2>
+          <p className="s-price">
+            {formatPrice(item.price)}
+            {item.unit && <small> {item.unit}</small>}
+          </p>
+          {item.description && <p className="s-pv-desc">{item.description}</p>}
+          {!!item.options?.length && (
+            <div className="s-opts" role="radiogroup" aria-label={item.optionName ?? "Options"}>
+              {item.options.map((label, j) => (
+                <button key={j} role="radio" aria-checked={option === j} className={option === j ? "on" : ""} onClick={() => onOption(j)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          {out ? (
+            <p className="s-out-text">{ui.outOfStock}</p>
+          ) : qty > 0 ? (
+            <div className="s-qty s-pv-qty">
+              <button onClick={() => onChange(-1)} aria-label={`One less ${item.name}`}>
+                −
+              </button>
+              <span aria-live="polite">{qty}</span>
+              <button onClick={() => onChange(1)} aria-label={`One more ${item.name}`}>
+                +
+              </button>
+            </div>
+          ) : (
+            <button className="s-btn s-btn-block" onClick={() => onChange(1)}>
+              {dynamic ? ui.addToCart : ui.add}
+            </button>
+          )}
+          {item.image?.generated && <p className="s-muted s-small">{ui.samplePhoto}{item.image.credit ? ` · ${item.image.credit.replace(/^Photo: /, "")}` : ""}</p>}
+        </div>
       </div>
     </div>
   );

@@ -232,3 +232,13 @@
 .order.s-cancelled, .order.s-delivered { opacity: 0.75; }
 .order .plain { margin-top: 8px; }
 .order .prod-line label { display: grid; gap: 4px; font-size: 0.85rem; margin: 0; }
+
+.prod-line.three { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 6px; }
+.prod-line.three label { display: grid; gap: 4px; font-size: 0.82rem; margin: 0; }
+
+/* UPI */
+.upi { display: grid; gap: 8px; margin-top: 8px; }
+.upi-btn { background: #5f259f !important; color: #fff !important; }
+.upi-alt { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.upi-alt img { border-radius: 8px; border: 1px solid var(--line); background: #fff; }
+.upi-id { font-weight: 800; word-break: break-all; margin: 2px 0 6px; }

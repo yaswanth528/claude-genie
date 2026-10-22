@@ -124,3 +124,16 @@ export const shortId = (id: string) => (id.split("-").pop() ?? id).toUpperCase()
 
 export const whatsappLink = (whatsapp: string, text: string) =>
   `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;
+
+// Delivery charge for an items total under the shop's rules.
+export function deliveryFor(rules: { charge: number | null; freeAbove: number | null } | null | undefined, itemsTotal: number): number {
+  if (!rules?.charge) return 0;
+  return rules.freeAbove && itemsTotal >= rules.freeAbove ? 0 : rules.charge;
+}
+
+// upi:// link that opens GPay/PhonePe/Paytm with the shop and amount filled in.
+// Without an amount the buyer types it in their UPI app (used on static sites).
+export function upiLink(upiId: string, payee: string, amount: number | undefined, note: string): string {
+  const q = new URLSearchParams({ pa: upiId, pn: payee.slice(0, 50), ...(amount ? { am: amount.toFixed(2) } : {}), cu: "INR", tn: note.slice(0, 50) });
+  return `upi://pay?${q.toString().replace(/\+/g, "%20")}`;
+}

@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
-import { buildLines, orderLink, publicOrder, totalOf } from "@/lib/orders";
+import { applyDeliveryRules, buildLines, orderLink, publicOrder, totalOf } from "@/lib/orders";
 import { canEdit } from "@/lib/owner";
 import { appOrigin } from "@/lib/publish";
 import type { Order } from "@/lib/schema";
@@ -41,6 +41,8 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!customer.address) errors.push("Add a delivery address.");
   const built = buildLines(site, body.lines);
   errors.push(...built.errors.map((e) => (e === "The order has no items." ? "Your cart is empty." : e)));
+  const rules = applyDeliveryRules(site, built.lines);
+  if (rules.error && built.lines.length) errors.push(rules.error);
   if (errors.length) return json({ errors }, 400);
 
   const token = randomBytes(18).toString("base64url");
@@ -52,7 +54,8 @@ export async function POST(req: Request, { params }: Ctx) {
     updatedAt: now,
     customer,
     lines: built.lines,
-    total: totalOf({ lines: built.lines }),
+    deliveryCharge: rules.deliveryCharge || undefined,
+    total: totalOf({ lines: built.lines, deliveryCharge: rules.deliveryCharge }),
     status: "new",
     tokenHash: hashKey(token),
     events: [{ at: now, by: "buyer", text: "Order placed" }],

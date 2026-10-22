@@ -282,6 +282,37 @@ export const SITE_CSS = `
 }
 .s-out-text { font-size: .85rem; font-weight: 700; color: var(--s-muted); }
 
+/* Product title opens the big view */
+.s-card-title { all: unset; cursor: pointer; font: inherit; color: inherit; }
+.s-card-title:hover { text-decoration: underline; text-underline-offset: 3px; }
+.s-card-title:focus-visible { outline: 3px solid color-mix(in srgb, var(--s-accent) 55%, transparent); outline-offset: 2px; }
+.s-card-media { cursor: zoom-in; }
+
+/* Big product view */
+.s-pv-wrap { justify-content: center; align-items: flex-end; }
+@container site (min-width: 760px) { .s-pv-wrap { align-items: center; } }
+.s-pv {
+  position: relative; width: min(100%, 560px); max-height: 92%; overflow-y: auto; background: var(--s-bg); color: var(--s-ink);
+  border-radius: calc(var(--s-radius) * 1.5) calc(var(--s-radius) * 1.5) 0 0; box-shadow: 0 -20px 60px -20px rgba(0,0,0,.5);
+}
+@container site (min-width: 760px) { .s-pv { border-radius: calc(var(--s-radius) * 1.5); } }
+.s-pv-img { width: 100%; max-height: 60vh; object-fit: cover; display: block; background: var(--s-soft); }
+.s-pv-body { padding: 18px 20px calc(22px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 10px; }
+.s-pv-body h2 { font-size: 1.7rem; }
+.s-pv-desc { color: var(--s-muted); white-space: pre-line; }
+.s-pv-close { position: absolute; top: 8px; right: 8px; z-index: 1; background: color-mix(in srgb, var(--s-bg) 85%, transparent); border-radius: 50%; }
+.s-pv-qty { justify-content: flex-start; }
+.s-pv-qty button { width: 44px; height: 44px; }
+
+/* Delivery and UPI in the contact section */
+.s-delivery { margin-top: 18px; }
+.s-upi { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--s-line); display: grid; gap: 8px; }
+.s-upi-row { display: flex; gap: 12px; align-items: center; }
+.s-upi-row img { border-radius: 8px; background: #fff; border: 1px solid var(--s-line); }
+.s-upi-id { font-weight: 800; word-break: break-all; margin-bottom: 6px; }
+.s-total.s-sub { font-size: 1rem; color: var(--s-muted); margin-bottom: 0; }
+.s-credits { opacity: .8; }
+
 @media (prefers-reduced-motion: reduce) {
   .site *, .site *::before { transition: none !important; }
   .s-card:hover, .s-btn:hover { transform: none; }

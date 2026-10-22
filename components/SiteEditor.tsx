@@ -59,6 +59,9 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
   const set = (patch: Partial<SiteContent> & { whatsapp?: string }) => onChange({ ...d, ...patch });
   const setItem = (i: number, patch: Partial<Product>) => set({ items: d.items.map((it, j) => (j === i ? { ...it, ...patch } : it)) });
   const up = useUpload();
+  const num = (v: string) => (v.replace(/\D/g, "") ? Number(v.replace(/\D/g, "")) : null);
+  const setDelivery = (patch: Partial<NonNullable<SiteContent["delivery"]>>) =>
+    set({ delivery: { areas: null, charge: null, freeAbove: null, minOrder: null, ...(d.delivery ?? {}), ...patch } });
   const theme = THEMES[d.theme.id];
 
   return (
@@ -274,6 +277,36 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string }>({ valu
           ))}
         </div>
         <FileButton label={up.busy === "gallery" ? "Uploading…" : "Add to gallery"} accept="image/*,video/mp4,video/webm,video/quicktime" disabled={!!up.busy} onFile={(f) => up.run("gallery", f, (m) => set({ gallery: [...d.gallery, m] }))} />
+      </details>
+
+      <details>
+        <summary>Payments and delivery</summary>
+        <label htmlFor="e-upi">Your UPI ID (optional)</label>
+        <input
+          id="e-upi"
+          placeholder="e.g. yourshop@okaxis"
+          autoCapitalize="none"
+          autoCorrect="off"
+          value={d.upiId ?? ""}
+          onChange={(e) => set({ upiId: e.target.value.trim() || null })}
+        />
+        <p className="hint small">Customers can pay you directly with GPay, PhonePe or Paytm. The money goes straight to you.</p>
+        <label htmlFor="e-areas">Delivery areas</label>
+        <input id="e-areas" placeholder="e.g. Jayanagar, JP Nagar, BTM" value={d.delivery?.areas ?? ""} onChange={(e) => setDelivery({ areas: e.target.value || null })} />
+        <div className="prod-line three">
+          <label>
+            Delivery charge ₹
+            <input inputMode="numeric" placeholder="0" value={d.delivery?.charge ?? ""} onChange={(e) => setDelivery({ charge: num(e.target.value) })} />
+          </label>
+          <label>
+            Free above ₹
+            <input inputMode="numeric" placeholder="—" value={d.delivery?.freeAbove ?? ""} onChange={(e) => setDelivery({ freeAbove: num(e.target.value) })} />
+          </label>
+          <label>
+            Minimum order ₹
+            <input inputMode="numeric" placeholder="—" value={d.delivery?.minOrder ?? ""} onChange={(e) => setDelivery({ minOrder: num(e.target.value) })} />
+          </label>
+        </div>
       </details>
 
       <TranslationPanel value={d} onChange={(translation) => set({ translation })} />

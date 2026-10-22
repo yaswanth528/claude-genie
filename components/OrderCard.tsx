@@ -71,6 +71,7 @@ export function OrderCard({ order, slug, editKey, businessName, products, onSave
       </header>
       <div className="row tight" style={{ marginTop: 6 }}>
         <span className={`pill ${status === "new" ? "warn" : status === "cancelled" ? "bad" : "ok"}`}>{STATUS_LABEL[status]}</span>
+        {order.paid && <span className="pill ok">Paid ✓</span>}
         {order.changedByBuyer && (
           <button className="pill warn as-btn" onClick={() => put({ seen: true })} title="Mark as seen">
             Changed by buyer ✓
@@ -169,6 +170,11 @@ export function OrderCard({ order, slug, editKey, businessName, products, onSave
             <a className="btn wa sm" href={update} target="_blank" rel="noreferrer">
               Send update on WhatsApp
             </a>
+            {status !== "cancelled" && (
+              <button className="btn ghost sm" onClick={() => put({ paid: !order.paid })} disabled={busy}>
+                {order.paid ? "Mark unpaid" : "Mark paid"}
+              </button>
+            )}
             {!closed && (
               <button
                 className="btn ghost sm danger"

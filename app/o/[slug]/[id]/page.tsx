@@ -5,14 +5,15 @@
 import { use, useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { formatPrice, lineName, shortId, whatsappLink } from "@/lib/catalogue";
 import { STATUS_LABEL, orderSummary, totalOf } from "@/lib/orders";
-import type { Order, OrderStatus, ThemeId } from "@/lib/schema";
+import { UpiPay } from "@/components/UpiPay";
+import type { Delivery, Order, OrderStatus, ThemeId } from "@/lib/schema";
 import { themeVars } from "@/lib/themes";
 
 type ShopItem = { name: string; price: number | null; unit: string | null; options: string[]; inStock: boolean };
 type View = {
   order: Order & { status: OrderStatus };
   canChange: boolean;
-  shop: { businessName: string; whatsapp: string; theme: { id: ThemeId; accent: number }; items: ShopItem[] };
+  shop: { businessName: string; whatsapp: string; upiId: string | null; delivery: Delivery | null; theme: { id: ThemeId; accent: number }; items: ShopItem[] };
 };
 type Draft = { index: number; option: string | null; qty: number; price: number | null; name: string };
 
@@ -242,6 +243,22 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
             </div>
           )}
         </div>
+
+        {order.paid ? (
+          <div className="success">✓ Paid. Thank you!</div>
+        ) : (
+          shop.upiId &&
+          ["confirmed", "out_for_delivery", "delivered"].includes(status) && (
+            <div className="card op-card">
+              <strong>Pay the shop</strong>
+              <UpiPay upiId={shop.upiId} payee={shop.businessName} amount={totalOf(order)} note={`Order ${shortId(order.id)}`} />
+              <p className="hint small">After paying, send the shop a screenshot on WhatsApp so they can mark it paid.</p>
+            </div>
+          )
+        )}
+        {!order.paid && shop.upiId && status === "new" && (
+          <p className="hint" style={{ marginTop: 12 }}>You can pay with UPI once the shop confirms your order and the final total.</p>
+        )}
 
         <div className="card op-card">
           <p className="hint small">Deliver to</p>

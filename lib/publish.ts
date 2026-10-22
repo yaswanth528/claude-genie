@@ -18,7 +18,7 @@ export const paymentMode = (): "test" | "live" | "off" =>
   process.env.PAYMENT_MODE === "live" ? "live" : process.env.PAYMENT_MODE === "off" ? "off" : "test";
 
 export async function deploySite(site: Site, appOrigin: string): Promise<Site> {
-  const { project, url } = await deployToPages(site.slug, renderStandalone(site, appOrigin));
+  const { project, url } = await deployToPages(site.slug, await renderStandalone(site, appOrigin));
   const now = new Date().toISOString();
   const next: Site = { ...site, live: { provider: "cloudflare", project, url, deployedAt: now, updatedAt: site.updatedAt } };
   await saveSite(next, `Deploy ${site.slug} to ${url}`);
