@@ -49,7 +49,8 @@ export default function CreatePage() {
   const [aiImages, setAiImages] = useState(true);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [device, setDevice] = useState<"phone" | "desktop">("phone");
-  const [pane, setPane] = useState<"edit" | "preview">("edit");
+  // Phones show the website first (the "magic moment"); the editor is one tap away.
+  const [pane, setPane] = useState<"edit" | "preview">("preview");
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
@@ -154,6 +155,14 @@ export default function CreatePage() {
           <section className={`review-preview ${pane === "preview" ? "show" : ""}`} aria-label="Website preview">
             <div className={`device ${device}`}>
               <SiteView site={draft} preview />
+            </div>
+            <div className="preview-cta mobile-only">
+              <button className="btn" onClick={publish} disabled={busy}>
+                {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
+              </button>
+              <button className="btn ghost" onClick={() => setPane("edit")}>
+                Edit
+              </button>
             </div>
           </section>
         </div>
