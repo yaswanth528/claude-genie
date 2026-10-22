@@ -1,0 +1,24 @@
+{
+  "id": "mvjf1ert-367aa0",
+  "slug": "sitegenie-test-store-odoa",
+  "createdAt": "2026-10-22T10:46:19.913Z",
+  "customer": {
+    "name": "Test Customer",
+    "phone": "9876501234",
+    "address": "12 Test Road, Jayanagar",
+    "note": "Please call before delivery"
+  },
+  "lines": [
+    {
+      "name": "Cotton Kurti",
+      "price": 799,
+      "qty": 2
+    },
+    {
+      "name": "Silk Saree",
+      "price": 2499,
+      "qty": 1
+    }
+  ],
+  "total": 4097
+}
