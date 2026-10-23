@@ -1,7 +1,9 @@
 // Pictures for slots the owner didn't fill. Sources, in order: a Gemini illustration (only
 // with GEMINI_IMAGES=on — free-tier keys can't generate images), Wikimedia Commons (products
 // only, no key; best for Indian items like mysore pak or masala dosa), Unsplash
-// (UNSPLASH_ACCESS_KEY), Pixabay (PIXABAY_API_KEY), Pexels (PEXELS_API_KEY). With none
+// (UNSPLASH_ACCESS_KEY), Pixabay (PIXABAY_API_KEY), Pexels (PEXELS_API_KEY). For products,
+// stock photos must name the product; if none does, a Cloudflare Workers AI image (FLUX,
+// free daily allowance) is made, and only then the closest stock photo is used. With none
 // available the site uses its photo-free design.
 //
 // Matching is deterministic (no AI calls, so it stays fast on a free Gemini key): each
@@ -9,11 +11,21 @@
 // match the product, skipping photos already used elsewhere on the same site.
 import { generateImage } from "./ai";
 import { saveMedia } from "./media";
+import { dailyBudget } from "./ratelimit";
 import type { Media } from "./schema";
 
 type Aspect = "16:9" | "1:1";
 type Candidate = { id: string; text: string; use: () => Promise<Media | null> };
-type Opts = { prompt: string; query: string; aspect: Aspect; alt: string; name?: string; used?: Set<string> };
+type Opts = {
+  prompt: string;
+  query: string;
+  aspect: Aspect;
+  alt: string;
+  name?: string;
+  used?: Set<string>;
+  needName?: boolean; // only accept photos whose text names the product
+  spare?: Candidate[]; // best photos that didn't name it, kept as a last resort
+};
 
 let geminiImagesOffUntil = 0;
 
@@ -48,9 +60,14 @@ async function pick(cands: Candidate[], o: Opts): Promise<Media | null> {
   const fresh = cands.filter((c) => !o.used?.has(c.id));
   if (!fresh.length) return null;
   // Highest score wins; ties keep the source's own ranking.
-  const best = fresh.map((c, i) => ({ c, s: score(c.text, o), i })).sort((a, b) => b.s - a.s || a.i - b.i)[0].c;
-  o.used?.add(best.id);
-  return best.use();
+  const ranked = fresh.map((c, i) => ({ c, s: score(c.text, o), i })).sort((a, b) => b.s - a.s || a.i - b.i).map((x) => x.c);
+  const ok = o.needName ? ranked.filter((c) => score(c.text, { ...o, query: "" }) >= 2) : ranked;
+  if (!ok.length) {
+    o.spare?.push(ranked[0]);
+    return null;
+  }
+  o.used?.add(ok[0].id);
+  return ok[0].use();
 }
 
 type UnsplashPhoto = {
@@ -250,6 +267,59 @@ async function fromPexels(o: Opts): Promise<Media | null> {
   }
 }
 
+// Cloudflare Workers AI (FLUX.1 schnell), on the free daily allowance (10,000 neurons, about
+// 170 images). We stop at CF_IMAGES_DAILY (default 120) so we switch to stock photos before
+// Cloudflare refuses, and if it refuses anyway we skip it until the allowance resets.
+// Needs the API token to have the Workers AI permission; CF_IMAGES=off turns it off.
+const CF_IMAGES_DAILY = Number(process.env.CF_IMAGES_DAILY) || 120;
+let cfImagesOffUntil = 0;
+const nextUtcMidnight = () => {
+  const d = new Date();
+  d.setUTCHours(24, 0, 0, 0);
+  return d.getTime();
+};
+
+async function fromCloudflare(o: Opts): Promise<Media | null> {
+  const account = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  if (!account || !token || process.env.CF_IMAGES === "off" || Date.now() < cfImagesOffUntil || !o.prompt.trim()) return null;
+  if (!(await dailyBudget("cfImages", CF_IMAGES_DAILY))) {
+    cfImagesOffUntil = nextUtcMidnight();
+    return null;
+  }
+  try {
+    const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: o.prompt.slice(0, 2000), steps: 4 }),
+      signal: AbortSignal.timeout(25000),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("Cloudflare image failed:", res.status, text.slice(0, 200));
+      if (res.status === 429 || /neuron|allocation|quota/i.test(text)) cfImagesOffUntil = nextUtcMidnight();
+      else if (res.status === 401 || res.status === 403) cfImagesOffUntil = Date.now() + 60 * 60 * 1000; // token lacks Workers AI
+      return null;
+    }
+    const image = ((await res.json()) as { result?: { image?: string } }).result?.image;
+    if (!image) return null;
+    return { url: await saveMedia(Buffer.from(image, "base64"), "image/jpeg", "generated"), kind: "image", generated: true, alt: o.alt, credit: null };
+  } catch (err) {
+    console.error("Cloudflare image failed:", (err as Error).message);
+    return null;
+  }
+}
+
 export async function findPicture(o: Opts): Promise<Media | null> {
-  return (await fromGemini(o)) ?? (await fromWikimedia(o)) ?? (await fromUnsplash(o)) ?? (await fromPixabay(o)) ?? (await fromPexels(o));
+  const gemini = await fromGemini(o);
+  if (gemini) return gemini;
+  if (o.aspect !== "1:1" || !o.name?.trim()) return (await fromUnsplash(o)) ?? (await fromPixabay(o)) ?? (await fromPexels(o));
+  // Products: a real photo that names the product, then an AI image, then the closest stock photo.
+  const p: Opts = { ...o, needName: true, spare: [] };
+  const found = (await fromWikimedia(p)) ?? (await fromUnsplash(p)) ?? (await fromPixabay(p)) ?? (await fromPexels(p)) ?? (await fromCloudflare(o));
+  if (found) return found;
+  const spare = p.spare!.find((c) => !o.used?.has(c.id));
+  if (!spare) return null;
+  o.used?.add(spare.id);
+  return spare.use();
 }

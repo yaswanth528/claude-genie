@@ -41,6 +41,7 @@ Payments/UPI, address capture, logins, custom domains and analytics (per the MVP
 | `GEMINI_API_KEY` | Speech, website planning, translations, voice edits |
 | `UNSPLASH_ACCESS_KEY` / `PIXABAY_API_KEY` | Stock photos when the owner adds none |
 | `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Pages Edit, D1 Edit) | Separate customer websites and D1 storage |
+| Same token with **Workers AI Read** (optional `CF_IMAGES_DAILY`, default 120) | AI product photos (FLUX) when no stock photo names the product; switches back to stock photos before the free daily allowance runs out |
 | Vercel Blob store (**Public** access) with `BLOB_READ_WRITE_TOKEN` | Photo and video uploads (a Private store rejects public files) |
 | `ADMIN_PASSWORD` | Admin panel at `/admin` |
 | `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` + `AUTH_SECRET` | Owner login with a WhatsApp code |

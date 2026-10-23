@@ -43,6 +43,12 @@ async function hit(key: string, limit: number, windowSec: number): Promise<{ ok:
   }
 }
 
+// Counts one use of a daily budget shared by everyone, resetting at midnight UTC (when
+// Cloudflare's free allowances reset). False once `max` uses are spent today.
+export async function dailyBudget(name: string, max: number): Promise<boolean> {
+  return (await hit(`${name}:${new Date().toISOString().slice(0, 10)}`, max, 86400)).ok;
+}
+
 type Rule = { limit: number; windowSec: number };
 
 // Named limits, one place to tune them.
