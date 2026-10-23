@@ -12,7 +12,7 @@ import SpotlightCard from "@/components/bits/SpotlightCard/SpotlightCard";
 // Peacock & Gold
 const ACCENT = "#0e8f8f"; // teal
 const ACCENT_2 = "#4fd1c5"; // aqua
-const AMBER = "#d9a441"; // gold
+const AMBER = "#3a4046"; // matte graphite
 const LILAC = "#2b8cc4"; // sky peacock
 const SHOP_TYPES = ["saree shop", "bakery", "kirana store", "salon", "sweet shop", "box factory"];
 
@@ -21,7 +21,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 }
 
 export function Kicker({ text }: { text: string }) {
-  return <ShinyText text={text} color="#a87b22" shineColor="#f3d68f" speed={3} className="lp-kicker" />;
+  return <ShinyText text={text} color="#3a4046" shineColor="#b9c1c6" speed={3} className="lp-kicker" />;
 }
 
 // "Speak. / Your [saree shop] is online." The whole second line swaps, so every version is
@@ -78,7 +78,7 @@ export function ShopMarquee() {
 
 export function Greatest({ children }: { children: ReactNode }) {
   return (
-    <GradientText colors={[ACCENT, ACCENT_2, LILAC, AMBER, ACCENT]} animationSpeed={6} className="lp-greatest">
+    <GradientText colors={["#08394d", "#0b5d7a", "#0e8f8f", "#0b5d7a", "#08394d"]} animationSpeed={6} className="lp-greatest">
       {children}
     </GradientText>
   );
@@ -88,7 +88,7 @@ export function FeatureTile({ title, body, wide, dark }: { title: string; body: 
   return (
     <SpotlightCard
       theme={dark ? "dark" : "light"}
-      spotlightColor={dark ? AMBER : LILAC}
+      spotlightColor={dark ? ACCENT_2 : LILAC}
       intensity={dark ? 0.35 : 0.5}
       spotlightSize={dark ? 340 : 260}
       ambient={dark}
@@ -103,7 +103,7 @@ export function FeatureTile({ title, body, wide, dark }: { title: string; body: 
 export function FinalGlow() {
   return (
     <div className="lp-aurora" aria-hidden="true">
-      <Aurora colorStops={[ACCENT_2, AMBER, LILAC]} amplitude={0.8} blend={0.6} speed={0.5} height={0.36} direction="bottom" mouseInteraction={false} />
+      <Aurora colorStops={[ACCENT_2, ACCENT, LILAC]} amplitude={0.8} blend={0.6} speed={0.5} height={0.36} direction="bottom" mouseInteraction={false} />
     </div>
   );
 }

@@ -8,7 +8,7 @@
   --cf-muted: #46636e;
   --cf-line: rgba(13, 43, 54, 0.1);
   --cf-accent: #0e8f8f;
-  --cf-accent-2: #d9a441;
+  --cf-accent-2: #3a4046;
   --cf-lotus: #4fd1c5;
   --cf-lilac: #2b8cc4;
   --cf-dark: #08394d;
@@ -21,10 +21,10 @@
   --line: rgba(13, 43, 54, 0.12);
   --brand: #08394d;
   --charcoal: #08394d;
-  --amber: #d9a441;
+  --amber: #3a4046;
   --wa: #0f9d7a;
   min-height: 100vh;
-  background: radial-gradient(50% 40% at 15% 0%, rgba(217, 164, 65, 0.22), transparent 70%), radial-gradient(45% 40% at 90% 5%, rgba(79, 209, 197, 0.18), transparent 70%), radial-gradient(50% 50% at 50% 100%, rgba(43, 140, 196, 0.12), transparent 70%), var(--cf-bg);
+  background: radial-gradient(50% 40% at 15% 0%, rgba(70, 78, 86, 0.22), transparent 70%), radial-gradient(45% 40% at 90% 5%, rgba(79, 209, 197, 0.18), transparent 70%), radial-gradient(50% 50% at 50% 100%, rgba(43, 140, 196, 0.12), transparent 70%), var(--cf-bg);
   color: var(--cf-ink);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, "Noto Sans", "Noto Sans Kannada", "Noto Sans Devanagari", sans-serif;
 }
@@ -63,7 +63,7 @@
 /* The big mic */
 .cf-mic { display: grid; justify-items: center; gap: 10px; padding: 6px 0 0; }
 .cf-orb { --level: 0; position: relative; width: 112px; height: 112px; border-radius: 50%; border: 0; cursor: pointer; color: #fff; display: grid; place-items: center;
-  background: radial-gradient(circle at 35% 30%, #ecc878, var(--cf-accent) 58%, #0b5d7a);
+  background: radial-gradient(circle at 35% 30%, #8a949b, var(--cf-accent) 58%, #0b5d7a);
   box-shadow: 0 22px 50px -18px rgba(18, 163, 163, 0.75), inset 0 -6px 18px rgba(0, 0, 0, 0.18);
   transition: transform 0.15s ease; transform: scale(calc(1 + var(--level) * 0.08)); }
 .cf-orb:hover { filter: brightness(1.05); }
@@ -116,7 +116,7 @@
 
 /* Checking */
 .cf-center { display: grid; justify-items: center; text-align: center; gap: 14px; padding: clamp(40px, 8vw, 80px) 0; }
-.cf-pulse { width: 96px; height: 96px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ecc878, var(--cf-accent) 58%, #0b5d7a); animation: cf-breathe 1.4s ease-in-out infinite; margin-bottom: 10px;
+.cf-pulse { width: 96px; height: 96px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8a949b, var(--cf-accent) 58%, #0b5d7a); animation: cf-breathe 1.4s ease-in-out infinite; margin-bottom: 10px;
   box-shadow: 0 0 0 0 rgba(18, 163, 163, 0.4); }
 
 /* Questions */
@@ -149,14 +149,14 @@
 .cf-build-screen i { display: block; }
 .b-bar { height: 34px; margin: 0 -12px; border-bottom: 1px solid #eee5d6; }
 .b-hero { display: grid; justify-items: center; gap: 7px; padding: 14px 0 6px; }
-.b-eyebrow { width: 40%; height: 6px; border-radius: 4px; background: #e9cf8f; }
+.b-eyebrow { width: 40%; height: 6px; border-radius: 4px; background: #c9d0d4; }
 .b-h1 { width: 80%; height: 15px; border-radius: 6px; background: #0d2b36; }
 .b-h1.short { width: 55%; }
 .b-btns { width: 60%; height: 22px; border-radius: 999px; background: var(--cf-accent); margin-top: 4px; }
 .b-band { height: 22px; margin: 0 -12px; background: var(--cf-accent); opacity: 0.85; }
 .b-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .b-card { border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px #efe7da; padding: 0 0 8px; overflow: hidden; display: grid; gap: 5px; }
-.b-img { aspect-ratio: 1; background: linear-gradient(135deg, #f6e7c4, #bfe6e3); }
+.b-img { aspect-ratio: 1; background: linear-gradient(135deg, #e6eaec, #bfe6e3); }
 .b-line { height: 6px; width: 70%; margin-left: 7px; border-radius: 4px; background: #ddd2c3; }
 .b-line.short { width: 40%; background: var(--cf-accent); opacity: 0.7; }
 /* Blocks appear one after another as data-stage goes up. */
@@ -214,7 +214,7 @@
 .rv .revise .btn.ghost { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.3); }
 .rv .revise-result { border-top-color: rgba(255, 255, 255, 0.14); }
 .rv .revise-done { color: #5ef0b8; }
-.rv .revise-busy { color: #ecc878; }
+.rv .revise-busy { color: #8a949b; }
 .rv .revise.compact { color: var(--cf-ink); background: none; box-shadow: none; padding: 0; }
 .rv .revise.compact select, .rv .revise.compact textarea { background: #fcfbf8; color: var(--cf-ink); border-color: var(--cf-line); }
 .rv .revise.compact .small-label, .rv .revise.compact .hint { color: var(--cf-muted); }
@@ -282,9 +282,9 @@
 .cf-main.wide .cf-build { max-width: 860px; margin-inline: auto; width: 100%; }
 
 /* Kesari Sunrise extras: the voice-change card, the shop orb, and gentle motion */
-.rv .revise { background: radial-gradient(90% 110% at 100% 0%, rgba(79, 209, 197, 0.55), transparent 55%), radial-gradient(80% 90% at 0% 100%, rgba(217, 164, 65, 0.4), transparent 60%), var(--cf-dark); }
+.rv .revise { background: radial-gradient(90% 110% at 100% 0%, rgba(79, 209, 197, 0.55), transparent 55%), radial-gradient(80% 90% at 0% 100%, rgba(70, 78, 86, 0.4), transparent 60%), var(--cf-dark); }
 .rv .revise .btn:not(.ghost) { background: #fff; color: var(--cf-dark); }
-.cf-orb { box-shadow: 0 22px 50px -16px rgba(18, 163, 163, 0.7), 0 0 0 10px rgba(217, 164, 65, 0.12), inset 0 -6px 18px rgba(0, 0, 0, 0.15); }
+.cf-orb { box-shadow: 0 22px 50px -16px rgba(18, 163, 163, 0.7), 0 0 0 10px rgba(70, 78, 86, 0.12), inset 0 -6px 18px rgba(0, 0, 0, 0.15); }
 .cf-hero h1, .rv-head h1 { color: var(--cf-ink); }
 .cf-kicker { font-weight: 650; }
 .cf-track li.done span { background: var(--cf-ok); }
@@ -302,5 +302,5 @@
 @keyframes cf-rise { from { opacity: 0; transform: translateY(16px); } }
 /* The mic breathes gently while waiting to be tapped */
 .is-idle .cf-orb { animation: cf-idle 3.2s ease-in-out infinite; }
-@keyframes cf-idle { 50% { box-shadow: 0 24px 60px -12px rgba(18, 163, 163, 0.8), 0 0 0 18px rgba(217, 164, 65, 0.1), inset 0 -6px 18px rgba(0, 0, 0, 0.15); } }
+@keyframes cf-idle { 50% { box-shadow: 0 24px 60px -12px rgba(18, 163, 163, 0.8), 0 0 0 18px rgba(70, 78, 86, 0.1), inset 0 -6px 18px rgba(0, 0, 0, 0.15); } }
 @media (prefers-reduced-motion: reduce) { .cf-main > *, .cf-speak > * > *, .is-idle .cf-orb { animation: none; } }

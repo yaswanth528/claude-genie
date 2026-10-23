@@ -33,7 +33,7 @@ const SAY: { label: string; heard: RegExp | null }[] = [
   { label: "Delivery or anything special", heard: /deliver|home/i },
 ];
 
-const Kicker = ({ text }: { text: string }) => <ShinyText text={text} color="#a87b22" shineColor="#f3d68f" speed={3} className="cf-kicker" />;
+const Kicker = ({ text }: { text: string }) => <ShinyText text={text} color="#3a4046" shineColor="#b9c1c6" speed={3} className="cf-kicker" />;
 
 export default function CreatePage() {
   const [stage, setStage] = useState<Stage>("speak");

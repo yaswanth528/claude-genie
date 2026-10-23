@@ -7,7 +7,7 @@
   --ad-muted: #46636e;
   --ad-line: rgba(13, 43, 54, 0.09);
   --ad-accent: #0e8f8f;
-  --ad-accent-2: #d9a441;
+  --ad-accent-2: #3a4046;
   --ad-lotus: #4fd1c5;
   --ad-lilac: #2b8cc4;
   --ad-dark: #08394d;
@@ -146,10 +146,10 @@
 .ad-confirm { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* Kesari Sunrise extras and motion */
-.ad { background: radial-gradient(45% 35% at 0% 0%, rgba(217, 164, 65, 0.16), transparent 70%), radial-gradient(40% 35% at 100% 0%, rgba(43, 140, 196, 0.14), transparent 70%), var(--ad-bg); }
+.ad { background: radial-gradient(45% 35% at 0% 0%, rgba(70, 78, 86, 0.16), transparent 70%), radial-gradient(40% 35% at 100% 0%, rgba(43, 140, 196, 0.14), transparent 70%), var(--ad-bg); }
 .ad-btn.primary { background: var(--ad-dark); }
 .ad-kpi, .ad-card, .ad-list { box-shadow: 0 1px 2px rgba(13, 43, 54, 0.05), 0 20px 40px -32px rgba(13, 43, 54, 0.4); }
-.ad-kpi.dark { background: radial-gradient(90% 120% at 100% 0%, rgba(79, 209, 197, 0.55), transparent 55%), radial-gradient(70% 90% at 0% 100%, rgba(217, 164, 65, 0.4), transparent 60%), var(--ad-dark); }
+.ad-kpi.dark { background: radial-gradient(90% 120% at 100% 0%, rgba(79, 209, 197, 0.55), transparent 55%), radial-gradient(70% 90% at 0% 100%, rgba(70, 78, 86, 0.4), transparent 60%), var(--ad-dark); }
 .ad-fill { background: linear-gradient(90deg, var(--ad-accent), var(--ad-lotus), var(--ad-lilac)); }
 .ad-bar-fill { background: linear-gradient(var(--ad-lotus), var(--ad-accent)); }
 .ad-split .d { background: var(--ad-dark); }

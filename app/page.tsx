@@ -69,6 +69,55 @@ export default function Home() {
             <i />
             <i />
           </div>
+          {/* Example moments from SiteGenie floating around the headline (illustrations, not real data). */}
+          <div className="lp-floaters" aria-hidden="true">
+            <div className="lp-float f1">
+              <span className="lp-float-icon wave">
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
+              <span>
+                <small>You said</small>“Cotton sarees for ₹1,200…”
+              </span>
+            </div>
+            <div className="lp-float f2">
+              <span className="lp-float-icon ok">✓</span>
+              <span>
+                <small>Website is live</small>yourshop.pages.dev
+              </span>
+            </div>
+            <div className="lp-float f3">
+              <span className="lp-float-icon">₹</span>
+              <span>
+                <small>UPI payment</small>₹899 received
+              </span>
+            </div>
+            <div className="lp-float f4">
+              <span className="lp-float-icon dot" />
+              <span>
+                <small>Your hours</small>Open now · closes 9 pm
+              </span>
+            </div>
+            <div className="lp-float f5">
+              <span className="lp-float-icon">+</span>
+              <span>
+                <small>New order</small>Cotton saree × 2 · ₹2,400
+              </span>
+            </div>
+            <div className="lp-float f6">
+              <span className="lp-float-icon">⇄</span>
+              <span>
+                <small>Two languages</small>English · ಕನ್ನಡ
+              </span>
+            </div>
+          </div>
+          <div className="lp-sparks" aria-hidden="true">
+            {Array.from({ length: 14 }, (_, i) => (
+              <i key={i} style={{ ["--x" as string]: `${(i * 37) % 100}%`, ["--d" as string]: `${(i % 7) * 1.1}s`, ["--t" as string]: `${7 + (i % 5)}s` }} />
+            ))}
+          </div>
           <Kicker text="Websites for small shops" />
           <HeroTitle />
           <HeroSub text="Talk about your shop for 30 seconds, in your language. Get a beautiful website with your products, prices and ordering." />
