@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 
-// Privacy and terms: SiteGenie's own pages, in its Peacock palette (styles in app/brand.css, .lg).
+// Privacy and terms: SiteGenie's own pages, in its Peacock palette (styles in app/brand.css, .legal).
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="lg">
+    <div className="legal">
       <header className="lg-bar">
         <div className="lg-row">
           <Logo />
