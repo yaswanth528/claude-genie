@@ -1,13 +1,38 @@
 "use client";
 // Edit panel for a website: type, look, text, products, photos and contact details.
 // Shared by the review screen (before publishing) and the owner's edit screen.
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseHours } from "@/lib/hours";
 import { BADGES, FESTIVALS, LAYOUTS, THEME_IDS, type Badge, type FestivalId, type Layout, type Media, type Product, type SiteContent, type Translation } from "@/lib/schema";
 import { THEMES } from "@/lib/themes";
 import { CompareTypes } from "./CompareTypes";
 import { ReadBack } from "./ReadBack";
 import { uploadFile } from "./upload";
+
+// Under the banner upload: what gives the best banner, and how this photo will be shown.
+// Matches the website's rule (lib/siteBits coverFits): photos are never stretched.
+function BannerTip({ hero }: { hero: Media | null }) {
+  const [size, setSize] = useState<[number, number] | null>(null);
+  useEffect(() => {
+    setSize(null);
+    if (!hero || hero.kind !== "image") return;
+    const im = new Image();
+    im.onload = () => setSize([im.naturalWidth, im.naturalHeight]);
+    im.src = hero.url;
+  }, [hero]);
+  const tip = "Best banner: a sideways (landscape) photo of your shop or best products, at least 1600 × 900 pixels, in daylight.";
+  if (!size) return <p className="hint small">{tip}</p>;
+  const [w, h] = size;
+  const good = w >= 1600 && w / h >= 1.3;
+  return (
+    <p className="hint small">
+      This photo is {w} × {h}.{" "}
+      {good
+        ? "Great for a big banner."
+        : `It will be shown whole, never stretched${w / h < 1.3 ? " (it's tall, so it sits beside the headline)" : ""}. For a full-screen “Big photo” banner, use a sideways photo at least 1600 × 900.`}
+    </p>
+  );
+}
 
 type Props<T extends SiteContent> = {
   value: T;
@@ -310,6 +335,7 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
             </button>
           )}
         </div>
+        <BannerTip hero={d.hero} />
         <label>Gallery</label>
         <div className="mini-grid">
           {d.gallery.map((m, i) => (

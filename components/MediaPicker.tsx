@@ -53,6 +53,10 @@ export function MediaPicker({ value, onChange, max = 12 }: { value: Uploaded[]; 
           <strong>Add photos or videos</strong> <span className="hint">(optional)</span>
         </p>
         <p className="hint">Shop front, products, your work. We’ll place them on your website. No photos? We’ll create pictures for you.</p>
+        <p className="hint small media-tip">
+          <strong>For the best results:</strong> take photos in daylight, holding the phone sideways for your shop front (it becomes the big banner),
+          and one product per photo on a plain background. Full-size phone photos look sharpest; small or screenshot images are shown smaller, never stretched.
+        </p>
         <button type="button" className="btn ghost" onClick={() => input.current?.click()} disabled={full}>
           Browse files
         </button>

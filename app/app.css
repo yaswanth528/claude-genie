@@ -14,6 +14,7 @@
 /* Media picker */
 .dropzone { border: 2px dashed var(--line); border-radius: var(--radius); padding: 18px; background: var(--surface); display: grid; gap: 8px; justify-items: start; }
 .dropzone.over { border-color: var(--brand); background: var(--warn-bg); }
+.media-tip { margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(14, 143, 143, 0.08); max-width: 62ch; line-height: 1.45; }
 .thumbs { list-style: none; padding: 0; margin: 12px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
 .thumbs li { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--line); }
 .thumbs img, .thumbs video, .thumb-ph { width: 100%; height: 100%; object-fit: cover; display: grid; place-items: center; font-size: 0.8rem; color: var(--muted); }
