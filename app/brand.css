@@ -197,3 +197,6 @@ html:has(.ed), html:has(.ed) body { background: #f6fafa; }
   .lp-float, .lp-float-icon.wave i, .lp-float-icon.dot::before, .lp-sparks i { animation: none !important; }
   .lp-sparks { display: none; }
 }
+
+/* "Online store is greatest.": room for the tails of g, y and p inside the gradient text box */
+.lp .lp-greatest, .lp .lp-greatest .gradient-text__inner, .lp .lp-greatest .gradient-text__content { padding-bottom: 0.16em; margin-bottom: -0.16em; line-height: 1.12; overflow: visible; }
