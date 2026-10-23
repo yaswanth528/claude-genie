@@ -8,7 +8,7 @@ import { openStatus, parseHours } from "./hours";
 import { categoriesOf, localText, type LocalText } from "./localize";
 import type { Media, Site } from "./schema";
 import { jsonLd, ogImageUrl } from "./seo";
-import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, storeBar, storePerks } from "./siteBits";
+import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, spotlightIndex, storeBar, storePerks } from "./siteBits";
 import { SITE_CSS } from "./siteCss";
 import { themeVars } from "./themes";
 
@@ -106,6 +106,7 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
       : "";
 
   const facts = aboutFacts(L, site.items.length, categories.length, u);
+  const spot = spotlightHtml(site, L, ask);
   const showSearch = site.items.length >= (dynamic ? 5 : SEARCH_MIN);
   return `<div class="site theme-${site.theme.id} ${dynamic ? "is-store" : "is-showcase"}" data-lang="${lang}" style="${esc(Object.entries(themeVars(site.theme.id, site.theme.accent)).map(([k, v]) => `${k}:${v}`).join(";"))}"${lang === "alt" ? " hidden" : ""}>
 ${dynamic ? `<div class="s-storebar">${esc(storeBar(site, u))}</div>` : ""}
@@ -126,6 +127,7 @@ ${!heroFull && site.hero ? `<div class="s-hero-media">${media(site.hero, "", tru
   mosaic.length ? `<div class="s-mosaic n${mosaic.length}" aria-hidden="true">${mosaic.map((m) => `<div>${media(m, "", true)}</div>`).join("")}</div>` : ""
 }</div></section>
 ${L.highlights.length ? `<section class="s-highlights"><div class="s-wrap s-highlights-row">${L.highlights.map((h) => `<p>${esc(h)}</p>`).join("")}</div></section>` : ""}
+${spot}
 <section id="${idp}products" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(dynamic ? u.shop : u.products)}</h2><p>${esc(quote ? u.pickHintQuote : dynamic ? u.cartHint : u.pickHint)}</p></div>${
   chips || showSearch
     ? `<div class="s-toolbar">${chips}${showSearch ? `<div class="s-search"><input type="search" data-search placeholder="${esc(u.search)}" aria-label="${esc(u.search)}"></div>` : ""}</div>`
@@ -166,6 +168,26 @@ ${dynamic ? `<a class="s-wa-fab" data-fab hidden href="https://wa.me/${wa}" targ
 ${dynamic ? cartHtml(u, appOrigin) : ""}
 <div class="s-drawer-wrap s-pv-wrap" data-pv hidden role="dialog" aria-modal="true"><button class="s-drawer-scrim" data-act="close-pv" aria-label="${esc(u.close)}"></button><div class="s-pv"><button class="s-close s-pv-close" data-act="close-pv" aria-label="${esc(u.close)}">×</button><div data-pv-media></div><div class="s-pv-body"><span data-pv-badge hidden></span><h2 data-pv-name></h2><p class="s-price" data-pv-price></p><p class="s-pv-desc" data-pv-desc></p><div class="s-opts" data-pv-opts></div><div data-pv-action></div><p class="s-muted s-small" data-pv-credit></p></div></div></div>
 </div>`;
+}
+
+// One product shown big, between the banner and the product list (same markup as SiteView).
+function spotlightHtml(site: Site, L: LocalText, ask: (name: string, price: number | null) => string) {
+  const i = spotlightIndex(site.items);
+  const it = L.items[i];
+  if (i < 0 || !it?.image) return "";
+  const u = L.ui;
+  const framed = isFramed(it.image);
+  const price = it.askPrice
+    ? `<p class="s-spot-price s-ask-price">${esc(u.askPrice)}</p>`
+    : `<p class="s-spot-price">${esc(formatPrice(it.price))}${it.unit ? `<small> ${esc(it.unit)}</small>` : ""}</p>`;
+  const action = it.askPrice
+    ? `<a class="s-btn s-btn-wa" href="${esc(ask(site.items[i].name, null))}" target="_blank" rel="noreferrer">${esc(u.askPriceBtn)}</a>`
+    : `<button class="s-btn" data-act="add">${esc(site.siteType === "dynamic" ? u.addToCart : u.add)}</button><div class="s-qty s-pv-qty" hidden><button data-act="dec" aria-label="One less ${esc(it.name)}">−</button><span data-qty>0</span><button data-act="inc" aria-label="One more ${esc(it.name)}">+</button></div>`;
+  return `<section class="s-spot-wrap" aria-label="${esc(u.featured)}"><div class="s-wrap"><article class="s-spot" data-i="${i}"><div class="s-spot-media${framed ? " s-framed" : ""}"${framed ? ` style="${esc(`--img:${cssUrl(it.image.url)}`)}"` : ""} data-act="view">${media(it.image)}${
+    it.image.generated ? `<span class="s-ai-tag">${esc(u.samplePhoto)}</span>` : ""
+  }</div><div class="s-spot-copy"><p class="s-eyebrow">${esc(it.badge ? badgeLabel(it.badge, u) : u.featured)}</p><h2>${esc(it.name)}</h2>${
+    it.description ? `<p class="s-spot-desc">${esc(it.description)}</p>` : ""
+  }${price}<div class="s-spot-cta">${action}<button class="s-btn s-btn-ghost" data-act="view">${esc(u.learnMore)}</button></div></div></article></div></section>`;
 }
 
 const credits = (site: Site) =>
@@ -292,7 +314,7 @@ function root(){return $('.site[data-lang="'+lang+'"]')||$(".site")}
 function render(){try{localStorage.setItem(key,JSON.stringify(cart));localStorage.setItem("sg-lang-"+C.slug,lang)}catch(e){}
 $$(".site").forEach(function(r){r.hidden=r.dataset.lang!==lang});
 var R=root(),U=(lang==="alt"&&C.ui.alt)||C.ui.base;
-$$(".s-card[data-i]").forEach(function(card){var i=+card.dataset.i,o=opt(i),n=cart[i+":"+o]||0,add=$('[data-act="add"]',card),q=$(".s-qty",card);
+$$(".s-card[data-i],.s-spot[data-i]").forEach(function(card){var i=+card.dataset.i,o=opt(i),n=cart[i+":"+o]||0,add=$('[data-act="add"]',card),q=$(".s-qty",card);
 $$('[data-act="opt"]',card).forEach(function(b){var on=+b.dataset.o===o;b.classList.toggle("on",on);b.setAttribute("aria-checked",on)});
 if(add){add.hidden=n>0;q.hidden=n===0;$("[data-qty]",card).textContent=n}});
 var l=lines(),count=l.reduce(function(s,x){return s+x.qty},0),bar=$("[data-orderbar]",R),lab=$("[data-bar-label]",R),cartEl=$("[data-cart]",R);
@@ -326,7 +348,7 @@ else if(n>0){ac.innerHTML='<div class="s-qty s-pv-qty"><button data-act="pv-dec"
 else{var bt=document.createElement("button");bt.className="s-btn s-btn-block";bt.dataset.act="pv-add";bt.textContent=v.add;ac.appendChild(bt)}
 w.hidden=false;if(seen[0]!==i){seen=[i].concat(seen.filter(function(x){return x!==i})).slice(0,8);try{localStorage.setItem(SK,JSON.stringify(seen))}catch(e){}renderSeen()}}
 function bump(k,d){var n=Math.min(99,Math.max(0,(cart[k]||0)+d));if(n)cart[k]=n;else delete cart[k];render()}
-document.addEventListener("click",function(e){var b=e.target.closest("[data-act]");if(!b)return;var a=b.dataset.act,card=b.closest(".s-card[data-i]"),i=card?+card.dataset.i:-1,R=root();
+document.addEventListener("click",function(e){var b=e.target.closest("[data-act]");if(!b)return;var a=b.dataset.act,card=b.closest(".s-card[data-i],.s-spot[data-i]"),i=card?+card.dataset.i:-1,R=root();
 if(a==="add"||a==="inc")bump(i+":"+opt(i),1);else if(a==="dec")bump(i+":"+opt(i),-1);
 else if(a==="opt"){choice[i]=+b.dataset.o;render()}
 else if(a==="cat"){F.cat=b.dataset.cat;$$('[data-act="cat"]',R).forEach(function(x){x.classList.toggle("on",x===b)});filt(R)}

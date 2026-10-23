@@ -103,6 +103,8 @@ export const UI_EN = {
   howQuote3: "Confirm and pay",
   howQuote3b: "Pay the shop when you confirm your order.",
   factRange: "Range",
+  featured: "Featured",
+  learnMore: "Learn more",
 } as const;
 
 export type UiKey = keyof typeof UI_EN;

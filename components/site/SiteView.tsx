@@ -8,7 +8,7 @@ import { deliveryFor, formatPrice, lineName, orderText, orderTotal, shortId, upi
 import { openStatus, parseHours } from "@/lib/hours";
 import { categoriesOf, localText } from "@/lib/localize";
 import type { Media, Order, SiteContent } from "@/lib/schema";
-import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, storeBar, storePerks } from "@/lib/siteBits";
+import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, spotlightIndex, storeBar, storePerks } from "@/lib/siteBits";
 import { SITE_CSS } from "@/lib/siteCss";
 import { themeVars } from "@/lib/themes";
 
@@ -159,6 +159,7 @@ export function SiteView({ site, preview }: Props) {
   const total = orderTotal(lines);
   const vars = themeVars(site.theme.id, site.theme.accent) as CSSProperties;
   const mosaic = heroMosaic(site);
+  const spot = spotlightIndex(site.items);
   const heroType = !site.hero && !mosaic.length;
   const heroFull = !!site.hero && site.theme.heroStyle === "full";
   const anyImages = site.items.some((it) => it.image);
@@ -298,6 +299,22 @@ export function SiteView({ site, preview }: Props) {
               {L.highlights.map((h) => (
                 <p key={h}>{h}</p>
               ))}
+            </div>
+          </section>
+        )}
+
+        {spot >= 0 && L.items[spot] && (
+          <section className="s-spot-wrap" aria-label={u.featured}>
+            <div className="s-wrap">
+              <SpotlightCard
+                item={L.items[spot]}
+                ui={u}
+                dynamic={dynamic}
+                qty={cart[keyOf(spot, optIndex(spot))] ?? 0}
+                onChange={(d) => change(keyOf(spot, optIndex(spot)), d)}
+                onView={() => setView(spot)}
+                askHref={ask(site.items[spot].name, site.items[spot].askPrice ? null : site.items[spot].price)}
+              />
             </div>
           </section>
         )}
@@ -808,6 +825,77 @@ function CartDrawer({
         )}
       </div>
     </div>
+  );
+}
+
+// One product shown big, between the banner and the product list.
+function SpotlightCard({
+  item,
+  ui,
+  dynamic,
+  qty,
+  onChange,
+  onView,
+  askHref,
+}: {
+  item: ReturnType<typeof localText>["items"][number];
+  ui: ReturnType<typeof localText>["ui"];
+  dynamic: boolean;
+  qty: number;
+  onChange: (d: number) => void;
+  onView: () => void;
+  askHref: string;
+}) {
+  const framed = isFramed(item.image);
+  return (
+    <article className="s-spot">
+      <div
+        className={`s-spot-media ${framed ? "s-framed" : ""}`}
+        style={framed ? ({ "--img": cssUrl(item.image!.url) } as CSSProperties) : undefined}
+        onClick={onView}
+        role="presentation"
+      >
+        {item.image && <MediaBox media={item.image} />}
+        {item.image?.generated && <span className="s-ai-tag">{ui.samplePhoto}</span>}
+      </div>
+      <div className="s-spot-copy">
+        <p className="s-eyebrow">{item.badge ? badgeLabel(item.badge, ui) : ui.featured}</p>
+        <h2>{item.name}</h2>
+        {item.description && <p className="s-spot-desc">{item.description}</p>}
+        {item.askPrice ? (
+          <p className="s-spot-price s-ask-price">{ui.askPrice}</p>
+        ) : (
+          <p className="s-spot-price">
+            {formatPrice(item.price)}
+            {item.unit && <small> {item.unit}</small>}
+          </p>
+        )}
+        <div className="s-spot-cta">
+          {item.askPrice ? (
+            <a className="s-btn s-btn-wa" href={askHref} target="_blank" rel="noreferrer">
+              {ui.askPriceBtn}
+            </a>
+          ) : qty > 0 ? (
+            <div className="s-qty s-pv-qty">
+              <button onClick={() => onChange(-1)} aria-label={`One less ${item.name}`}>
+                −
+              </button>
+              <span aria-live="polite">{qty}</span>
+              <button onClick={() => onChange(1)} aria-label={`One more ${item.name}`}>
+                +
+              </button>
+            </div>
+          ) : (
+            <button className="s-btn" onClick={() => onChange(1)}>
+              {dynamic ? ui.addToCart : ui.add}
+            </button>
+          )}
+          <button className="s-btn s-btn-ghost" onClick={onView}>
+            {ui.learnMore}
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }
 

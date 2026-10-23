@@ -33,7 +33,7 @@ export const cssUrl = (url: string) => `url("${url.replace(/["\\\n]/g, "")}")`;
 type Shop = {
   siteType: "static" | "dynamic";
   hero: Media | null;
-  items: { name: string; image: Media | null; category?: string | null }[];
+  items: { name: string; image: Media | null; category?: string | null; badge?: Badge | null; inStock?: boolean }[];
   delivery?: { areas: string | null; charge: number | null; freeAbove: number | null; minOrder: number | null } | null;
   upiId?: string | null;
 };
@@ -72,12 +72,28 @@ export function howSteps(dynamic: boolean, u: UiText, quote = false): { title: s
 // No banner photo: show the shop's own product photos instead (owner's photos first).
 export function heroMosaic(s: Shop): Media[] {
   if (s.hero) return [];
-  const imgs = s.items.map((i) => i.image).filter((m): m is Media => !!m && m.kind === "image");
+  // Leave out the spotlight product's photo when there are enough others, so it isn't shown twice in a row.
+  const spot = s.items[spotlightIndex(s.items)]?.image;
+  let imgs = s.items.map((i) => i.image).filter((m): m is Media => !!m && m.kind === "image");
+  if (spot && imgs.filter((m) => m !== spot).length >= 2) imgs = imgs.filter((m) => m !== spot);
   const ordered = [...imgs.filter((m) => !m.generated), ...imgs.filter((m) => m.generated)];
   return ordered.length >= 2 ? ordered.slice(0, 3) : [];
 }
 
-export const askText = (name: string, price: string | null) => `Hi, I'm interested in ${name}${price ? ` (${price})` : ""}. Is it available?`;
+// The product shown big in the "Spotlight" section: a bestseller with a photo, else an offer,
+// else the owner's own photo, else the first photo. Only for shops with 3+ products.
+export function spotlightIndex(items: { image: Media | null; badge?: Badge | null; inStock?: boolean }[]): number {
+  if (items.length < 3) return -1;
+  const ok = items.map((it, i) => ({ it, i })).filter(({ it }) => !!it.image && it.inStock !== false);
+  const pick =
+    ok.find(({ it }) => it.badge === "bestseller") ??
+    ok.find(({ it }) => it.badge === "offer") ??
+    ok.find(({ it }) => !it.image!.generated) ??
+    ok[0];
+  return pick ? pick.i : -1;
+}
+
+export const askText =(name: string, price: string | null) => `Hi, I'm interested in ${name}${price ? ` (${price})` : ""}. Is it available?`;
 
 // Facts beside the About text when there's no photo: only what the website already knows.
 export function aboutFacts(
