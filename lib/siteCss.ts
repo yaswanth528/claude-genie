@@ -506,6 +506,8 @@ export const SITE_CSS = `
 
 /* Spotlight: one product shown big between the banner and the list */
 .s-spot-wrap { padding-block: clamp(40px, 7cqi, 96px) 0; }
+/* Stores tint the product list, so the spotlight needs its own space below. */
+.is-store .s-spot-wrap { padding-bottom: clamp(40px, 7cqi, 96px); }
 .s-spot {
   display: grid; gap: clamp(20px, 4cqi, 56px); align-items: center;
   background: var(--s-soft); border-radius: var(--s-r-lg); padding: clamp(12px, 2.4cqi, 28px); overflow: hidden;
