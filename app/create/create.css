@@ -253,3 +253,4 @@
 .rv .sheet .btn:not(.ghost) { background: var(--cf-accent); min-height: 50px; padding-inline: 24px; }
 .rv .rv-bar-cta { display: none; }
 @media (min-width: 980px) { .rv .rv-bar-cta { display: inline-flex; } }
+.rv .preview-cta .cf-pill.ghost { background: var(--cf-card); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1); padding-inline: 14px; }
