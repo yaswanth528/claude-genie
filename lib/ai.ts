@@ -224,7 +224,7 @@ export async function interpretEdit(items: Product[], businessName: string, requ
 // ---------- "Not happy? Say what to change" ----------
 
 const REVISE_RULES = `You are editing a small business's website. The owner looked at it and said, in their own words, what they want changed (possibly mixed languages, possibly with speech-to-text errors).
-Return only the fields that need to change; leave everything else out.
+Give every field. Use null for anything that stays the same; put the new value in every field you change.
 
 What you can change: the business name, headline, subheadline, about text, highlights, theme (look and colours), banner style, product layout, area, address, hours, festival banner, and products (update, add or remove; name, price, unit, description, category, tag, stock, "price on request", a new photo). You can also ask for a new banner photo.
 
@@ -237,7 +237,7 @@ Rules:
 - Facts are strict: never invent prices, products, years, awards, delivery, discounts or claims the owner didn't make. Rewriting copy means saying the same facts better.
 - Write copy in the same language as the current website text unless the owner asks for another language.
 - If they ask for something the website can't do, or it's unclear what they mean, change nothing and put a short, friendly question or explanation in "question".
-- summary: 1-5 short lines saying what you changed, in the language the owner spoke.`;
+- Only list products in "items" that you actually change, and give the new values in their fields.`;
 
 export async function reviseSite(site: SiteContent, request: string): Promise<Revision> {
   const current = {

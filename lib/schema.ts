@@ -88,41 +88,43 @@ export const PatchSchema = z.object({
 });
 
 // "Not happy? Say what to change": a change to the whole website from one spoken request.
-// Every field is optional; a field that's left out stays as it is.
+// Every field must be given; null means "leave it as it is" (an empty string clears a text).
+// (With optional fields the fast model tended to describe changes without making them.)
+const keep = (d: string) => `${d}. null = no change`;
 export const RevisionSchema = z.object({
-  summary: z.array(z.string()).describe("What you changed, as 1-5 short lines in the owner's language, e.g. 'Changed the colours to dark green'. Empty if nothing was changed."),
   question: z.string().nullable().describe("If the request is unclear or impossible, one short question or explanation for the owner; else null"),
-  businessName: z.string().optional(),
-  headline: z.string().optional().describe("Max 8 words"),
-  subheadline: z.string().optional(),
-  about: z.string().nullable().optional(),
-  highlights: z.array(z.string()).optional().describe("Up to 3 short selling points, only facts the owner said"),
-  themeId: z.enum(THEME_IDS).optional(),
-  accent: z.number().optional().describe("0, 1 or 2: colour option within the theme"),
-  heroStyle: z.enum(["full", "split"]).optional(),
-  layout: z.enum(LAYOUTS).optional(),
-  area: z.string().nullable().optional(),
-  address: z.string().nullable().optional(),
-  hours: z.string().nullable().optional(),
-  festival: z.object({ id: z.enum(FESTIVALS).nullable(), message: z.string().nullable() }).optional().describe("id null removes the festival banner"),
-  newHeroPhoto: z.string().optional().describe("2-4 English words to search a new banner photo, only if the owner wants a different banner/main photo"),
+  businessName: z.string().nullable().describe(keep("New business name")),
+  headline: z.string().nullable().describe(keep("New headline, max 8 words")),
+  subheadline: z.string().nullable().describe(keep("New one-sentence subheadline")),
+  about: z.string().nullable().describe(keep("New about text, 2-3 sentences; empty string removes it")),
+  highlights: z.array(z.string()).nullable().describe(keep("Up to 3 short selling points, only facts the owner said")),
+  themeId: z.enum(THEME_IDS).nullable().describe(keep("New theme")),
+  accent: z.number().nullable().describe(keep("0, 1 or 2: colour option within the theme")),
+  heroStyle: z.enum(["full", "split"]).nullable().describe(keep("Banner style")),
+  layout: z.enum(LAYOUTS).nullable().describe(keep("Product layout")),
+  area: z.string().nullable().describe(keep("Area/city; empty string removes it")),
+  address: z.string().nullable().describe(keep("Full address; empty string removes it")),
+  hours: z.string().nullable().describe(keep("Opening hours; empty string removes them")),
+  festival: z.enum([...FESTIVALS, "none"]).nullable().describe(keep("Festival banner; 'none' removes it")),
+  festivalMessage: z.string().nullable().describe(keep("Offer line on the festival banner")),
+  newHeroPhoto: z.string().nullable().describe(keep("2-4 English words to search a new banner photo, only if the owner wants a different banner/main photo")),
   items: z
     .array(
       z.object({
         op: z.enum(["update", "add", "remove"]),
         index: z.number().nullable().describe("Index in the current list; null for add"),
-        name: z.string().optional(),
-        price: z.number().nullable().optional(),
-        unit: z.string().nullable().optional(),
-        description: z.string().optional(),
-        category: z.string().nullable().optional(),
-        badge: z.enum(BADGES).nullable().optional(),
-        inStock: z.boolean().optional(),
-        askPrice: z.boolean().optional().describe("true = show 'Price on request' instead of a price"),
-        newPhoto: z.string().optional().describe("2-4 English words to search a new photo for this product, only if the owner wants a different photo"),
+        name: z.string().nullable().describe(keep("Name")),
+        price: z.number().nullable().describe(keep("Price in rupees")),
+        unit: z.string().nullable().describe(keep("e.g. 'per kg'; empty string removes it")),
+        description: z.string().nullable().describe(keep("One short line")),
+        category: z.string().nullable().describe(keep("Category; empty string removes it")),
+        badge: z.enum([...BADGES, "none"]).nullable().describe(keep("Tag; 'none' removes it")),
+        inStock: z.boolean().nullable().describe(keep("In stock")),
+        askPrice: z.boolean().nullable().describe(keep("true = show 'Price on request' instead of a price")),
+        newPhoto: z.string().nullable().describe(keep("2-4 English words to search a new photo for this product, only if the owner wants a different photo")),
       }),
     )
-    .optional(),
+    .describe("Only the products that change (one entry per product). Empty if no product changes."),
 });
 export type Revision = z.infer<typeof RevisionSchema>;
 
