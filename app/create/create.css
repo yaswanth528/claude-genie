@@ -128,12 +128,12 @@
 .cf-steps li.done { color: var(--cf-ink); }
 .cf-steps li.done::before { content: "✓"; display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #fff; background: var(--cf-ok); border-color: var(--cf-ok); }
 @keyframes cf-spin { to { transform: rotate(360deg); } }
-.cf-progress { height: 6px; border-radius: 999px; background: rgba(0, 0, 0, 0.07); overflow: hidden; }
+.cf-progress { width: 100%; height: 6px; border-radius: 999px; background: rgba(0, 0, 0, 0.07); overflow: hidden; }
 .cf-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--cf-accent), var(--cf-accent-2)); transition: width 1s linear; }
 
 .cf-build-phone { width: 250px; padding: 10px; border-radius: 44px; background: #18181b; box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.5); }
 .cf-build-screen { aspect-ratio: 9 / 18.5; border-radius: 35px; background: #fffdf8; overflow: hidden; padding: 0 12px; display: grid; align-content: start; gap: 10px; }
-.cf-build-screen i, .cf-build-screen > div { display: block; }
+.cf-build-screen i { display: block; }
 .b-bar { height: 34px; margin: 0 -12px; border-bottom: 1px solid #eee5d6; }
 .b-hero { display: grid; justify-items: center; gap: 7px; padding: 14px 0 6px; }
 .b-eyebrow { width: 40%; height: 6px; border-radius: 4px; background: #e8c9b8; }
