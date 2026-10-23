@@ -50,7 +50,7 @@ export function Assembling({ withPhotos }: { withPhotos: boolean }) {
         <div className="cf-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(95, Math.round((t / 45) * 100))}>
           <span style={{ width: `${Math.min(95, (t / 45) * 100)}%` }} />
         </div>
-        <p className="cf-muted">Usually 20–60 seconds{t > 0 ? ` · ${t}s` : ""}</p>
+        <p className="cf-muted">Usually under a minute{t > 0 ? ` · ${t}s` : ""}</p>
       </div>
     </div>
   );
