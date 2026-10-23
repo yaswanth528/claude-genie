@@ -84,7 +84,9 @@ html:has(.ed), html:has(.ed) body { background: #f6fafa; }
 @keyframes pk-drift-b { to { transform: translate(-10vw, 14vh) scale(0.92); } }
 @keyframes pk-drift-c { to { transform: translate(-14vw, -10vh) scale(1.15); } }
 @keyframes pk-spin { to { transform: rotate(360deg); } }
-:is(.cf, .rv, .ad, .ad-login) > :not(.pk-ambient):not(.cf-nav):not(.review-bar):not(.ad-bar) { position: relative; z-index: 1; }
+:is(.cf, .rv, .ad, .ad-login) > :not(.pk-ambient):not(.cf-nav):not(.review-bar):not(.ad-bar):not(.ad-drawer-wrap):not(.sheet-wrap):not(.cmp-wrap) { position: relative; z-index: 1; }
+/* Pop-ups that are direct children keep floating above the page */
+.ad > .ad-drawer-wrap { z-index: 60; }
 .ed-page { position: relative; min-height: 100vh; }
 
 /* Home: a feather-eye ring turning behind the row of phones */
