@@ -24,7 +24,7 @@
 /* Nav with the three steps */
 .cf-nav { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--cf-bg) 80%, transparent); backdrop-filter: saturate(1.8) blur(18px); -webkit-backdrop-filter: saturate(1.8) blur(18px);
   border-bottom: 1px solid var(--cf-line); padding-top: env(safe-area-inset-top, 0px); }
-.cf-nav-row { max-width: 980px; margin: 0 auto; height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+.cf-nav-row { max-width: 1160px; margin: 0 auto; height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .cf-track { list-style: none; display: flex; gap: 6px; margin: 0; padding: 0; font-size: 0.8rem; font-weight: 600; color: var(--cf-muted); }
 .cf-track li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; }
