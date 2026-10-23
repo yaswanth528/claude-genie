@@ -1,0 +1,149 @@
+/* SiteGenie brand layer: Peacock & Gold. Loaded on every page (app/layout.tsx) but scoped to
+   SiteGenie's own screens: .lp (home), .cf (create), .rv (review), .ed (owner edit), .ad (admin).
+   Customer websites (.site) are never touched. Motion uses transform/opacity only and switches
+   off with "reduce motion". */
+
+/* ---------- Owner edit screen tokens (same palette as create/review) ---------- */
+.ed {
+  --bg: #f6fafa; --surface: #ffffff; --ink: #0d2b36; --muted: #46636e; --line: rgba(13, 43, 54, 0.14);
+  --brand: #0b5d7a; --brand-ink: #ffffff; --charcoal: #0b5d7a; --amber: #d9a441; --wa: #128c4a;
+  --pk-teal: #0e8f8f; --pk-gold: #d9a441; --pk-deep: #08394d;
+  position: relative; z-index: 1; color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, "Noto Sans", sans-serif;
+}
+html:has(.ed), html:has(.ed) body { background: #f6fafa; }
+.ed h1 { font-size: clamp(1.8rem, 4.5vw, 2.6rem); letter-spacing: -0.035em; line-height: 1.05; color: var(--ink); }
+.ed .card { background: #fff; border: 1px solid rgba(13, 43, 54, 0.1); border-radius: 20px; box-shadow: 0 1px 2px rgba(13, 43, 54, 0.05), 0 20px 40px -30px rgba(13, 43, 54, 0.45); }
+.ed .btn { border-radius: 999px; background: linear-gradient(135deg, #0b5d7a, #0e8f8f); box-shadow: 0 10px 24px -12px rgba(14, 143, 143, 0.7); }
+.ed .btn.ghost { background: #fff; color: var(--ink); border: 1px solid rgba(13, 43, 54, 0.2); box-shadow: none; }
+.ed .btn.wa { background: #128c4a; }
+.ed .seg { background: #e4f2f2; border: 1px solid rgba(13, 43, 54, 0.1); }
+.ed .seg button { transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease; }
+.ed .seg button.on { background: linear-gradient(135deg, #0b5d7a, #0e8f8f); color: #fff; box-shadow: 0 6px 16px -8px rgba(14, 143, 143, 0.8); }
+.ed input, .ed select, .ed textarea { background: #fff; border-color: rgba(13, 43, 54, 0.18); border-radius: 12px; }
+.ed input:focus, .ed select:focus, .ed textarea:focus { outline: none; border-color: #0e8f8f; box-shadow: 0 0 0 3px rgba(18, 163, 163, 0.2); }
+.ed .editor details { border-top: 0; background: #fff; border: 1px solid rgba(13, 43, 54, 0.1); border-radius: 18px; padding: 2px 16px 14px; margin-bottom: 10px; box-shadow: 0 14px 30px -26px rgba(13, 43, 54, 0.45); }
+.ed .editor details:not([open]) { padding-bottom: 2px; }
+.ed .revise { border: 0; color: #fff; background: radial-gradient(90% 110% at 100% 0%, rgba(79, 209, 197, 0.5), transparent 55%), radial-gradient(80% 90% at 0% 100%, rgba(217, 164, 65, 0.45), transparent 60%), #08394d; box-shadow: 0 24px 50px -30px rgba(8, 57, 77, 0.8); border-radius: 22px; }
+.ed .revise .hint, .ed .revise .small-label { color: #b5dbe0; }
+.ed .revise select, .ed .revise textarea { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
+.ed .revise select option { color: #0d2b36; }
+.ed .revise .mic { background: #fff; border-color: #fff; color: #0b5d7a; }
+.ed .revise .btn:not(.ghost) { background: #fff; color: #08394d; }
+.ed .revise .btn.ghost { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.ed .revise-done { color: #7ff0d4; }
+.ed .success { background: #e1f5ee; border-color: #9fd9c3; }
+.ed .notice { background: #fbf3de; border-color: #e7cf8f; }
+.ed .live-card, .ed .pay { position: relative; }
+.ed .edit-preview .device { border-color: #08394d; }
+
+/* ---------- Contrast: nothing should melt into the pearl background ---------- */
+.lp .lp-pill { background: linear-gradient(135deg, #0b5d7a, #0e8f8f 70%); box-shadow: 0 12px 28px -12px rgba(14, 143, 143, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+.lp .lp-pill::after { background: linear-gradient(110deg, transparent 30%, rgba(236, 200, 120, 0.55) 50%, transparent 70%); }
+.lp .lp-pill.ghost { background: #fff; color: #0d2b36; box-shadow: inset 0 0 0 1.5px rgba(13, 43, 54, 0.25), 0 8px 20px -14px rgba(13, 43, 54, 0.35); }
+.lp .lp-pill.light { background: #fff; color: #08394d; box-shadow: 0 12px 30px -12px rgba(217, 164, 65, 0.7); }
+.lp .lp-plan.best .lp-pill { background: #fff; color: #08394d; }
+.lp .lp-plan:not(.best), .lp .lp-tile:not(.dark) { border: 1px solid rgba(13, 43, 54, 0.1); box-shadow: 0 1px 2px rgba(13, 43, 54, 0.05), 0 24px 50px -34px rgba(13, 43, 54, 0.5); }
+.lp .lp-marquee .lp-marquee-text, .lp .lp-marquee.still p { color: rgba(11, 93, 122, 0.22); }
+.lp .lp-designs { background: linear-gradient(180deg, #f6fafa, #e4f2f2); }
+.lp .lp-line em { color: #0e8f8f; }
+.lp .lp-h1-a { background: linear-gradient(180deg, #0b5d7a 10%, #08394d); -webkit-background-clip: text; background-clip: text; }
+.lp .lp-nav-cta .lp-pill.sm { box-shadow: 0 6px 16px -8px rgba(14, 143, 143, 0.8); }
+
+.cf .cf-pill:not(.ghost):not(.wa), .rv .cf-pill:not(.ghost):not(.wa) { background: linear-gradient(135deg, #0b5d7a, #0e8f8f 70%); box-shadow: 0 14px 30px -14px rgba(14, 143, 143, 0.75); }
+.cf .cf-pill.ghost, .rv .cf-pill.ghost { background: #fff; box-shadow: inset 0 0 0 1.5px rgba(13, 43, 54, 0.22); }
+.cf .cf-card, .rv .editor > details { border: 1px solid rgba(13, 43, 54, 0.1); }
+.cf .cf-langs button { background: #fff; box-shadow: inset 0 0 0 1px rgba(13, 43, 54, 0.18); }
+.cf .cf-langs button.on { background: linear-gradient(135deg, #0b5d7a, #0e8f8f); box-shadow: 0 8px 18px -10px rgba(14, 143, 143, 0.8); }
+.cf .cf-say li { background: #e4f2f2; box-shadow: inset 0 0 0 1px rgba(13, 43, 54, 0.1); }
+.cf .cf-card textarea { background: #fbfdfd; border-color: rgba(13, 43, 54, 0.16); }
+.cf .cf-track li span { background: #e4f2f2; }
+.cf .cf-track li.now span { background: linear-gradient(135deg, #0b5d7a, #0e8f8f); color: #fff; }
+.cf .dropzone { background: #fbfdfd; border-color: rgba(13, 43, 54, 0.22); }
+.rv .review-bar .seg { background: #e4f2f2; }
+.rv .revise { background: radial-gradient(90% 110% at 100% 0%, rgba(79, 209, 197, 0.5), transparent 55%), radial-gradient(80% 90% at 0% 100%, rgba(217, 164, 65, 0.45), transparent 60%), #08394d; }
+.rv .revise .btn:not(.ghost) { background: #fff; color: #08394d; }
+.rv .choice.on, .rv .layout-chip.on { border-color: #0e8f8f; box-shadow: 0 0 0 3px rgba(18, 163, 163, 0.2); }
+.rv .prod-row { background: #fbfdfd; border-color: rgba(13, 43, 54, 0.12); }
+.ad .ad-kpi, .ad .ad-card, .ad .ad-list { border: 1px solid rgba(13, 43, 54, 0.1); }
+.ad .ad-btn.primary, .ad .ad-filters button.on { background: linear-gradient(135deg, #0b5d7a, #0e8f8f); color: #fff; }
+.ad .ad-btn.ghost { background: #fff; box-shadow: inset 0 0 0 1px rgba(13, 43, 54, 0.2); }
+
+/* ---------- Ambient background: flowing peacock and gold, with a slowly turning "feather eye" ---------- */
+.pk-ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.pk-ambient i { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.45; will-change: transform; }
+.pk-ambient i:nth-child(1) { width: 44vmax; height: 44vmax; left: -10vmax; top: -12vmax; background: radial-gradient(circle, rgba(18, 163, 163, 0.55), transparent 65%); animation: pk-drift-a 24s ease-in-out infinite alternate; }
+.pk-ambient i:nth-child(2) { width: 38vmax; height: 38vmax; right: -12vmax; top: 10vh; background: radial-gradient(circle, rgba(217, 164, 65, 0.45), transparent 65%); animation: pk-drift-b 28s ease-in-out infinite alternate; }
+.pk-ambient i:nth-child(3) { width: 40vmax; height: 40vmax; left: 30vw; bottom: -18vmax; background: radial-gradient(circle, rgba(43, 140, 196, 0.35), transparent 65%); animation: pk-drift-c 32s ease-in-out infinite alternate; }
+.pk-eye { position: absolute; width: 520px; height: 520px; right: -160px; top: -160px; border-radius: 50%; opacity: 0.22;
+  background: conic-gradient(from 0deg, #0e8f8f, #4fd1c5, #d9a441, #2b8cc4, #0b5d7a, #0e8f8f);
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 55%, #000 58%, transparent 59%, transparent 66%, #000 67%, #000 68%, transparent 69%);
+  mask: radial-gradient(circle, transparent 54%, #000 55%, #000 58%, transparent 59%, transparent 66%, #000 67%, #000 68%, transparent 69%);
+  animation: pk-spin 60s linear infinite; }
+@keyframes pk-drift-a { to { transform: translate(12vw, 10vh) scale(1.1); } }
+@keyframes pk-drift-b { to { transform: translate(-10vw, 14vh) scale(0.92); } }
+@keyframes pk-drift-c { to { transform: translate(-14vw, -10vh) scale(1.15); } }
+@keyframes pk-spin { to { transform: rotate(360deg); } }
+:is(.cf, .rv, .ad, .ad-login) > :not(.pk-ambient):not(.cf-nav):not(.review-bar):not(.ad-bar) { position: relative; z-index: 1; }
+.ed-page { position: relative; min-height: 100vh; }
+
+/* Home: a feather-eye ring turning behind the row of phones */
+.lp .lp-hero-row { position: relative; }
+.lp .lp-hero-row::before { content: ""; position: absolute; left: 50%; top: 40px; width: min(760px, 120vw); aspect-ratio: 1; translate: -50% 0; border-radius: 50%; z-index: 0; opacity: 0.5; pointer-events: none;
+  background: conic-gradient(from 0deg, rgba(14, 143, 143, 0.9), rgba(79, 209, 197, 0.6), rgba(217, 164, 65, 0.9), rgba(43, 140, 196, 0.7), rgba(14, 143, 143, 0.9));
+  -webkit-mask: radial-gradient(circle, transparent 60%, #000 61%, #000 63%, transparent 64%, transparent 71%, #000 72%, transparent 73%);
+  mask: radial-gradient(circle, transparent 60%, #000 61%, #000 63%, transparent 64%, transparent 71%, #000 72%, transparent 73%);
+  animation: pk-spin 50s linear infinite; }
+
+/* ---------- Micro-motion shared by every SiteGenie screen ---------- */
+:is(.lp, .cf, .rv, .ed, .ad) :is(.btn, .cf-pill, .lp-pill, .ad-btn, .seg button, .choice, .layout-chip, .theme-chip, .swatch) { transition: transform 0.18s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease; }
+:is(.cf, .rv, .ed, .ad) :is(.btn, .cf-pill, .ad-btn):hover:not(:disabled) { transform: translateY(-1px); }
+:is(.lp, .cf, .rv, .ed, .ad) :is(.btn, .cf-pill, .lp-pill, .ad-btn, .choice, .layout-chip, .theme-chip):active:not(:disabled) { transform: scale(0.97); }
+:is(.rv, .ed) .editor details[open] > :not(summary) { animation: pk-unfold 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+:is(.rv, .ed) .editor details > summary::after { transition: transform 0.25s ease; }
+@keyframes pk-unfold { from { opacity: 0; transform: translateY(-6px); } }
+
+/* Review screen: editor cards glide in; the preview phone rises in; it shimmers when the website changes */
+.rv .review-edit > * { animation: pk-rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.rv .review-edit > :nth-child(2) { animation-delay: 0.06s; }
+.rv .review-edit > :nth-child(3) { animation-delay: 0.12s; }
+.rv .editor > details { animation: pk-rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.rv .editor > details:nth-child(2) { animation-delay: 0.08s; }
+.rv .editor > details:nth-child(3) { animation-delay: 0.14s; }
+.rv .editor > details:nth-child(4) { animation-delay: 0.2s; }
+.rv .editor > details:nth-child(n + 5) { animation-delay: 0.26s; }
+.rv .device { animation: pk-zoom 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both 0.1s; }
+.rv .device::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; border-radius: inherit;
+  background: linear-gradient(115deg, transparent 35%, rgba(79, 209, 197, 0.35) 48%, rgba(236, 200, 120, 0.4) 52%, transparent 65%); background-size: 250% 100%; }
+.rv .device.flash::after { animation: pk-sweep 0.9s ease-out; }
+@keyframes pk-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes pk-zoom { from { opacity: 0; transform: translateY(24px) scale(0.96); } }
+@keyframes pk-sweep { 0% { opacity: 1; background-position: 120% 0; } 100% { opacity: 0; background-position: -60% 0; } }
+
+/* Owner edit screen: its parts glide in */
+.ed > * { animation: pk-rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.ed > :nth-child(2) { animation-delay: 0.05s; }
+.ed > :nth-child(3) { animation-delay: 0.1s; }
+.ed > :nth-child(4) { animation-delay: 0.15s; }
+.ed > :nth-child(n + 5) { animation-delay: 0.2s; }
+
+/* Building: a light scans down the phone, and three glowing dots orbit it */
+.cf-build-stage { position: relative; display: grid; place-items: center; }
+.cf-build-screen { position: relative; }
+.cf-build-screen::after { content: ""; position: absolute; left: 0; right: 0; top: -30%; height: 30%; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(79, 209, 197, 0.28) 70%, rgba(236, 200, 120, 0.5) 96%, transparent); animation: pk-scan 2.4s ease-in-out infinite; }
+@keyframes pk-scan { to { transform: translateY(440%); } }
+.cf-orbit { position: absolute; inset: -34px; border-radius: 50%; border: 1px dashed rgba(14, 143, 143, 0.35); animation: pk-spin 9s linear infinite; pointer-events: none; }
+.cf-orbit i { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ecc878, #d9a441); box-shadow: 0 0 16px 4px rgba(217, 164, 65, 0.55); }
+.cf-orbit i:nth-child(1) { top: -6px; left: calc(50% - 6px); }
+.cf-orbit i:nth-child(2) { bottom: 14%; left: 4%; background: radial-gradient(circle at 35% 30%, #7ff0d4, #12a3a3); box-shadow: 0 0 16px 4px rgba(18, 163, 163, 0.55); }
+.cf-orbit i:nth-child(3) { bottom: 14%; right: 4%; background: radial-gradient(circle at 35% 30%, #8fd0f5, #2b8cc4); box-shadow: 0 0 16px 4px rgba(43, 140, 196, 0.5); }
+.cf-steps li.done::before { animation: pk-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes pk-pop { from { transform: scale(0.4); } }
+.cf-progress span { background: linear-gradient(90deg, #0b5d7a, #0e8f8f, #4fd1c5, #d9a441) 0 0 / 200% 100%; animation: pk-flow 2.5s linear infinite; }
+@keyframes pk-flow { to { background-position: 200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-ambient i, .pk-eye, .lp .lp-hero-row::before, .cf-build-screen::after, .cf-orbit, .cf-progress span { animation: none !important; }
+  .rv .review-edit > *, .rv .editor > details, .rv .device, .ed > *, :is(.rv, .ed) .editor details[open] > :not(summary), .rv .device.flash::after, .cf-steps li.done::before { animation: none !important; }
+}

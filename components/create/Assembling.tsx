@@ -17,7 +17,13 @@ export function Assembling({ withPhotos }: { withPhotos: boolean }) {
   const stage = Math.min(6, t + 1); // how many blocks of the page have appeared (about one a second)
   return (
     <div className="cf-build" aria-live="polite">
-      <div className="cf-build-phone" aria-hidden="true">
+      <div className="cf-build-stage" aria-hidden="true">
+      <span className="cf-orbit">
+        <i />
+        <i />
+        <i />
+      </span>
+      <div className="cf-build-phone">
         <div className="cf-build-screen" data-stage={stage}>
           <div className="b-bar" />
           <div className="b-hero">
@@ -37,6 +43,7 @@ export function Assembling({ withPhotos }: { withPhotos: boolean }) {
             ))}
           </div>
         </div>
+      </div>
       </div>
       <div className="cf-build-copy">
         <h1>Building your website…</h1>

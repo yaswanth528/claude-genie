@@ -9,11 +9,11 @@ import ScrollVelocity from "@/components/bits/ScrollVelocity/ScrollVelocity";
 import ShinyText from "@/components/bits/ShinyText/ShinyText";
 import SpotlightCard from "@/components/bits/SpotlightCard/SpotlightCard";
 
-// Kesari Sunrise
-const ACCENT = "#f45d1e"; // saffron
-const ACCENT_2 = "#ff7aa2"; // lotus
-const AMBER = "#ffb020"; // marigold
-const LILAC = "#8b7cff";
+// Peacock & Gold
+const ACCENT = "#0e8f8f"; // teal
+const ACCENT_2 = "#4fd1c5"; // aqua
+const AMBER = "#d9a441"; // gold
+const LILAC = "#2b8cc4"; // sky peacock
 const SHOP_TYPES = ["saree shop", "bakery", "kirana store", "salon", "sweet shop", "box factory"];
 
 export function MotionProvider({ children }: { children: ReactNode }) {
@@ -21,7 +21,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 }
 
 export function Kicker({ text }: { text: string }) {
-  return <ShinyText text={text} color={ACCENT} shineColor="#ffc04d" speed={3} className="lp-kicker" />;
+  return <ShinyText text={text} color="#a87b22" shineColor="#f3d68f" speed={3} className="lp-kicker" />;
 }
 
 // "Speak. / Your [saree shop] is online." The whole second line swaps, so every version is

@@ -4,6 +4,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { Logo } from "@/components/Logo";
 import { MediaPicker } from "@/components/MediaPicker";
 import ShinyText from "@/components/bits/ShinyText/ShinyText";
+import { AmbientBg } from "@/components/AmbientBg";
 import { Assembling } from "@/components/create/Assembling";
 import { Confetti } from "@/components/create/Confetti";
 import { MicOrb } from "@/components/create/MicOrb";
@@ -32,7 +33,7 @@ const SAY: { label: string; heard: RegExp | null }[] = [
   { label: "Delivery or anything special", heard: /deliver|home/i },
 ];
 
-const Kicker = ({ text }: { text: string }) => <ShinyText text={text} color="#f45d1e" shineColor="#ffc04d" speed={3} className="cf-kicker" />;
+const Kicker = ({ text }: { text: string }) => <ShinyText text={text} color="#a87b22" shineColor="#f3d68f" speed={3} className="cf-kicker" />;
 
 export default function CreatePage() {
   const [stage, setStage] = useState<Stage>("speak");
@@ -49,7 +50,16 @@ export default function CreatePage() {
   const [result, setResult] = useState<Result | null>(null);
   const [live, setLive] = useState<Live | null>(null);
   const [confirmWa, setConfirmWa] = useState(false);
-  const [reviseOpen, setReviseOpen] = useState(false); // phone: "Change by voice" sheet over the preview // the "Where should orders come?" sheet
+  const [reviseOpen, setReviseOpen] = useState(false);
+  // A light sweeps across the preview whenever the website changes (voice change, edits, theme).
+  const [flash, setFlash] = useState(false);
+  const draftKey = draft ? JSON.stringify([draft.theme, draft.siteType, draft.headline, draft.items.length, draft.festival ?? null]) : "";
+  useEffect(() => {
+    if (!draftKey) return;
+    setFlash(true);
+    const t = setTimeout(() => setFlash(false), 950);
+    return () => clearTimeout(t);
+  }, [draftKey]); // phone: "Change by voice" sheet over the preview // the "Where should orders come?" sheet
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [recordings, setRecordings] = useState<string[]>([]);
@@ -154,6 +164,7 @@ export default function CreatePage() {
   if (stage === "review" && draft)
     return (
       <div className="review rv">
+        <AmbientBg />
         <header className="review-bar">
           <Logo />
           <div className="seg mobile-only" role="tablist">
@@ -211,7 +222,7 @@ export default function CreatePage() {
             />
           )}
           <section className={`review-preview ${pane === "preview" ? "show" : ""}`} aria-label="Website preview">
-            <div className={`device ${device}`}>
+            <div className={`device ${device} ${flash ? "flash" : ""}`}>
               <div className="device-scroll">
                 <SiteView site={draft} preview />
               </div>
@@ -249,6 +260,7 @@ export default function CreatePage() {
   const stepNow = { speak: 0, checking: 0, ask: 0, building: 1, review: 1, pay: 2, done: 2 }[stage];
   return (
     <div className="cf">
+      <AmbientBg />
       <header className="cf-nav">
         <div className="cf-nav-row">
           <Logo />

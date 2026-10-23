@@ -7,6 +7,7 @@ import { Insights } from "@/components/Insights";
 import { OrderCard } from "@/components/OrderCard";
 import { PayPanel } from "@/components/PayPanel";
 import { SharePanel } from "@/components/SharePanel";
+import { AmbientBg } from "@/components/AmbientBg";
 import { ReviseMic } from "@/components/ReviseMic";
 import { SiteView } from "@/components/site/SiteView";
 import { SiteEditor } from "@/components/SiteEditor";
@@ -143,7 +144,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
   if (key === undefined || key === null) return null;
   if (denied)
     return (
-      <main className="narrow">
+      <main className="narrow ed">
         <Logo />
         <h1>Open your private edit link</h1>
         <p className="hint">
@@ -175,7 +176,9 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
   const formDirty = form && current && JSON.stringify(form) !== JSON.stringify(current);
 
   return (
-    <main className="narrow wide">
+    <>
+    <AmbientBg />
+    <main className="narrow wide ed">
       <Logo />
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ margin: 0 }}>{current?.businessName ?? "Your website"}</h1>
@@ -414,6 +417,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
         </div>
       )}
     </main>
+    </>
   );
 }
 

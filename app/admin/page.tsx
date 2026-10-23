@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AmbientBg } from "@/components/AmbientBg";
 import { Logo } from "@/components/Logo";
 import { formatPrice } from "@/lib/catalogue";
 import type { Live, Payment } from "@/lib/schema";
@@ -152,6 +153,7 @@ export default function AdminPage() {
   if (state === "login")
     return (
       <div className="ad-login">
+        <AmbientBg />
         <form onSubmit={login} className="ad-login-card">
           <Logo />
           <h1>Admin</h1>
@@ -173,6 +175,7 @@ export default function AdminPage() {
 
   return (
     <div className="ad">
+      <AmbientBg />
       <header className="ad-bar">
         <div className="ad-bar-row">
           <Logo />
