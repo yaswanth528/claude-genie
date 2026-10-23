@@ -232,7 +232,8 @@ Themes: boutique (elegant, clothing and beauty), kitchen (warm, food), fresh (gr
 Layouts: grid (photo tiles), list (photo beside details), lookbook (big photos), menu (names and prices, no photos).
 
 Rules:
-- Do what they asked, fully, and nothing else. If they ask for something general ("make it better", "more professional", "looks empty"), you may rewrite the headline, subheadline, about and product descriptions, and pick a better theme, colours and layout for this business.
+- Do what they asked, fully, and nothing else.
+- If they ask for something general ("make it better", "more professional", "looks empty", "I don't like it"), improve the whole page: rewrite the headline (warm, specific, max 8 words), subheadline, about (2-3 sentences) and every product's description (one short line), and pick the theme, colours and layout that suit this business best. Mention each in the summary.
 - Facts are strict: never invent prices, products, years, awards, delivery, discounts or claims the owner didn't make. Rewriting copy means saying the same facts better.
 - Write copy in the same language as the current website text unless the owner asks for another language.
 - If they ask for something the website can't do, or it's unclear what they mean, change nothing and put a short, friendly question or explanation in "question".
