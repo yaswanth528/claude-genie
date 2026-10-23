@@ -16,6 +16,7 @@ export function useSpeech(language: string, onText: (text: string) => void, onAu
   const [state, setState] = useState<RecorderState>("idle");
   const [seconds, setSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null); // while recording, for a live waveform
   const recorder = useRef<MediaRecorder | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -67,6 +68,7 @@ export function useSpeech(language: string, onText: (text: string) => void, onAu
     rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
     rec.onstop = () => {
       stream.getTracks().forEach((t) => t.stop());
+      setStream(null);
       const blob = new Blob(chunks, { type: rec.mimeType || mimeType || "audio/webm" });
       if (blob.size > 0) {
         onAudio?.(blob); // kept in the browser so the owner can replay it during review
@@ -76,6 +78,7 @@ export function useSpeech(language: string, onText: (text: string) => void, onAu
     };
     recorder.current = rec;
     rec.start();
+    setStream(stream);
     setSeconds(0);
     setState("recording");
     timer.current = setInterval(() => {
@@ -86,7 +89,7 @@ export function useSpeech(language: string, onText: (text: string) => void, onAu
     }, 1000);
   }, [stop, upload, onAudio]);
 
-  return { supported, state, seconds, error, start, stop };
+  return { supported, state, seconds, error, start, stop, stream, maxSeconds: MAX_SECONDS };
 }
 
 // The language name is passed to Gemini as a hint; the code is for read-back speech.

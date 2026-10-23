@@ -3,6 +3,10 @@ import { useCallback, useEffect, useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
 import { Logo } from "@/components/Logo";
 import { MediaPicker } from "@/components/MediaPicker";
+import ShinyText from "@/components/bits/ShinyText/ShinyText";
+import { Assembling } from "@/components/create/Assembling";
+import { Confetti } from "@/components/create/Confetti";
+import { MicOrb } from "@/components/create/MicOrb";
 import { MicButton } from "@/components/MicButton";
 import { ReviseMic } from "@/components/ReviseMic";
 import { PayPanel } from "@/components/PayPanel";
@@ -14,36 +18,21 @@ import { LANGUAGES } from "@/components/useSpeech";
 import { normaliseWhatsapp } from "@/lib/catalogue";
 import { PRICES } from "@/lib/prices";
 import type { Draft, Live } from "@/lib/schema";
+import "./create.css";
 
 type Stage = "speak" | "checking" | "ask" | "building" | "review" | "pay" | "done";
 type Question = { question: string; reason: string };
 type Result = { slug: string; editKey: string; whatsapp: string };
 
-const BUILD_STEPS = ["Understanding what you said", "Choosing a design for your business", "Placing your photos", "Creating pictures", "Writing your website"];
+// What a good description covers. Prices and timings are ticked off when we hear them.
+const SAY: { label: string; heard: RegExp | null }[] = [
+  { label: "Your shop’s name", heard: /\b(name|called)\b|ಹೆಸರು|नाम|பெயர்|పేరు/i },
+  { label: "What you sell, with prices", heard: /\d{2,}|₹|\brupees?\b|\brs\b|ರೂ|रुपय|ரூ|రూ/i },
+  { label: "Area and timings", heard: /\b(am|pm)\b|\d+\s*(to|-)\s*\d+|timing|ಗಂಟೆ|बजे|மணி|గంట/i },
+  { label: "Delivery or anything special", heard: /deliver|home/i },
+];
 
-function Building({ withPhotos }: { withPhotos: boolean }) {
-  const [t, setT] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setT((x) => x + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const steps = BUILD_STEPS.filter((s) => withPhotos || s !== "Placing your photos");
-  const active = Math.min(steps.length - 1, Math.floor(t / 6));
-  return (
-    <div className="building" aria-live="polite">
-      <div className="spinner" aria-hidden />
-      <h1>Building your website…</h1>
-      <ol>
-        {steps.map((s, i) => (
-          <li key={s} className={i < active ? "done" : i === active ? "now" : ""}>
-            {s}
-          </li>
-        ))}
-      </ol>
-      <p className="hint">This usually takes 20–40 seconds. {t > 0 && `(${t}s)`}</p>
-    </div>
-  );
-}
+const Kicker = ({ text }: { text: string }) => <ShinyText text={text} color="#c24a2e" shineColor="#ffb08a" speed={3} className="cf-kicker" />;
 
 export default function CreatePage() {
   const [stage, setStage] = useState<Stage>("speak");
@@ -251,165 +240,206 @@ export default function CreatePage() {
       </div>
     );
 
+  const stepNow = { speak: 0, checking: 0, ask: 0, building: 1, review: 1, pay: 2, done: 2 }[stage];
   return (
-    <main className="narrow">
-      <Logo />
-      <div className="stepper-head" aria-hidden>
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={i <= { speak: 0, checking: 0, ask: 0, building: 1, review: 1, pay: 2, done: 2 }[stage] ? "done" : ""} />
-        ))}
-      </div>
-
-      {stage === "speak" && (
-        <>
-          <h1>Tell us about your business</h1>
-          <p className="hint">
-            Speak for 20–60 seconds: your shop’s name, what you sell with prices, and anything customers should know (area,
-            timings, delivery).
-          </p>
-          <label htmlFor="lang">Language</label>
-          <select id="lang" value={lang} onChange={(e) => setLang(e.target.value)}>
-            {LANGUAGES.map((l) => (
-              <option key={l.name} value={l.name}>
-                {l.label}
-              </option>
+    <div className="cf">
+      <header className="cf-nav">
+        <div className="cf-nav-row">
+          <Logo />
+          <ol className="cf-track" aria-label="Steps">
+            {["Speak", "Check", "Go live"].map((label, i) => (
+              <li key={label} className={i < stepNow ? "done" : i === stepNow ? "now" : ""} aria-current={i === stepNow ? "step" : undefined}>
+                <span>{i < stepNow ? "✓" : i + 1}</span>
+                {label}
+              </li>
             ))}
-          </select>
-          <MicButton language={lang} onText={onText} onAudio={onAudio} />
-          <label htmlFor="transcript">What we heard (you can edit or type)</label>
-          <textarea id="transcript" value={transcript} onChange={(e) => setTranscript(e.target.value)} />
-
-          <div style={{ marginTop: 20 }}>
-            <MediaPicker value={media} onChange={setMedia} />
-          </div>
-          <label className="check">
-            <input type="checkbox" checked={aiImages} onChange={(e) => setAiImages(e.target.checked)} />
-            Create pictures with AI where I haven’t added a photo
-          </label>
-
-          {errorBox}
-          <div className="row">
-            <button className="btn" onClick={check} disabled={transcript.trim().length < 5}>
-              Build my website
-            </button>
-          </div>
-        </>
-      )}
-
-      {stage === "checking" && (
-        <div className="building" aria-live="polite">
-          <div className="spinner" aria-hidden />
-          <h1>Checking what you said…</h1>
+          </ol>
         </div>
-      )}
+      </header>
 
-      {stage === "ask" && (
-        <>
-          <h1>A few quick questions</h1>
-          <p className="hint">So your website is right. Answer by voice or typing, or skip any you like.</p>
-          <div className="questions">
-            {questions.map((q, i) => (
-              <div key={i} className="card question">
-                <p className="q-text">{q.question}</p>
-                <MicButton
-                  language={lang}
-                  label="Answer by voice"
-                  onAudio={onAudio}
-                  onText={(t) => setAnswers((a) => a.map((x, j) => (j === i ? t : x)))}
-                />
-                <input
-                  aria-label={`Answer: ${q.question}`}
-                  placeholder="Or type the answer"
-                  value={answers[i] ?? ""}
-                  onChange={(e) => setAnswers((a) => a.map((x, j) => (j === i ? e.target.value : x)))}
-                />
+      <main className="cf-main">
+        {stage === "speak" && (
+          <>
+            <section className="cf-hero">
+              <Kicker text="Step 1 of 3" />
+              <h1>Tell us about your business.</h1>
+              <p className="cf-lead">Speak for 20–60 seconds, in your own language. We’ll turn it into your website.</p>
+            </section>
+
+            <div className="cf-langs" role="radiogroup" aria-label="Language you’ll speak">
+              {LANGUAGES.map((l) => (
+                <button key={l.name} type="button" role="radio" aria-checked={lang === l.name} className={lang === l.name ? "on" : ""} onClick={() => setLang(l.name)}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
+
+            <MicOrb language={lang} onText={onText} onAudio={onAudio} />
+
+            <ul className="cf-say" aria-label="What to talk about">
+              {SAY.map((x) => {
+                const done = !!x.heard && x.heard.test(transcript);
+                return (
+                  <li key={x.label} className={done ? "done" : ""}>
+                    <span aria-hidden="true">{done ? "✓" : "•"}</span>
+                    {x.label}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <section className="cf-card">
+              <div className="cf-card-head">
+                <label htmlFor="transcript">What we heard</label>
+                <span className="cf-muted small">Edit it, or type instead</span>
               </div>
-            ))}
+              <textarea
+                id="transcript"
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
+                placeholder="For example: we sell Mysore silk sarees from 4,500 rupees and cotton sarees for 1,200. We’re in Jayanagar, open 10 am to 9 pm…"
+              />
+            </section>
+
+            <section className="cf-card">
+              <MediaPicker value={media} onChange={setMedia} />
+              <label className="check">
+                <input type="checkbox" checked={aiImages} onChange={(e) => setAiImages(e.target.checked)} />
+                Find pictures for products I haven’t added a photo for
+              </label>
+            </section>
+
+            {errorBox}
+            <div className="cf-cta">
+              <button className="cf-pill block" onClick={check} disabled={transcript.trim().length < 5}>
+                Build my website
+              </button>
+              {transcript.trim().length < 5 && <p className="cf-muted small">Speak or type a little about your shop first.</p>}
+            </div>
+          </>
+        )}
+
+        {stage === "checking" && (
+          <div className="cf-center" aria-live="polite">
+            <div className="cf-pulse" aria-hidden="true" />
+            <h1>Checking what you said…</h1>
+            <p className="cf-lead">Making sure we have your products and prices right.</p>
           </div>
-          <div className="row">
-            <button className="btn" onClick={buildWithAnswers}>
-              Build my website
-            </button>
-            <button className="btn ghost" onClick={() => build(transcript)}>
-              Skip and build
-            </button>
-          </div>
-        </>
-      )}
+        )}
 
-      {stage === "building" && <Building withPhotos={media.length > 0} />}
+        {stage === "ask" && (
+          <>
+            <section className="cf-hero">
+              <Kicker text="Almost there" />
+              <h1>A few quick questions.</h1>
+              <p className="cf-lead">So your website is right. Answer by voice or typing, or skip any.</p>
+            </section>
+            <div className="cf-questions">
+              {questions.map((q, i) => (
+                <div key={i} className="cf-card cf-question">
+                  <span className="cf-q-num">{i + 1}</span>
+                  <p className="cf-q-text">{q.question}</p>
+                  <MicButton language={lang} label="Answer by voice" onAudio={onAudio} onText={(t) => setAnswers((a) => a.map((x, j) => (j === i ? t : x)))} />
+                  <input
+                    aria-label={`Answer: ${q.question}`}
+                    placeholder="Or type the answer"
+                    value={answers[i] ?? ""}
+                    onChange={(e) => setAnswers((a) => a.map((x, j) => (j === i ? e.target.value : x)))}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="cf-cta">
+              <button className="cf-pill block" onClick={buildWithAnswers}>
+                Build my website
+              </button>
+              <button className="cf-pill ghost block" onClick={() => build(transcript)}>
+                Skip and build
+              </button>
+            </div>
+          </>
+        )}
 
-      {stage === "pay" && result && draft && (
-        <>
-          <h1>Get your website</h1>
-          <p className="hint">
-            Your website is saved. After payment it goes live on its own address, and you can keep updating it with your private
-            edit link.
-          </p>
-          <PayPanel
-            slug={result.slug}
-            editKey={result.editKey}
-            siteType={draft.siteType}
-            due={PRICES[draft.siteType]}
-            onLive={(l) => {
-              setLive(l);
-              setStage("done");
-              window.scrollTo({ top: 0 });
-            }}
-          />
-          <p className="hint" style={{ marginTop: 12 }}>
-            Want another look first?{" "}
-            <a href={`/p/${result.slug}`} target="_blank" rel="noreferrer">
-              Open the preview
-            </a>
-          </p>
-        </>
-      )}
+        {stage === "building" && <Assembling withPhotos={media.length > 0} />}
 
-      {stage === "done" && result && (
-        <>
-          <h1>Your website is live 🎉</h1>
-          <div className="success">
-            <strong>Your website address.</strong> Share it in your WhatsApp status, Instagram bio and with customers:
-            <div className="link-box">
-              <input readOnly value={live?.url ?? ""} onFocus={(e) => e.target.select()} aria-label="Website address" />
-              <CopyButton text={live?.url ?? ""} />
-              <a className="btn" href={live?.url} target="_blank" rel="noreferrer">
-                Open
+        {stage === "pay" && result && draft && (
+          <>
+            <section className="cf-hero">
+              <Kicker text="Step 3 of 3" />
+              <h1>Get your website.</h1>
+              <p className="cf-lead">It’s saved. After payment it goes live at its own address, and you can keep changing it with your private edit link.</p>
+            </section>
+            <section className="cf-card">
+              <PayPanel
+                slug={result.slug}
+                editKey={result.editKey}
+                siteType={draft.siteType}
+                due={PRICES[draft.siteType]}
+                onLive={(l) => {
+                  setLive(l);
+                  setStage("done");
+                  window.scrollTo({ top: 0 });
+                }}
+              />
+            </section>
+            <p className="cf-muted cf-center-text">
+              Want another look first?{" "}
+              <a href={`/p/${result.slug}`} target="_blank" rel="noreferrer">
+                Open the preview ↗
               </a>
-            </div>
-          </div>
-          <div className="notice">
-            <strong>Save your private edit link.</strong> Use it to change prices by voice, update photos, see orders and put
-            changes live. Anyone with it can change your website, so don’t share it.
-            <div className="link-box">
-              <input readOnly aria-label="Private edit link" value={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} onFocus={(e) => e.target.select()} />
-              <CopyButton text={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} />
-            </div>
-          </div>
-          {live && draft && (
-            <div className="card" style={{ marginTop: 16 }}>
-              <strong>Tell your customers</strong>
-              <p className="hint">Post the status image on WhatsApp and print the poster for your counter.</p>
-              <SharePanel url={live.url} businessName={draft.businessName} headline={draft.headline} themeId={draft.theme.id} accent={draft.theme.accent} />
-            </div>
-          )}
-          <div className="card" style={{ marginTop: 16 }}>
-            <strong>Check that orders reach you</strong>
-            <p className="hint">Send yourself a test order. If WhatsApp opens your own chat, you’re set.</p>
-            <a
-              className="btn wa"
-              style={{ marginTop: 10 }}
-              href={`https://wa.me/${result.whatsapp}?text=${encodeURIComponent(`Test order from my website (${live?.url ?? ""})`)}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Send a test order
-            </a>
-          </div>
-        </>
-      )}
-    </main>
+            </p>
+          </>
+        )}
+
+        {stage === "done" && result && (
+          <>
+            <Confetti />
+            <section className="cf-hero">
+              <Kicker text="You’re online" />
+              <h1>Your website is live.</h1>
+              <p className="cf-lead">Share it everywhere your customers are.</p>
+            </section>
+            <section className="cf-card">
+              <label htmlFor="live-url">Your website address</label>
+              <div className="link-box">
+                <input id="live-url" readOnly value={live?.url ?? ""} onFocus={(e) => e.target.select()} />
+                <CopyButton text={live?.url ?? ""} />
+                <a className="cf-pill sm" href={live?.url} target="_blank" rel="noreferrer">
+                  Open
+                </a>
+              </div>
+            </section>
+            <section className="cf-card cf-warn">
+              <label htmlFor="edit-url">Save your private edit link</label>
+              <p className="cf-muted small">Use it to change prices by voice, update photos, see orders and put changes live. Anyone with it can change your website, so don’t share it.</p>
+              <div className="link-box">
+                <input id="edit-url" readOnly value={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} onFocus={(e) => e.target.select()} />
+                <CopyButton text={`${origin}/p/${result.slug}/edit#key=${result.editKey}`} />
+              </div>
+            </section>
+            {live && draft && (
+              <section className="cf-card">
+                <h2>Tell your customers</h2>
+                <p className="cf-muted small">Post the status image on WhatsApp and print the poster for your counter.</p>
+                <SharePanel url={live.url} businessName={draft.businessName} headline={draft.headline} themeId={draft.theme.id} accent={draft.theme.accent} />
+              </section>
+            )}
+            <section className="cf-card">
+              <h2>Check that orders reach you</h2>
+              <p className="cf-muted small">Send yourself a test order. If WhatsApp opens your own chat, you’re set.</p>
+              <a
+                className="cf-pill wa"
+                href={`https://wa.me/${result.whatsapp}?text=${encodeURIComponent(`Test order from my website (${live?.url ?? ""})`)}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Send a test order
+              </a>
+            </section>
+          </>
+        )}
+      </main>
+    </div>
   );
 }
 
