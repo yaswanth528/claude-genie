@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FeatureTile, FinalGlow, Greatest, HeroSub, HeroTitle, Kicker, MotionProvider, ShopMarquee } from "@/components/landing/Bits";
+import { CountUp, FeatureTile, FinalGlow, Greatest, HeroSub, HeroTitle, Kicker, MotionProvider, ShopMarquee } from "@/components/landing/Bits";
 import { Reveal } from "@/components/landing/Reveal";
 import { Logo } from "@/components/Logo";
 import { SiteView } from "@/components/site/SiteView";
@@ -43,7 +43,7 @@ export default function Home() {
       <Reveal />
       <header className="lp-nav">
         <div className="lp-nav-row">
-          <Logo />
+          <Logo tone="light" />
           <nav aria-label="Sections">
             <a href="#how">How it works</a>
             <a href="#designs">Designs</a>
@@ -64,6 +64,11 @@ export default function Home() {
 
       <main>
         <section className="lp-hero">
+          <div className="lp-glow" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </div>
           <Kicker text="Websites for small shops" />
           <HeroTitle />
           <HeroSub text="Talk about your shop for 30 seconds, in your language. Get a beautiful website with your products, prices and ordering." />
@@ -185,7 +190,9 @@ export default function Home() {
             <div className="lp-plans">
               <div className="lp-plan" data-reveal>
                 <h3>Showcase</h3>
-                <p className="lp-plan-price">{rs(PRICES.static)}</p>
+                <p className="lp-plan-price">
+                  <CountUp to={PRICES.static} />
+                </p>
                 <p className="lp-plan-note">one-time</p>
                 <ul>
                   <li>Your own website link</li>
@@ -200,7 +207,9 @@ export default function Home() {
               <div className="lp-plan best" data-reveal>
                 <span className="lp-badge">Most complete</span>
                 <h3>Online store</h3>
-                <p className="lp-plan-price">{rs(PRICES.static)}</p>
+                <p className="lp-plan-price">
+                  <CountUp to={PRICES.static} />
+                </p>
                 <p className="lp-plan-note">+ {rs(YEARLY)} a year for online orders</p>
                 <ul>
                   <li>Everything in Showcase</li>

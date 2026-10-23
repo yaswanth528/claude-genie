@@ -153,7 +153,7 @@ export default function AdminPage() {
     return (
       <div className="ad-login">
         <form onSubmit={login} className="ad-login-card">
-          <Logo />
+          <Logo tone="light" />
           <h1>Admin</h1>
           <p className="ad-muted">Sign in to see every shop.</p>
           <label htmlFor="pw">Password</label>
@@ -175,7 +175,7 @@ export default function AdminPage() {
     <div className="ad">
       <header className="ad-bar">
         <div className="ad-bar-row">
-          <Logo />
+          <Logo tone="light" />
           <span className="ad-bar-title">Admin</span>
           <span className="ad-storage">
             <i className={storage === "d1" ? "ok" : "warn"} /> {storage === "d1" ? "Cloudflare D1" : storage === "github" ? "GitHub" : "Local files"}

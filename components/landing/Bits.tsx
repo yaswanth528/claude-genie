@@ -2,16 +2,16 @@
 // React Bits pieces for the home page, wrapped so they follow the site's colours and the
 // visitor's "reduce motion" setting (no rotating words or moving marquee when it's on).
 import { MotionConfig, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Aurora from "@/components/bits/Aurora/Aurora";
 import GradientText from "@/components/bits/GradientText/GradientText";
 import ScrollVelocity from "@/components/bits/ScrollVelocity/ScrollVelocity";
 import ShinyText from "@/components/bits/ShinyText/ShinyText";
 import SpotlightCard from "@/components/bits/SpotlightCard/SpotlightCard";
 
-const ACCENT = "#c24a2e";
-const ACCENT_2 = "#e8743f";
-const AMBER = "#f2a33a";
+const ACCENT = "#ff7a1a";
+const ACCENT_2 = "#ffb347";
+const AMBER = "#ffd27a";
 const SHOP_TYPES = ["saree shop", "bakery", "kirana store", "salon", "sweet shop", "box factory"];
 
 export function MotionProvider({ children }: { children: ReactNode }) {
@@ -19,7 +19,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 }
 
 export function Kicker({ text }: { text: string }) {
-  return <ShinyText text={text} color={ACCENT} shineColor="#ffb08a" speed={3} className="lp-kicker" />;
+  return <ShinyText text={text} color={ACCENT} shineColor="#fff1dc" speed={3} className="lp-kicker" />;
 }
 
 // "Speak. / Your [saree shop] is online." The whole second line swaps, so every version is
@@ -101,7 +101,42 @@ export function FeatureTile({ title, body, wide, dark }: { title: string; body: 
 export function FinalGlow() {
   return (
     <div className="lp-aurora" aria-hidden="true">
-      <Aurora colorStops={[ACCENT, AMBER, ACCENT_2]} amplitude={0.8} blend={0.6} speed={0.5} height={0.36} direction="bottom" mouseInteraction={false} />
+      <Aurora colorStops={["#c2410c", ACCENT, ACCENT_2]} amplitude={0.8} blend={0.6} speed={0.5} height={0.36} direction="bottom" mouseInteraction={false} />
     </div>
+  );
+}
+
+// Counts up to a price when it scrolls into view (₹0 → ₹1,999). Shows the final number straight
+// away without JavaScript or with reduced motion.
+export function CountUp({ to, prefix = "₹" }: { to: number; prefix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [n, setN] = useState(to);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    setN(0);
+    let raf = 0;
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      const start = performance.now();
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - start) / 1400);
+        setN(Math.round(to * (1 - Math.pow(1 - k, 3))));
+        if (k < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [to]);
+  return (
+    <span ref={ref} aria-label={`${prefix}${to.toLocaleString("en-IN")}`}>
+      {prefix}
+      {n.toLocaleString("en-IN")}
+    </span>
   );
 }
