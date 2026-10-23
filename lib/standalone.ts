@@ -367,10 +367,10 @@ else if(a==="pv-dec"){bump(pv+":"+opt(pv),-1);openView(pv)}
 else if(a==="open-cart"){$("[data-cart]",R).hidden=false;$("[data-placed]",R).hidden=true;render()}
 else if(a==="close-cart"){$("[data-cart]",R).hidden=true;render()}});
 $$("[data-form]").forEach(function(form){form.addEventListener("submit",function(e){e.preventDefault();var R=root(),f=new FormData(form),c={name:f.get("name"),phone:f.get("phone"),address:f.get("address"),note:f.get("note")||""},l=lines(),btn=$("[data-submit]",R),er=$("[data-errors]",R);
-btn.disabled=true;er.hidden=true;
-function done(t,id,track){var tl=$("[data-track-link]",R);if(tl){tl.hidden=!track;if(track)tl.href=track}$("[data-placed-text]",R).textContent=(id?"Order #"+sid(id)+" is saved. ":"")+"Tap below to send it to "+C.name+" on WhatsApp so they can confirm.";$("[data-placed-link]",R).href=wa(t);$("[data-placed]",R).hidden=false;cart={};form.reset();btn.disabled=false;render()}
+btn.disabled=true;btn.setAttribute("aria-busy","true");er.hidden=true;
+function done(t,id,track){var tl=$("[data-track-link]",R);if(tl){tl.hidden=!track;if(track)tl.href=track}$("[data-placed-text]",R).textContent=(id?"Order #"+sid(id)+" is saved. ":"")+"Tap below to send it to "+C.name+" on WhatsApp so they can confirm.";$("[data-placed-link]",R).href=wa(t);$("[data-placed]",R).hidden=false;cart={};form.reset();btn.disabled=false;btn.removeAttribute("aria-busy");render()}
 fetch(C.api,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({customer:c,lines:l.map(function(x){return{index:x.index,qty:x.qty,option:x.option}})})})
-.then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})}).then(function(r){if(!r.ok||!r.d.order){btn.disabled=false;er.hidden=false;er.innerHTML="";(r.d.errors||[r.d.error||"Couldn't place the order."]).forEach(function(m){var p=document.createElement("p");p.textContent=m;er.appendChild(p)});return}
+.then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})}).then(function(r){if(!r.ok||!r.d.order){btn.disabled=false;btn.removeAttribute("aria-busy");er.hidden=false;er.innerHTML="";(r.d.errors||[r.d.error||"Couldn't place the order."]).forEach(function(m){var p=document.createElement("p");p.textContent=m;er.appendChild(p)});return}
 var o=r.d.order;done(text(o.lines,o.customer,o.id,r.d.link),o.id,r.d.link)})
 .catch(function(){done(text(l,c))})})});
 function openTick(){if(!C.hours)return;$$("[data-open]").forEach(function(el){var r=el.closest(".site"),w=(r&&C.openWords[r.dataset.lang])||C.openWords.base,st=sgOpenStatus(C.hours,Date.now(),w);el.hidden=!st;if(st){el.textContent=st.text;el.classList.toggle("is-open",st.open)}})}

@@ -146,7 +146,7 @@ export default function AdminPage() {
   if (state === "loading")
     return (
       <div className="ad-login">
-        <p className="ad-muted">Loading…</p>
+        <p className="ad-muted loading">Loading your shops…</p>
       </div>
     );
 
@@ -397,7 +397,7 @@ function Drawer({ row: r, busy, onClose, onDelete }: { row: Row; busy: boolean; 
           <p className="ad-muted small">Removes its data and orders{r.live ? " and takes its website offline" : ""}. This can’t be undone.</p>
           {confirm ? (
             <div className="ad-confirm">
-              <button className="ad-btn danger" onClick={onDelete} disabled={busy}>
+              <button className="ad-btn danger" onClick={onDelete} disabled={busy} aria-busy={busy}>
                 {busy ? "Deleting…" : "Yes, delete it"}
               </button>
               <button className="ad-btn ghost" onClick={() => setConfirm(false)} disabled={busy}>

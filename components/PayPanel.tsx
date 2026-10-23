@@ -61,7 +61,7 @@ export function PayPanel({ slug, editKey, siteType, due, upgrade, onLive }: Prop
           {paidNotLive && <p>Your payment is recorded. Tap the button again to retry putting the site live.</p>}
         </div>
       )}
-      <button className="btn block" onClick={pay} disabled={busy}>
+      <button className="btn block" onClick={pay} disabled={busy} aria-busy={busy}>
         {busy ? "Putting your website live…" : paidNotLive ? "Retry putting it live" : `Pay ${formatPrice(due)} to get your website`}
       </button>
       <p className="hint small">

@@ -11,6 +11,7 @@ export function MicButton({ language, onText, onAudio, label = "Tap and speak" }
         className={`mic ${state === "recording" ? "on" : ""}`}
         onClick={state === "recording" ? stop : start}
         disabled={state === "transcribing"}
+        aria-busy={state === "transcribing"}
         aria-pressed={state === "recording"}
       >
         <span className="mic-dot" aria-hidden />

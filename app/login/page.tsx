@@ -56,7 +56,7 @@ export default function LoginPage() {
           <input id="ph" inputMode="tel" autoComplete="tel" placeholder="98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} />
           {error && <div className="errors"><p>{error}</p></div>}
           <div className="row">
-            <button className="btn" disabled={busy || phone.replace(/\D/g, "").length < 10}>
+            <button className="btn" disabled={busy || phone.replace(/\D/g, "").length < 10} aria-busy={busy}>
               {busy ? "Sending…" : "Send code on WhatsApp"}
             </button>
           </div>
@@ -77,7 +77,7 @@ export default function LoginPage() {
           />
           {error && <div className="errors"><p>{error}</p></div>}
           <div className="row">
-            <button className="btn" disabled={busy || code.length !== 6}>
+            <button className="btn" disabled={busy || code.length !== 6} aria-busy={busy}>
               {busy ? "Checking…" : "Log in"}
             </button>
             <button type="button" className="btn ghost" onClick={() => send()} disabled={busy}>

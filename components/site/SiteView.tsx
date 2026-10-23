@@ -849,7 +849,7 @@ function CartDrawer({
                 ))}
               </div>
             )}
-            <button className="s-btn s-btn-block" disabled={busy || (!!minOrder && total < minOrder)}>
+            <button className="s-btn s-btn-block" disabled={busy || (!!minOrder && total < minOrder)} aria-busy={busy}>
               {busy ? "…" : `${ui.placeOrder} · ${formatPrice(total + delivery)}`}
             </button>
             <p className="s-muted s-small">

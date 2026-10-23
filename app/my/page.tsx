@@ -33,7 +33,7 @@ export default function MyPage() {
         </div>
       </main>
     );
-  if (!data) return <main className="narrow"><Logo /><p className="hint" style={{ marginTop: 24 }}>Loading…</p></main>;
+  if (!data) return <main className="narrow"><Logo /><p className="hint loading" style={{ marginTop: 24 }}>Loading your websites…</p></main>;
 
   return (
     <main className="narrow">

@@ -23,7 +23,7 @@ export function Insights({ slug, editKey, dynamic }: { slug: string; editKey: st
   }, [slug, editKey]);
 
   if (error) return <div className="errors"><p>{error}</p></div>;
-  if (!data) return <p className="hint">Loading your numbers…</p>;
+  if (!data) return <p className="hint loading">Loading your numbers…</p>;
 
   const visits = data.visits;
   const week = visits?.slice(-7).reduce((s, v) => s + v.count, 0) ?? 0;

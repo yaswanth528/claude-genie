@@ -136,7 +136,7 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
     return (
       <div className="order-page">
         <main className="op-main">
-          <p className="op-fine op-center op-loading">Loading your order…</p>
+          <p className="op-fine op-center op-loading loading">Loading your order…</p>
         </main>
       </div>
     );
@@ -295,7 +295,7 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
           {canChange &&
             (editing ? (
               <div className="op-actions">
-                <button className="btn" onClick={save} disabled={busy || draft.length === 0}>
+                <button className="btn" onClick={save} disabled={busy || draft.length === 0} aria-busy={busy}>
                   {busy ? "Saving…" : "Save changes"}
                 </button>
                 <button

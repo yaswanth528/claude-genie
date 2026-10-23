@@ -15,6 +15,7 @@ import { SharePanel } from "@/components/SharePanel";
 import { SiteEditor } from "@/components/SiteEditor";
 import { SiteView } from "@/components/site/SiteView";
 import type { Uploaded } from "@/components/upload";
+import { Rotating } from "@/components/Rotating";
 import { LANGUAGES } from "@/components/useSpeech";
 import { normaliseWhatsapp } from "@/lib/catalogue";
 import { PRICES } from "@/lib/prices";
@@ -199,7 +200,7 @@ export default function CreatePage() {
             <div className="publish-bar">
               {errorBox}
               <div className="row">
-                <button className="cf-pill" onClick={() => setConfirmWa(true)} disabled={busy}>
+                <button className="cf-pill" onClick={() => setConfirmWa(true)} disabled={busy} aria-busy={busy}>
                   {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
                 </button>
                 <button
@@ -228,7 +229,7 @@ export default function CreatePage() {
               </div>
             </div>
             <div className="preview-cta mobile-only">
-              <button className="cf-pill sm" onClick={() => setConfirmWa(true)} disabled={busy}>
+              <button className="cf-pill sm" onClick={() => setConfirmWa(true)} disabled={busy} aria-busy={busy}>
                 {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
               </button>
               <button className="cf-pill ghost sm" onClick={() => setReviseOpen(true)} aria-label="Change by voice">
@@ -346,6 +347,7 @@ export default function CreatePage() {
             <div className="cf-pulse" aria-hidden="true" />
             <h1>Checking what you said…</h1>
             <p className="cf-lead">Making sure we have your products and prices right.</p>
+            <Rotating className="cf-muted" lines={["Reading your products…", "Checking each price…", "Looking for anything missing…", "Almost done…"]} />
           </div>
         )}
 
@@ -498,7 +500,7 @@ function WhatsappSheet({
         {value && !ok && <p className="error">Enter a 10-digit mobile number.</p>}
         {error && <p className="error">{error}</p>}
         <div className="row">
-          <button className="btn" disabled={!ok || busy}>
+          <button className="btn" disabled={!ok || busy} aria-busy={busy}>
             {busy ? "Saving…" : "Confirm and continue"}
           </button>
           <button type="button" className="btn ghost" onClick={onCancel} disabled={busy}>

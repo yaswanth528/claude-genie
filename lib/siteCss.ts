@@ -48,6 +48,9 @@ export const SITE_CSS = `
 .theme-boutique .s-btn { border-radius: var(--s-radius); letter-spacing: .04em; }
 .s-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
 .s-btn:disabled { opacity: .55; cursor: wait; transform: none; }
+.s-btn[aria-busy="true"] { opacity: .9; }
+.s-btn[aria-busy="true"]::before { content: ""; width: 1em; height: 1em; flex-shrink: 0; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: s-spin .7s linear infinite; }
+@keyframes s-spin { to { rotate: 360deg; } }
 .s-btn:focus-visible, .site button:focus-visible, .site a:focus-visible, .site input:focus-visible, .site textarea:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--s-accent) 55%, transparent); outline-offset: 2px;
 }

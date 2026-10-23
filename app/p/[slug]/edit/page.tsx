@@ -219,6 +219,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
         />
       )}
 
+      {!current && <p className="hint loading">Opening your website…</p>}
       <div className="seg tabs" role="tablist">
         <button role="tab" aria-selected={tab === "voice"} className={tab === "voice" ? "on" : ""} onClick={() => setTab("voice")}>
           Voice edit
@@ -275,7 +276,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
           <label htmlFor="req">What we heard (you can edit or type)</label>
           <textarea id="req" value={request} onChange={(e) => setRequest(e.target.value)} />
           <div className="row">
-            <button className="btn" onClick={previewEdit} disabled={busy || !request.trim()}>
+            <button className="btn" onClick={previewEdit} disabled={busy || !request.trim()} aria-busy={busy && !preview}>
               {busy && !preview ? "Working it out…" : "Show me the change"}
             </button>
           </div>
@@ -319,7 +320,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
                 </div>
               )}
               <div className="row">
-                <button className="btn" onClick={approve} disabled={busy || preview.errors.length > 0}>
+                <button className="btn" onClick={approve} disabled={busy || preview.errors.length > 0} aria-busy={busy}>
                   {busy ? "Saving…" : "Approve and update"}
                 </button>
                 <button className="btn ghost" onClick={() => setPreview(null)} disabled={busy}>
@@ -347,7 +348,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
           <SiteEditor value={form} onChange={setForm} language={lang} />
           <div className="publish-bar">
             <div className="row">
-              <button className="btn" onClick={saveForm} disabled={busy || !formDirty}>
+              <button className="btn" onClick={saveForm} disabled={busy || !formDirty} aria-busy={busy}>
                 {busy ? "Saving…" : "Save changes"}
               </button>
               {formDirty && (
@@ -383,7 +384,7 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
       {tab === "orders" && (
         <div style={{ marginTop: 16 }}>
           {orders === null ? (
-            <p className="hint">Loading orders…</p>
+            <p className="hint loading">Loading orders…</p>
           ) : orders.length === 0 ? (
             <div className="card">
               <p>No orders yet. When customers check out on your website, their orders appear here.</p>
@@ -426,7 +427,7 @@ function LiveStatus({ owner, busy, onPush }: { owner: Owner; busy: boolean; onPu
     return owner.payment ? (
       <div className="card live-card">
         <span className="pill warn">Paid · not live yet</span>
-        <button className="btn" onClick={onPush} disabled={busy}>
+        <button className="btn" onClick={onPush} disabled={busy} aria-busy={busy}>
           {busy ? "Putting it live…" : "Put my website live"}
         </button>
       </div>
@@ -442,7 +443,7 @@ function LiveStatus({ owner, busy, onPush }: { owner: Owner; busy: boolean; onPu
         {owner.live.url} ↗
       </a>
       {behind && owner.due === 0 && (
-        <button className="btn" onClick={onPush} disabled={busy}>
+        <button className="btn" onClick={onPush} disabled={busy} aria-busy={busy}>
           {busy ? "Updating…" : "Update live website"}
         </button>
       )}

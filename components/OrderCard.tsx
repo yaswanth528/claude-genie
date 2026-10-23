@@ -148,7 +148,7 @@ export function OrderCard({ order, slug, editKey, businessName, products, onSave
       <div className="row tight">
         {editing ? (
           <>
-            <button className="btn sm" onClick={saveEdits} disabled={busy}>
+            <button className="btn sm" onClick={saveEdits} disabled={busy} aria-busy={busy}>
               {busy ? "Saving…" : "Save"}
             </button>
             <button className="btn ghost sm" onClick={() => setEditing(false)} disabled={busy}>

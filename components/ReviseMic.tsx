@@ -3,6 +3,7 @@
 // words; /api/revise returns the changed website, which replaces the draft straight away (the
 // preview updates), with a list of what changed and one-tap undo. Nothing is saved until the
 // owner continues or saves as usual.
+import { Rotating } from "./Rotating";
 import { useState } from "react";
 import type { SiteContent } from "@/lib/schema";
 import { MicButton } from "./MicButton";
@@ -72,11 +73,15 @@ export function ReviseMic<T extends SiteContent>({ value, onChange, language, on
       </label>
       <textarea id={compact ? "revise-text-sheet" : "revise-text"} rows={2} value={text} onChange={(e) => setText(e.target.value)} disabled={busy} />
       <div className="row tight">
-        <button className="btn sm" onClick={() => run()} disabled={busy || text.trim().length < 3}>
+        <button className="btn sm" onClick={() => run()} disabled={busy || text.trim().length < 3} aria-busy={busy}>
           {busy ? "Changing…" : "Change it"}
         </button>
       </div>
-      {busy && <p className="revise-busy" aria-live="polite">Working on your website…</p>}
+      {busy && (
+        <div aria-live="polite">
+          <Rotating className="revise-busy" lines={["Listening to your change…", "Working on your website…", "Updating the preview…"]} />
+        </div>
+      )}
       {error && <p className="error">{error}</p>}
       {result && !busy && (
         <div className="revise-result" aria-live="polite">

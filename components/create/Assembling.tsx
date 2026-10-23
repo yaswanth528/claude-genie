@@ -3,6 +3,7 @@
 // block, beside the steps. Real build time varies (20-60 s on the free Gemini tier), so the
 // blocks follow the clock and the last step waits until the website arrives.
 import { useEffect, useState } from "react";
+import { Rotating } from "../Rotating";
 
 const STEPS = ["Understanding what you said", "Choosing a design for your business", "Placing your photos", "Finding pictures", "Writing your website"];
 
@@ -58,6 +59,16 @@ export function Assembling({ withPhotos }: { withPhotos: boolean }) {
           <span style={{ width: `${Math.min(95, (t / 45) * 100)}%` }} />
         </div>
         <p className="cf-muted">Usually under a minute{t > 0 ? ` · ${t}s` : ""}</p>
+        <Rotating
+          className="cf-tip"
+          every={4500}
+          lines={[
+            "Tip: later, change any price just by saying it.",
+            "Tip: share your website link on WhatsApp status.",
+            "Tip: print the QR poster for your shop counter.",
+            "Tip: your own photos make the website look best.",
+          ]}
+        />
       </div>
     </div>
   );

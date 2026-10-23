@@ -65,7 +65,7 @@ function FileButton({ label, accept, disabled, onFile }: { label: string; accept
   const ref = useRef<HTMLInputElement>(null);
   return (
     <>
-      <button type="button" className="btn ghost sm" disabled={disabled} onClick={() => ref.current?.click()}>
+      <button type="button" className="btn ghost sm" disabled={disabled} aria-busy={label === "Uploading…"} onClick={() => ref.current?.click()}>
         {label}
       </button>
       <input
@@ -584,7 +584,7 @@ function TranslationPanel({ value, onChange }: { value: SiteContent; onChange: (
               </option>
             ))}
           </select>
-          <button type="button" className="btn ghost sm" onClick={create} disabled={busy}>
+          <button type="button" className="btn ghost sm" onClick={create} disabled={busy} aria-busy={busy}>
             {busy ? "Translating…" : `Add ${language} version`}
           </button>
         </div>
@@ -607,7 +607,7 @@ function TranslationPanel({ value, onChange }: { value: SiteContent; onChange: (
             />
           ))}
           <div className="row tight">
-            <button type="button" className="btn ghost sm" onClick={create} disabled={busy}>
+            <button type="button" className="btn ghost sm" onClick={create} disabled={busy} aria-busy={busy}>
               {busy ? "Translating…" : "Translate again"}
             </button>
             <button type="button" className="btn ghost sm danger" onClick={() => onChange(null)}>
