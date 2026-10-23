@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeatureTile, FinalGlow, Greatest, HeroSub, HeroTitle, Kicker, MotionProvider, ShopMarquee } from "@/components/landing/Bits";
 import { Reveal } from "@/components/landing/Reveal";
 import { Logo } from "@/components/Logo";
 import { SiteView } from "@/components/site/SiteView";
@@ -37,6 +38,7 @@ const FEATURES: { title: string; body: string; wide?: boolean; dark?: boolean }[
 
 export default function Home() {
   return (
+    <MotionProvider>
     <div className="lp">
       <Reveal />
       <header className="lp-nav">
@@ -62,17 +64,9 @@ export default function Home() {
 
       <main>
         <section className="lp-hero">
-          <p className="lp-kicker" data-reveal>
-            Websites for small shops
-          </p>
-          <h1 data-reveal>
-            Speak.
-            <br />
-            Your shop is online.
-          </h1>
-          <p className="lp-sub" data-reveal>
-            Talk about your shop for 30 seconds, in your language. Get a beautiful website with your products, prices and ordering.
-          </p>
+          <Kicker text="Websites for small shops" />
+          <HeroTitle />
+          <HeroSub text="Talk about your shop for 30 seconds, in your language. Get a beautiful website with your products, prices and ordering." />
           <div className="lp-ctas" data-reveal>
             <Link href="/create" className="lp-pill">
               Make my website
@@ -85,6 +79,8 @@ export default function Home() {
             <Phone />
           </div>
         </section>
+
+        <ShopMarquee />
 
         <section className="lp-dark" id="how">
           <div className="lp-inner">
@@ -138,7 +134,7 @@ export default function Home() {
             <h2 data-reveal>
               Showcase is great.
               <br />
-              <span className="lp-accent">Online store is greatest.</span>
+              <Greatest>Online store is greatest.</Greatest>
             </h2>
             <div className="lp-duo">
               <div className="lp-duo-col" data-reveal>
@@ -168,9 +164,8 @@ export default function Home() {
             </h2>
             <div className="lp-bento">
               {FEATURES.map((f) => (
-                <div key={f.title} className={`lp-tile ${f.wide ? "wide" : ""} ${f.dark ? "dark" : ""}`} data-reveal>
-                  <h3>{f.title}</h3>
-                  <p>{f.body}</p>
+                <div key={f.title} className={`lp-tile-wrap ${f.wide ? "wide" : ""}`} data-reveal>
+                  <FeatureTile {...f} />
                 </div>
               ))}
             </div>
@@ -221,6 +216,7 @@ export default function Home() {
         </section>
 
         <section className="lp-final">
+          <FinalGlow />
           <div className="lp-inner">
             <h2 data-reveal>Your shop deserves a website.</h2>
             <p className="lp-sub" data-reveal>
@@ -245,5 +241,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </MotionProvider>
   );
 }

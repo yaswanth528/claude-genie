@@ -116,8 +116,9 @@
 .lp-features h2 { text-align: center; }
 .lp-bento { margin-top: clamp(48px, 7vw, 72px); display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 700px) { .lp-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1000px) { .lp-bento { grid-template-columns: repeat(3, minmax(0, 1fr)); } .lp-tile.wide { grid-column: span 2; } }
-.lp-tile { background: #fff; border-radius: 28px; padding: 32px; min-height: 220px; display: grid; align-content: end; gap: 10px; }
+@media (min-width: 1000px) { .lp-bento { grid-template-columns: repeat(3, minmax(0, 1fr)); } .lp-tile-wrap.wide { grid-column: span 2; } }
+.lp-tile-wrap { display: grid; min-width: 0; }
+.lp .lp-tile { border-radius: 28px; padding: 32px; min-height: 220px; display: grid; align-content: end; gap: 10px; }
 .lp-tile h3 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); font-weight: 700; line-height: 1.08; }
 .lp-tile p { color: var(--lp-muted); font-size: 1.02rem; line-height: 1.5; max-width: 40ch; }
 .lp-tile.dark { background: var(--lp-dark); color: var(--lp-on-dark); background-image: radial-gradient(80% 120% at 100% 0%, rgba(232, 116, 63, 0.35), transparent 60%); }
@@ -155,3 +156,22 @@
 .lp-motion .lp-phone.tilt-left, .lp-motion .lp-phone.tilt-right { transition: transform 0.9s ease; }
 @media (prefers-reduced-motion: reduce) { .lp-wave i { animation: none; } }
 @media (max-width: 699px) { .lp-tile { min-height: 0; padding: 26px 24px; } .lp-flow-step { min-height: 0; } }
+
+/* ---------- React Bits pieces (components/landing/Bits.tsx) ---------- */
+.lp-hero .lp-kicker { display: inline-block; }
+.lp-h1 { font-size: clamp(3rem, 10vw, 7.2rem); line-height: 0.98; font-weight: 700; display: grid; justify-items: center; }
+.lp-h1-a, .lp-h1-b { display: block; }
+.lp-h1-b { font-size: 0.62em; letter-spacing: -0.035em; margin-top: 0.12em; }
+.lp-rotate { display: inline-flex; overflow: hidden; vertical-align: bottom; padding: 0 0.04em 0.08em; color: var(--lp-accent); }
+.lp-rotate .text-rotate-element { display: inline-block; }
+.lp-hero .lp-sub { justify-content: center; }
+.lp-marquee { border-block: 1px solid rgba(0, 0, 0, 0.06); padding-block: 18px; overflow: hidden; background: var(--lp-bg); }
+.lp-marquee .lp-marquee-text, .lp-marquee.still p {
+  font-size: clamp(1.6rem, 4vw, 2.8rem); font-weight: 700; letter-spacing: -0.03em; color: color-mix(in srgb, var(--lp-ink) 16%, transparent); white-space: nowrap;
+}
+.lp-marquee.still p { text-align: center; white-space: normal; padding-inline: 20px; }
+.lp-greatest { display: inline-block; }
+.lp-final { position: relative; overflow: hidden; isolation: isolate; }
+.lp-final .lp-inner { position: relative; z-index: 1; }
+.lp-aurora { position: absolute; inset: 0; z-index: 0; opacity: 0.85; pointer-events: none; }
+.lp-aurora > * { width: 100%; height: 100%; }
