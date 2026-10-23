@@ -4,9 +4,7 @@
 import { MotionConfig, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 import Aurora from "@/components/bits/Aurora/Aurora";
-import BlurText from "@/components/bits/BlurText/BlurText";
 import GradientText from "@/components/bits/GradientText/GradientText";
-import RotatingText from "@/components/bits/RotatingText/RotatingText";
 import ScrollVelocity from "@/components/bits/ScrollVelocity/ScrollVelocity";
 import ShinyText from "@/components/bits/ShinyText/ShinyText";
 import SpotlightCard from "@/components/bits/SpotlightCard/SpotlightCard";
@@ -14,7 +12,7 @@ import SpotlightCard from "@/components/bits/SpotlightCard/SpotlightCard";
 const ACCENT = "#c24a2e";
 const ACCENT_2 = "#e8743f";
 const AMBER = "#f2a33a";
-const SHOP_TYPES = ["saree shop", "bakery", "kirana", "salon", "sweet shop", "box factory", "tailoring shop"];
+const SHOP_TYPES = ["saree shop", "bakery", "kirana store", "salon", "sweet shop", "box factory"];
 
 export function MotionProvider({ children }: { children: ReactNode }) {
   return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
@@ -24,30 +22,23 @@ export function Kicker({ text }: { text: string }) {
   return <ShinyText text={text} color={ACCENT} shineColor="#ffb08a" speed={3} className="lp-kicker" />;
 }
 
-// "Speak. / Your [saree shop] is online."
+// "Speak. / Your [saree shop] is online." The word swap is pure CSS (transform + opacity only),
+// so it stays smooth on budget phones. All words share one grid cell, which keeps the slot as wide
+// as the longest word: the line never reflows while words change.
 export function HeroTitle() {
-  const still = useReducedMotion();
   return (
     <h1 className="lp-h1">
       <span className="lp-h1-a">Speak.</span>
       <span className="lp-h1-b">
         Your{" "}
-        {still ? (
-          <span className="lp-rotate">shop</span>
-        ) : (
-          <RotatingText
-            texts={SHOP_TYPES}
-            mainClassName="lp-rotate"
-            splitBy="characters"
-            staggerFrom="last"
-            staggerDuration={0.02}
-            rotationInterval={2400}
-            initial={{ y: "100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "-110%", opacity: 0 }}
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-          />
-        )}{" "}
+        <span className="lp-ticker" style={{ ["--n" as string]: SHOP_TYPES.length }}>
+          <span className="sr-only">shop</span>
+          {SHOP_TYPES.map((w, i) => (
+            <span key={w} className="lp-ticker-word" style={{ ["--i" as string]: i }} aria-hidden="true">
+              {w}
+            </span>
+          ))}
+        </span>{" "}
         is online.
       </span>
     </h1>
@@ -55,7 +46,11 @@ export function HeroTitle() {
 }
 
 export function HeroSub({ text }: { text: string }) {
-  return <BlurText text={text} delay={60} animateBy="words" direction="bottom" className="lp-sub" />;
+  return (
+    <p className="lp-sub" data-reveal>
+      {text}
+    </p>
+  );
 }
 
 // The kinds of shops SiteGenie is for, drifting past (faster as you scroll).
