@@ -97,7 +97,7 @@
 .ad-shops { margin-top: 40px; }
 .ad-shops-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
 .ad-shops-head h2 { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 700; }
-.ad-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ad-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; flex: 1 1 420px; }
 .ad-tools select { width: auto; min-height: 34px; padding: 6px 12px; border-radius: 999px; font-size: 0.84rem; border: 1px solid var(--ad-line); background: var(--ad-card); }
 .ad-search { width: min(100%, 300px); min-height: 38px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--ad-line); background: var(--ad-card); font: inherit; font-size: 0.9rem; }
 .ad-filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 16px 0 14px; padding-bottom: 2px; }

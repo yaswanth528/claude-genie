@@ -31,6 +31,8 @@ const FEATURES: { title: string; body: string; wide?: boolean; dark?: boolean }[
   { title: "Festival ready.", body: "Diwali, Eid, Pongal, Christmas. One tap puts your offer on top.", wide: true },
   { title: "Looks great when shared.", body: "Your link shows your photo and name in WhatsApp chats." },
   { title: "Price on request.", body: "Made to order? Customers ask for a quote instead." },
+  { title: "Your own link.", body: "A fast website of your own, ready for your WhatsApp status and Instagram bio." },
+  { title: "Track every order.", body: "Online stores give each customer a link to see and change their order." },
 ];
 
 export default function Home() {
@@ -61,7 +63,7 @@ export default function Home() {
       <main>
         <section className="lp-hero">
           <p className="lp-kicker" data-reveal>
-            SiteGenie
+            Websites for small shops
           </p>
           <h1 data-reveal>
             Speak.
