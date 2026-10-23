@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { parseHours } from "@/lib/hours";
 import { BADGES, FESTIVALS, LAYOUTS, THEME_IDS, type Badge, type FestivalId, type Layout, type Media, type Product, type SiteContent, type Translation } from "@/lib/schema";
 import { THEMES } from "@/lib/themes";
+import { CompareTypes } from "./CompareTypes";
 import { ReadBack } from "./ReadBack";
 import { uploadFile } from "./upload";
 
@@ -60,6 +61,7 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
   const set = (patch: Partial<SiteContent> & { whatsapp?: string; ownerEmail?: string | null }) => onChange({ ...d, ...patch });
   const setItem = (i: number, patch: Partial<Product>) => set({ items: d.items.map((it, j) => (j === i ? { ...it, ...patch } : it)) });
   const up = useUpload();
+  const [comparing, setComparing] = useState(false);
   const num = (v: string) => (v.replace(/\D/g, "") ? Number(v.replace(/\D/g, "")) : null);
   const setDelivery = (patch: Partial<NonNullable<SiteContent["delivery"]>>) =>
     set({ delivery: { areas: null, charge: null, freeAbove: null, minOrder: null, ...(d.delivery ?? {}), ...patch } });
@@ -99,7 +101,19 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
             <em>₹1,999 + ₹3,000/yr</em>
           </button>
         </div>
-        <p className="hint small">The preview changes as you switch, so you can see the difference.</p>
+        <button type="button" className="btn ghost sm cmp-open" onClick={() => setComparing(true)}>
+          ⇄ Compare both designs side by side
+        </button>
+        {comparing && (
+          <CompareTypes
+            site={d}
+            onClose={() => setComparing(false)}
+            onChoose={(siteType) => {
+              set({ siteType });
+              setComparing(false);
+            }}
+          />
+        )}
       </details>
 
       <details open>
