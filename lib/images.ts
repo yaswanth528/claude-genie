@@ -1,5 +1,6 @@
 // Pictures for slots the owner didn't fill. Sources, in order: a Gemini illustration (only
-// with GEMINI_IMAGES=on — free-tier keys can't generate images), Unsplash
+// with GEMINI_IMAGES=on — free-tier keys can't generate images), Wikimedia Commons (products
+// only, no key; best for Indian items like mysore pak or masala dosa), Unsplash
 // (UNSPLASH_ACCESS_KEY), Pixabay (PIXABAY_API_KEY), Pexels (PEXELS_API_KEY). With none
 // available the site uses its photo-free design.
 //
@@ -101,6 +102,73 @@ async function fromUnsplash(o: Opts): Promise<Media | null> {
   }
 }
 
+type CommonsPage = {
+  pageid: number;
+  title: string;
+  imageinfo?: { thumburl?: string; mime?: string; extmetadata?: Record<string, { value?: string }> }[];
+};
+
+// Licences that allow use on a commercial website with credit. (Commons doesn't accept
+// non-commercial or no-derivatives files at all, so this mainly rules out unclear ones.)
+const COMMONS_OK = /^(CC0|Public domain|PD|CC BY(-SA)? \d(\.\d)?)/i;
+const stripHtml = (html = "") => html.replace(/<[^>]*>/g, " ").replace(/&[a-z#0-9]+;/gi, " ").replace(/\s+/g, " ").trim();
+
+// Wikimedia Commons: free, no key; asks only for an honest User-Agent. Real photos of Indian
+// food, sweets, clothes and crafts that stock libraries lack. Used for products only, and only
+// when the photo's title or description names the product. The chosen file is copied into
+// our storage so customer sites don't depend on Commons, and credited with its licence.
+async function fromWikimedia(o: Opts): Promise<Media | null> {
+  if (o.aspect !== "1:1" || !o.name?.trim()) return null;
+  try {
+    const res = await fetch(
+      `https://commons.wikimedia.org/w/api.php?${new URLSearchParams({
+        action: "query",
+        format: "json",
+        generator: "search",
+        gsrsearch: `${o.name.slice(0, 60)} filetype:bitmap`,
+        gsrnamespace: "6",
+        gsrlimit: "10",
+        prop: "imageinfo",
+        iiprop: "url|mime|extmetadata",
+        iiurlwidth: "900",
+      })}`,
+      { headers: { "User-Agent": "SiteGenie/1.0 (https://claude-genie-five.vercel.app)" }, signal: AbortSignal.timeout(8000) },
+    );
+    if (!res.ok) {
+      console.error("Wikimedia search failed:", res.status);
+      return null;
+    }
+    const pages = Object.values(((await res.json()) as { query?: { pages?: Record<string, CommonsPage> } }).query?.pages ?? {});
+    const cands = pages.flatMap((p) => {
+      const info = p.imageinfo?.[0];
+      const meta = info?.extmetadata ?? {};
+      const licence = stripHtml(meta.LicenseShortName?.value);
+      if (!info?.thumburl || !/^image\/(jpeg|png|webp)$/.test(info.mime ?? "") || !COMMONS_OK.test(licence)) return [];
+      const text = [p.title.replace(/^File:/, "").replace(/\.[a-z]+$/i, ""), stripHtml(meta.ObjectName?.value), stripHtml(meta.ImageDescription?.value).slice(0, 300)].join(" ");
+      // The product's own name must appear (name words count double in score()).
+      if (score(text, { ...o, query: "" }) < 2) return [];
+      const artist = stripHtml(meta.Artist?.value).slice(0, 50) || "Wikimedia contributor";
+      return [
+        {
+          id: `commons:${p.pageid}`,
+          text,
+          use: async () => {
+            const img = await fetch(info.thumburl!, { headers: { "User-Agent": "SiteGenie/1.0 (https://claude-genie-five.vercel.app)" } });
+            if (!img.ok) return null;
+            const type = img.headers.get("content-type") ?? "image/jpeg";
+            const url = await saveMedia(Buffer.from(await img.arrayBuffer()), type, "generated");
+            return { url, kind: "image" as const, generated: true, alt: o.alt, credit: `Photo: ${artist} / Wikimedia Commons (${licence})` };
+          },
+        },
+      ];
+    });
+    return pick(cands, o);
+  } catch (err) {
+    console.error("Wikimedia failed:", (err as Error).message);
+    return null;
+  }
+}
+
 type PixabayHit = { id: number; largeImageURL: string; tags: string; user: string };
 
 // Pixabay: free key, commercial use allowed. Their terms ask apps to store the image
@@ -183,5 +251,5 @@ async function fromPexels(o: Opts): Promise<Media | null> {
 }
 
 export async function findPicture(o: Opts): Promise<Media | null> {
-  return (await fromGemini(o)) ?? (await fromUnsplash(o)) ?? (await fromPixabay(o)) ?? (await fromPexels(o));
+  return (await fromGemini(o)) ?? (await fromWikimedia(o)) ?? (await fromUnsplash(o)) ?? (await fromPixabay(o)) ?? (await fromPexels(o));
 }
