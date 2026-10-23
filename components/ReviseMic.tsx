@@ -19,7 +19,7 @@ type Props<T extends SiteContent> = {
 export function ReviseMic<T extends SiteContent>({ value, onChange, language, onLanguage, compact }: Props<T>) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ summary: string[]; question: string | null; before: T } | null>(null);
+  const [result, setResult] = useState<{ summary: string[]; question: string | null; warnings: string[]; before: T } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function run(request = text) {
@@ -28,12 +28,12 @@ export function ReviseMic<T extends SiteContent>({ value, onChange, language, on
     setError(null);
     try {
       const res = await fetch("/api/revise", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: value, request }) });
-      const data = (await res.json()) as { content?: SiteContent; summary?: string[]; question?: string | null; error?: string };
+      const data = (await res.json()) as { content?: SiteContent; summary?: string[]; question?: string | null; errors?: string[]; error?: string };
       if (!res.ok || !data.content) return setError(data.error ?? "Couldn't change that. Try again.");
       const changed = (data.summary?.length ?? 0) > 0;
       // Keep what the revision doesn't know about (e.g. WhatsApp number, translation).
       if (changed) onChange({ ...value, ...data.content });
-      setResult({ summary: data.summary ?? [], question: data.question ?? null, before: value });
+      setResult({ summary: data.summary ?? [], question: data.question ?? null, warnings: changed ? (data.errors ?? []) : [], before: value });
       if (changed) setText("");
     } catch {
       setError("Network error. Check your connection and try again.");
@@ -102,6 +102,16 @@ export function ReviseMic<T extends SiteContent>({ value, onChange, language, on
             <p>{result.question ?? "We didn’t find anything to change. Try saying it another way."}</p>
           )}
           {result.summary.length > 0 && result.question && <p className="hint small">{result.question}</p>}
+          {result.warnings.length > 0 && (
+            <div className="revise-warn">
+              <p>Check before you continue:</p>
+              <ul>
+                {result.warnings.map((w) => (
+                  <li key={w}>{w}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </section>

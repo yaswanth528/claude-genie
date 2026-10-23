@@ -19,13 +19,22 @@ export async function POST(req: Request) {
   const request = body.request?.trim() ?? "";
   if (request.length < 3) return NextResponse.json({ error: "Say what you'd like to change." }, { status: 400 });
   if (request.length > 2000) return NextResponse.json({ error: "That's a lot at once. Say one or two changes at a time." }, { status: 400 });
+  if (!body.content || typeof body.content !== "object") return NextResponse.json({ error: "Your website didn't reach us. Reload the page and try again." }, { status: 400 });
+  // A website with no products can still be changed ("add samosa for 20 rupees").
   const { content: site } = cleanContent(body.content);
-  if (!site.items.length) return NextResponse.json({ error: "There's no website to change yet." }, { status: 400 });
 
   try {
     const rev = await reviseSite(site, request);
     // Same checks as saving: whatever the model returned, the result is a valid website.
     const { content, errors } = cleanContent(await apply(site, rev));
+    // Never wipe out every product by accident: ask instead.
+    if (site.items.length > 0 && content.items.length === 0)
+      return NextResponse.json({
+        content: site,
+        summary: [],
+        question: "That would remove all your products. Say which products to remove, or what to add or change.",
+        errors: [],
+      });
     // The summary is worked out from what really changed, not from what the model says it did.
     const summary = describe(site, content);
     return NextResponse.json({ content, summary, question: rev.question, errors });

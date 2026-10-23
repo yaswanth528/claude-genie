@@ -200,3 +200,6 @@ html:has(.ed), html:has(.ed) body { background: #f6fafa; }
 
 /* "Online store is greatest.": room for the tails of g, y and p inside the gradient text box */
 .lp .lp-greatest, .lp .lp-greatest .gradient-text__inner, .lp .lp-greatest .gradient-text__content { padding-bottom: 0.16em; margin-bottom: -0.16em; line-height: 1.12; overflow: visible; }
+.revise-warn { border-radius: 12px; padding: 8px 12px; background: rgba(255, 196, 0, 0.16); font-size: 0.88rem; }
+.revise-warn p { font-weight: 700; }
+.revise-warn ul { margin: 4px 0 0; padding-left: 18px; }
