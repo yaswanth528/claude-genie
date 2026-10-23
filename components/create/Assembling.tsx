@@ -13,7 +13,7 @@ export function Assembling({ withPhotos }: { withPhotos: boolean }) {
     return () => clearInterval(id);
   }, []);
   const steps = STEPS.filter((s) => withPhotos || s !== "Placing your photos");
-  const active = Math.min(steps.length - 1, Math.floor(t / 6));
+  const active = Math.min(steps.length - 1, Math.floor(t / 3));
   const stage = Math.min(6, t + 1); // how many blocks of the page have appeared (about one a second)
   return (
     <div className="cf-build" aria-live="polite">
