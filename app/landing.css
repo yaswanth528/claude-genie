@@ -154,3 +154,4 @@
 .lp-motion [data-reveal].in { opacity: 1; transform: none; }
 .lp-motion .lp-phone.tilt-left, .lp-motion .lp-phone.tilt-right { transition: transform 0.9s ease; }
 @media (prefers-reduced-motion: reduce) { .lp-wave i { animation: none; } }
+@media (max-width: 699px) { .lp-tile { min-height: 0; padding: 26px 24px; } .lp-flow-step { min-height: 0; } }
