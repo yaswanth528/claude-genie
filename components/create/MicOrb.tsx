@@ -48,7 +48,7 @@ export function MicOrb({ language, onText, onAudio }: { language: string; onText
   const recording = state === "recording";
   const left = maxSeconds - seconds;
   return (
-    <div className={`cf-mic ${state}`}>
+    <div className={`cf-mic is-${state}`}>
       <button
         ref={orb}
         type="button"

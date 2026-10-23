@@ -59,16 +59,16 @@
 .cf-orb svg { position: relative; z-index: 1; }
 .cf-orb-stop { position: relative; z-index: 1; width: 34px; height: 34px; border-radius: 9px; background: #fff; }
 .cf-orb-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(194, 74, 46, 0.35); opacity: 0; pointer-events: none; }
-.recording .cf-orb-ring { animation: cf-ring 1.8s ease-out infinite; }
-.recording .cf-orb-ring.r2 { animation-delay: 0.9s; }
+.is-recording .cf-orb-ring { animation: cf-ring 1.8s ease-out infinite; }
+.is-recording .cf-orb-ring.r2 { animation-delay: 0.9s; }
 @keyframes cf-ring { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.65); opacity: 0; } }
-.transcribing .cf-orb { animation: cf-breathe 1.4s ease-in-out infinite; }
+.is-transcribing .cf-orb { animation: cf-breathe 1.4s ease-in-out infinite; }
 @keyframes cf-breathe { 50% { transform: scale(0.94); filter: saturate(0.7); } }
 .cf-wave { display: flex; align-items: center; justify-content: center; gap: 3px; height: 48px; width: min(100%, 340px); opacity: 0.25; transition: opacity 0.3s; }
-.recording .cf-wave { opacity: 1; }
+.is-recording .cf-wave { opacity: 1; }
 .cf-wave span { flex: 1; max-width: 5px; height: 100%; border-radius: 3px; background: linear-gradient(var(--cf-accent-2), var(--cf-accent)); transform: scaleY(0.12); transition: transform 0.08s linear; }
 .cf-mic-label { font-weight: 600; color: var(--cf-muted); font-variant-numeric: tabular-nums; text-align: center; }
-.recording .cf-mic-label { color: var(--cf-accent); }
+.is-recording .cf-mic-label { color: var(--cf-accent); }
 
 /* "Say these" */
 .cf-say { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
@@ -164,7 +164,7 @@
 .cf .link-box input { min-width: 0; flex: 1 1 200px; border-radius: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .recording .cf-orb-ring, .transcribing .cf-orb, .cf-pulse, .cf-steps li.now::before, .cf-build-screen[data-stage="6"] .b-img { animation: none; }
+  .is-recording .cf-orb-ring, .is-transcribing .cf-orb, .cf-pulse, .cf-steps li.now::before, .cf-build-screen[data-stage="6"] .b-img { animation: none; }
   .cf-orb { transform: none; }
   .cf-build-screen > *, .b-card { transition: none; }
 }
