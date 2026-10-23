@@ -97,7 +97,9 @@ export const SITE_CSS = `
 .s-eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--s-accent); }
 .s-hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
 .s-hero-split .s-hero-cta, .s-hero-split .s-perks, .s-hero-split .s-trust { justify-content: center; }
-.s-hero-media { border-radius: var(--s-r-lg); overflow: hidden; aspect-ratio: 4 / 3.4; background: var(--s-soft); }
+.s-hero-media { position: relative; border-radius: var(--s-r-lg); overflow: hidden; aspect-ratio: 4 / 3.4; background: var(--s-soft); }
+/* The owner's own banner photo: shown whole on a blurred copy of itself, never cropped or enlarged past its real size. */
+.site .s-hero-media.s-framed img { object-fit: scale-down; }
 .s-hero-split .s-hero-media { width: 100%; max-width: 1100px; }
 @container site (min-width: 760px) { .s-hero-split .s-hero-media { aspect-ratio: 16 / 9; } }
 .s-hero-media img, .s-hero-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -527,7 +529,34 @@ export const SITE_CSS = `
    (CSS only, so the hosted page and the preview move the same; skipped on reduced motion). */
 @keyframes s-rise { from { opacity: 0; translate: 0 26px; } }
 @keyframes s-reveal { from { opacity: 0; translate: 0 48px; scale: .97; } }
+@keyframes s-drift { from { scale: 1.12; } }
+@keyframes s-pulse { 0% { box-shadow: 0 0 0 0 rgba(30, 158, 87, .5); } 70%, 100% { box-shadow: 0 0 0 9px rgba(30, 158, 87, 0); } }
+@keyframes s-shine { to { translate: 130% 0; } }
+@keyframes s-pop { from { opacity: 0; scale: .6; } }
+@keyframes s-bar-up { from { opacity: 0; translate: 0 100%; } }
+@keyframes s-slide-in { from { translate: 100% 0; } }
+@keyframes s-sheet-up { from { opacity: 0; translate: 0 48px; } }
+@keyframes s-fade { from { opacity: 0; } }
+@keyframes s-lift { to { box-shadow: 0 12px 30px -20px rgba(0, 0, 0, .45); } }
+@keyframes s-parallax { from { translate: 0 -5%; } to { translate: 0 5%; } }
 @media (prefers-reduced-motion: no-preference) {
+  /* AI and stock banners drift slowly into place; the owner's own photo stays still. */
+  .s-hero-media.is-stock img, .s-hero-bg.is-stock { animation: s-drift 14s cubic-bezier(.2,.7,.2,1) both; }
+  .s-open.is-open::before { animation: s-pulse 2.4s ease-out infinite; }
+  /* One light sweep across the main button after the banner appears */
+  .s-hero-cta .s-btn:not(.s-btn-ghost) { position: relative; overflow: hidden; }
+  .s-hero-cta .s-btn:not(.s-btn-ghost)::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; translate: -130% 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .38) 50%, transparent 65%);
+    animation: s-shine 1.3s 1.1s ease-in-out both;
+  }
+  /* Cart and order feedback */
+  .s-card .s-qty, .s-spot .s-qty { animation: s-pop .32s cubic-bezier(.3, 1.5, .5, 1) both; }
+  .s-orderbar { animation: s-bar-up .4s cubic-bezier(.2,.7,.2,1) both; }
+  .s-wa-fab { animation: s-pop .4s cubic-bezier(.3, 1.5, .5, 1) both; }
+  .s-drawer-scrim { animation: s-fade .3s ease both; }
+  .s-drawer { animation: s-slide-in .38s cubic-bezier(.2,.7,.2,1) both; }
+  .s-pv-wrap .s-pv { animation: s-sheet-up .38s cubic-bezier(.2,.7,.2,1) both; }
   .s-hero-copy > * { animation: s-rise .9s cubic-bezier(.2,.7,.2,1) both; }
   .s-hero-copy > :nth-child(2) { animation-delay: .08s; }
   .s-hero-copy > :nth-child(3) { animation-delay: .16s; }
@@ -537,6 +566,12 @@ export const SITE_CSS = `
     .s-section-head, .s-spot, .s-grid > .s-card, .s-step, .s-about-grid > *, .s-gallery > *, .s-contact-grid > * {
       animation: s-reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 70%;
     }
+    /* The spotlight photo moves a little slower than the page */
+    .s-spot-media:not(.s-framed) img { scale: 1.12; animation: s-parallax linear both; animation-timeline: view(); }
+  }
+  /* The header gains a soft shadow once the page scrolls */
+  @supports (animation-timeline: scroll()) {
+    .s-header { animation: s-lift linear both; animation-timeline: scroll(); animation-range: 0 140px; }
   }
 }
 

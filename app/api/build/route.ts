@@ -101,7 +101,8 @@ export async function POST(req: Request) {
       theme: {
         id: THEME_IDS.includes(plan.themeId) ? plan.themeId : "bazaar",
         accent: [0, 1, 2].includes(plan.accent) ? plan.accent : 0,
-        heroStyle: plan.heroStyle,
+        // The owner's own banner photo is shown whole beside the headline; a full-screen banner would crop it.
+        heroStyle: hero?.kind === "image" ? "split" : plan.heroStyle,
       },
       headline: plan.headline,
       subheadline: plan.subheadline,

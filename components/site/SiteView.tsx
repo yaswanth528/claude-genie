@@ -242,7 +242,7 @@ export function SiteView({ site, preview }: Props) {
         </header>
 
         <section ref={heroRef} id="top" className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"} ${mosaic.length ? "has-mosaic" : ""}`}>
-          {heroFull && site.hero && <MediaBox media={site.hero} className="s-hero-bg" eager />}
+          {heroFull && site.hero && <MediaBox media={site.hero} className={`s-hero-bg ${site.hero.generated ? "is-stock" : ""}`} eager />}
           <div className="s-wrap s-hero-inner">
             <div className="s-hero-copy">
               {L.category && <p className="s-eyebrow">{L.area ? `${L.category} · ${L.area}` : L.category}</p>}
@@ -277,7 +277,10 @@ export function SiteView({ site, preview }: Props) {
               )}
             </div>
             {!heroFull && site.hero && (
-              <div className="s-hero-media">
+              <div
+                className={`s-hero-media ${isFramed(site.hero) ? "s-framed" : site.hero.generated ? "is-stock" : ""}`}
+                style={isFramed(site.hero) ? ({ "--img": cssUrl(site.hero.url) } as CSSProperties) : undefined}
+              >
                 <MediaBox media={site.hero} eager />
               </div>
             )}

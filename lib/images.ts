@@ -3,8 +3,9 @@
 // only, no key; best for Indian items like mysore pak or masala dosa), Unsplash
 // (UNSPLASH_ACCESS_KEY), Pixabay (PIXABAY_API_KEY), Pexels (PEXELS_API_KEY). For products,
 // stock photos must name the product; if none does, a Cloudflare Workers AI image (FLUX,
-// free daily allowance) is made, and only then the closest stock photo is used. With none
-// available the site uses its photo-free design.
+// free daily allowance) is made, and only then the closest stock photo is used. A banner
+// the owner didn't give is made with AI first (it only has to set the mood), then stock.
+// With none available the site uses its photo-free design.
 //
 // Matching is deterministic (no AI calls, so it stays fast on a free Gemini key): each
 // source returns several candidates and we keep the one whose description/tags best
@@ -291,7 +292,7 @@ async function fromCloudflare(o: Opts): Promise<Media | null> {
     const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: o.prompt.slice(0, 2000), steps: 4 }),
+      body: JSON.stringify({ prompt: (o.aspect === "16:9" ? `${o.prompt}, wide landscape banner, no text, no logos` : o.prompt).slice(0, 2000), steps: 4 }),
       signal: AbortSignal.timeout(25000),
     });
     if (!res.ok) {
@@ -313,7 +314,7 @@ async function fromCloudflare(o: Opts): Promise<Media | null> {
 export async function findPicture(o: Opts): Promise<Media | null> {
   const gemini = await fromGemini(o);
   if (gemini) return gemini;
-  if (o.aspect !== "1:1" || !o.name?.trim()) return (await fromUnsplash(o)) ?? (await fromPixabay(o)) ?? (await fromPexels(o));
+  if (o.aspect !== "1:1" || !o.name?.trim()) return (await fromCloudflare(o)) ?? (await fromUnsplash(o)) ?? (await fromPixabay(o)) ?? (await fromPexels(o));
   // Products: a real photo that names the product, then an AI image, then the closest stock photo.
   const p: Opts = { ...o, needName: true, spare: [] };
   const found = (await fromWikimedia(p)) ?? (await fromUnsplash(p)) ?? (await fromPixabay(p)) ?? (await fromPexels(p)) ?? (await fromCloudflare(o));

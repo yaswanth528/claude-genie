@@ -114,7 +114,7 @@ ${site.festival ? `<div class="s-festive s-fest-${site.festival.id}"><span>${FES
 <header class="s-header"><div class="s-wrap s-header-row"><a href="#${idp}top" class="s-brand">${esc(L.businessName)}</a>
 <nav class="s-nav" aria-label="Sections"><a href="#${idp}products">${esc(dynamic ? u.shop : u.products)}</a>${L.about ? `<a href="#${idp}about">${esc(u.about)}</a>` : ""}${site.gallery.length ? `<a href="#${idp}gallery">${esc(u.gallery)}</a>` : ""}<a href="#${idp}contact">${esc(u.contact)}</a></nav>
 ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${esc(u.cartShort)}<span data-count></span></button>` : `<a class="s-btn s-btn-sm" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">WhatsApp</a>`}</div></header>
-<section id="${idp}top" class="s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}${mosaic.length ? " has-mosaic" : ""}">${heroFull && site.hero ? media(site.hero, "s-hero-bg", true) : ""}
+<section id="${idp}top" class="s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}${mosaic.length ? " has-mosaic" : ""}">${heroFull && site.hero ? media(site.hero, site.hero.generated ? "s-hero-bg is-stock" : "s-hero-bg", true) : ""}
 <div class="s-wrap s-hero-inner"><div class="s-hero-copy">${L.category ? `<p class="s-eyebrow">${esc(L.area ? `${L.category} · ${L.area}` : L.category)}</p>` : ""}<h1>${esc(L.headline || L.businessName)}</h1><p class="s-lead">${esc(L.subheadline)}</p>
 <div class="s-hero-cta"><a class="s-btn" href="#${idp}products">${esc(dynamic ? u.shopNow : u.seeProducts)}</a><a class="s-btn s-btn-ghost" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">${esc(u.chat)}</a></div>${
   dynamic ? `<div class="s-perks">${storePerks(site, u).map((p) => `<span><b aria-hidden="true">${esc(p.icon)}</b> ${esc(p.text)}</span>`).join("")}</div>` : ""
@@ -123,7 +123,7 @@ ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${
     ? `<div class="s-trust">${openBadge}${site.reviewsUrl ? `<a href="${esc(site.reviewsUrl)}" target="_blank" rel="noreferrer">★ ${esc(u.reviewsShort)}</a>` : ""}</div>`
     : ""
 }</div>
-${!heroFull && site.hero ? `<div class="s-hero-media">${media(site.hero, "", true)}</div>` : ""}${
+${!heroFull && site.hero ? `<div class="s-hero-media${isFramed(site.hero) ? " s-framed" : site.hero.generated ? " is-stock" : ""}"${isFramed(site.hero) ? ` style="${esc(`--img:${cssUrl(site.hero.url)}`)}"` : ""}>${media(site.hero, "", true)}</div>` : ""}${
   mosaic.length ? `<div class="s-mosaic n${mosaic.length}" aria-hidden="true">${mosaic.map((m) => `<div>${media(m, "", true)}</div>`).join("")}</div>` : ""
 }</div></section>
 ${L.highlights.length ? `<section class="s-highlights"><div class="s-wrap s-highlights-row">${L.highlights.map((h) => `<p>${esc(h)}</p>`).join("")}</div></section>` : ""}
