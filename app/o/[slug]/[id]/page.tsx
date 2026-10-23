@@ -18,6 +18,20 @@ type View = {
 type Draft = { index: number; option: string | null; qty: number; price: number | null; name: string };
 
 const STEPS: OrderStatus[] = ["new", "confirmed", "out_for_delivery", "delivered"];
+const HEADLINE: Record<OrderStatus, string> = {
+  new: "Order placed",
+  confirmed: "Order confirmed",
+  out_for_delivery: "On its way",
+  delivered: "Delivered",
+  cancelled: "Order cancelled",
+};
+const SUBLINE: Record<OrderStatus, string> = {
+  new: STATUS_LABEL.new + ".",
+  confirmed: "The shop has confirmed your order.",
+  out_for_delivery: "Your order is out for delivery.",
+  delivered: "Your order has been delivered. Thank you!",
+  cancelled: "This order was cancelled.",
+};
 
 export default function MyOrderPage({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = use(params);
@@ -108,15 +122,24 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
   if (token === undefined) return null;
   if (error && !data)
     return (
-      <main className="narrow">
-        <h1>Order</h1>
-        <div className="errors">
-          <p>{error}</p>
-        </div>
-        <p className="hint">Open the order link from your WhatsApp message to the shop.</p>
-      </main>
+      <div className="order-page">
+        <main className="op-main">
+          <section className="op-hero">
+            <h1>Order not found</h1>
+            <p className="op-sub">{error}</p>
+            <p className="op-fine">Open the order link from your WhatsApp message to the shop.</p>
+          </section>
+        </main>
+      </div>
     );
-  if (!data) return <main className="narrow"><p className="hint" style={{ marginTop: 24 }}>Loading your order…</p></main>;
+  if (!data)
+    return (
+      <div className="order-page">
+        <main className="op-main">
+          <p className="op-fine op-center op-loading">Loading your order…</p>
+        </main>
+      </div>
+    );
 
   const { order, shop, canChange } = data;
   const status = order.status;
@@ -133,61 +156,87 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
     });
   };
 
-  return (
-    <div className="order-page" style={vars}>
-      <main className="narrow">
-        <p className="op-shop">{shop.businessName}</p>
-        <h1>Order #{shortId(order.id)}</h1>
-        <p className={`op-status s-${status}`}>{STATUS_LABEL[status]}</p>
+  const placed = new Date(order.createdAt);
+  const placedText = Number.isNaN(placed.getTime())
+    ? ""
+    : placed.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
+  const chatLink = whatsappLink(shop.whatsapp, `Hi, about my order #${shortId(order.id)}:`);
 
-        {status !== "cancelled" && (
-          <ol className="op-steps" aria-label="Order progress">
-            {STEPS.map((s, i) => (
-              <li key={s} className={i <= stepAt ? "done" : ""}>
-                {s === "new" ? "Placed" : s === "confirmed" ? "Confirmed" : s === "out_for_delivery" ? "On the way" : "Delivered"}
-              </li>
-            ))}
-          </ol>
-        )}
+  return (
+    <div className={`order-page theme-${shop.theme.id}`} style={vars}>
+      <header className="op-bar">
+        <div className="op-bar-row">
+          <span className="op-shop">{shop.businessName}</span>
+          <a className="op-bar-wa" href={chatLink} target="_blank" rel="noreferrer">
+            Message the shop
+          </a>
+        </div>
+      </header>
+
+      <main className="op-main">
+        <section className="op-hero">
+          <p className="op-eyebrow">
+            Order #{shortId(order.id)}
+            {placedText && ` · ${placedText}`}
+          </p>
+          <h1>{HEADLINE[status]}</h1>
+          <p className={`op-sub s-${status}`}>{SUBLINE[status]}</p>
+
+          {status !== "cancelled" && (
+            <ol className="op-steps" aria-label="Order progress">
+              {STEPS.map((s, i) => (
+                <li key={s} className={i < stepAt ? "done" : i === stepAt ? "done now" : ""} aria-current={i === stepAt ? "step" : undefined}>
+                  <span className="op-dot" aria-hidden="true" />
+                  {s === "new" ? "Placed" : s === "confirmed" ? "Confirmed" : s === "out_for_delivery" ? "On the way" : "Delivered"}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
 
         {notice && (
-          <div className="success">
+          <div className="op-note is-ok">
             <p>{notice.text}</p>
             {notice.wa && (
-              <a className="btn wa sm" href={notice.wa} target="_blank" rel="noreferrer" style={{ marginTop: 8 }}>
+              <a className="btn wa sm" href={notice.wa} target="_blank" rel="noreferrer">
                 Tell the shop on WhatsApp
               </a>
             )}
           </div>
         )}
-        {error && <div className="errors"><p>{error}</p></div>}
+        {error && (
+          <div className="op-note is-bad">
+            <p>{error}</p>
+          </div>
+        )}
 
-        <div className="card op-card">
+        <section className="op-card">
+          <h2>{editing ? "Change your order" : "Your items"}</h2>
           {!editing ? (
-            <ul className="plain">
+            <ul className="op-lines">
               {order.lines.map((l, i) => (
                 <li key={i}>
                   <span>
-                    {lineName(l)} × {l.qty}
+                    {lineName(l)} <span className="op-qty">× {l.qty}</span>
                   </span>
-                  <span>{formatPrice((l.price ?? 0) * l.qty)}</span>
+                  <span className="op-price">{formatPrice((l.price ?? 0) * l.qty)}</span>
                 </li>
               ))}
               {!!order.discount && (
-                <li>
+                <li className="op-extra">
                   <span>Discount</span>
-                  <span>−{formatPrice(order.discount)}</span>
+                  <span className="op-price">−{formatPrice(order.discount)}</span>
                 </li>
               )}
               {!!order.deliveryCharge && (
-                <li>
+                <li className="op-extra">
                   <span>Delivery</span>
-                  <span>{formatPrice(order.deliveryCharge)}</span>
+                  <span className="op-price">{formatPrice(order.deliveryCharge)}</span>
                 </li>
               )}
               <li className="op-total">
-                <strong>Total</strong>
-                <strong>{formatPrice(totalOf(order))}</strong>
+                <span>Total</span>
+                <span className="op-price">{formatPrice(totalOf(order))}</span>
               </li>
             </ul>
           ) : (
@@ -237,79 +286,78 @@ export default function MyOrderPage({ params }: { params: Promise<{ slug: string
                 </button>
               )}
               <p className="op-total-line">
-                <strong>New total</strong> <strong>{formatPrice(draftTotal)}</strong>
+                <span>New total</span> <span className="op-price">{formatPrice(draftTotal)}</span>
               </p>
-              <p className="hint small">Items already in your order keep the price you ordered at.</p>
+              <p className="op-fine">Items already in your order keep the price you ordered at.</p>
             </div>
           )}
-        </div>
+
+          {canChange &&
+            (editing ? (
+              <div className="op-actions">
+                <button className="btn" onClick={save} disabled={busy || draft.length === 0}>
+                  {busy ? "Saving…" : "Save changes"}
+                </button>
+                <button
+                  className="btn ghost"
+                  onClick={() => {
+                    setEditing(false);
+                    setAdding(false);
+                    setDraft(toDraft(data));
+                  }}
+                  disabled={busy}
+                >
+                  Discard
+                </button>
+              </div>
+            ) : (
+              <div className="op-actions">
+                <button className="btn" onClick={() => setEditing(true)}>
+                  Change order
+                </button>
+                <button className="btn ghost danger" onClick={cancel} disabled={busy}>
+                  Cancel order
+                </button>
+              </div>
+            ))}
+          {!canChange && status !== "cancelled" && status !== "delivered" && (
+            <p className="op-fine">The shop has confirmed your order. To change it, message them on WhatsApp.</p>
+          )}
+        </section>
 
         {order.paid ? (
-          <div className="success">✓ Paid. Thank you!</div>
+          <div className="op-note is-ok">
+            <p>✓ Paid. Thank you!</p>
+          </div>
         ) : (
           shop.upiId &&
           ["confirmed", "out_for_delivery", "delivered"].includes(status) && (
-            <div className="card op-card">
-              <strong>Pay the shop</strong>
+            <section className="op-card">
+              <h2>Pay the shop</h2>
               <UpiPay upiId={shop.upiId} payee={shop.businessName} amount={totalOf(order)} note={`Order ${shortId(order.id)}`} />
-              <p className="hint small">After paying, send the shop a screenshot on WhatsApp so they can mark it paid.</p>
-            </div>
+              <p className="op-fine">After paying, send the shop a screenshot on WhatsApp so they can mark it paid.</p>
+            </section>
           )
         )}
-        {!order.paid && shop.upiId && status === "new" && (
-          <p className="hint" style={{ marginTop: 12 }}>You can pay with UPI once the shop confirms your order and the final total.</p>
-        )}
+        {!order.paid && shop.upiId && status === "new" && <p className="op-fine op-center">You can pay with UPI once the shop confirms your order and the final total.</p>}
 
-        <div className="card op-card">
-          <p className="hint small">Deliver to</p>
-          <p>
+        <section className="op-card">
+          <h2>Deliver to</h2>
+          <p className="op-who">
             <strong>{order.customer.name}</strong> · {order.customer.phone}
           </p>
           <p>{order.customer.address}</p>
-          {order.customer.note && <p className="hint">“{order.customer.note}”</p>}
-        </div>
+          {order.customer.note && <p className="op-fine">“{order.customer.note}”</p>}
+        </section>
 
-        {canChange ? (
-          editing ? (
-            <div className="row">
-              <button className="btn" onClick={save} disabled={busy || draft.length === 0}>
-                {busy ? "Saving…" : "Save changes"}
-              </button>
-              <button
-                className="btn ghost"
-                onClick={() => {
-                  setEditing(false);
-                  setAdding(false);
-                  setDraft(toDraft(data));
-                }}
-                disabled={busy}
-              >
-                Discard
-              </button>
-            </div>
-          ) : (
-            <div className="row">
-              <button className="btn" onClick={() => setEditing(true)}>
-                Change order
-              </button>
-              <button className="btn ghost danger" onClick={cancel} disabled={busy}>
-                Cancel order
-              </button>
-            </div>
-          )
-        ) : (
-          status !== "cancelled" &&
-          status !== "delivered" && (
-            <p className="hint" style={{ marginTop: 16 }}>
-              The shop has confirmed your order. To change it, message them on WhatsApp.
-            </p>
-          )
-        )}
-        <div className="row">
-          <a className="btn wa" href={whatsappLink(shop.whatsapp, `Hi, about my order #${shortId(order.id)}:`)} target="_blank" rel="noreferrer">
+        <div className="op-actions op-center">
+          <a className="btn wa" href={chatLink} target="_blank" rel="noreferrer">
             Message the shop
           </a>
         </div>
+        <p className="op-foot">
+          <a href="/privacy">Privacy</a> · <a href="/">Made with SiteGenie</a>
+        </p>
       </main>
     </div>
   );

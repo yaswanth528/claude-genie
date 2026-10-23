@@ -8,14 +8,16 @@ export default function PrivacyPage() {
   const email = contact();
   return (
     <article>
-      <h1>Privacy policy</h1>
-      <p className="hint">Last updated: 22 October 2026</p>
-
-      <p>
-        SiteGenie helps small businesses make a website by speaking about their shop. This page explains what information we
-        collect, why, who helps us process it, and the choices you have. We follow India’s Digital Personal Data Protection
-        Act, 2023.
-      </p>
+      <header className="lg-head">
+        <p className="lg-kicker">Legal</p>
+        <h1>Privacy policy</h1>
+        <p className="lg-date">Last updated: 23 October 2026</p>
+        <p className="lg-intro">
+          SiteGenie helps small businesses make a website by speaking about their shop. This page explains what information we
+          collect, why, who helps us process it, and the choices you have. We follow India’s Digital Personal Data Protection
+          Act, 2023.
+        </p>
+      </header>
 
       <h2>Shop owners</h2>
       <ul>
@@ -59,7 +61,8 @@ export default function PrivacyPage() {
         <li>Vercel (app hosting and photo storage)</li>
         <li>Cloudflare (database and shop website hosting)</li>
         <li>Google Gemini (speech to text, planning websites, translations)</li>
-        <li>Unsplash and Pixabay (sample photos; we send them only search words)</li>
+        <li>Wikimedia Commons, Unsplash, Pixabay and Pexels (sample photos; we send them only search words)</li>
+        <li>Cloudflare Workers AI (sample product pictures made by AI; we send only a description of the product)</li>
         <li>Meta WhatsApp (login codes, if you use WhatsApp login)</li>
         <li>Brevo (order and renewal emails, if you add an email address)</li>
       </ul>

@@ -9,10 +9,12 @@ export default function TermsPage() {
   const email = process.env.SUPPORT_EMAIL;
   return (
     <article>
-      <h1>Terms of use</h1>
-      <p className="hint">Last updated: 22 October 2026</p>
-
-      <p>These terms are an agreement between you and SiteGenie. By making or publishing a website with SiteGenie, you agree to them.</p>
+      <header className="lg-head">
+        <p className="lg-kicker">Legal</p>
+        <h1>Terms of use</h1>
+        <p className="lg-date">Last updated: 23 October 2026</p>
+        <p className="lg-intro">These terms are an agreement between you and SiteGenie. By making or publishing a website with SiteGenie, you agree to them.</p>
+      </header>
 
       <h2>What SiteGenie does</h2>
       <p>
@@ -50,7 +52,7 @@ export default function TermsPage() {
 
       <h2>Photos and AI</h2>
       <ul>
-        <li>Where you add no photos, SiteGenie may show sample photos from Unsplash or Pixabay, labelled “Sample photo”. They are not pictures of your actual products; replace them with your own when you can.</li>
+        <li>Where you add no photos, SiteGenie may show sample photos from Wikimedia Commons, Unsplash, Pixabay or Pexels, or a picture made by AI, labelled “Sample photo”. They are not pictures of your actual products; replace them with your own when you can.</li>
         <li>Wording on your website is suggested by AI from what you said. You can edit all of it.</li>
       </ul>
 
