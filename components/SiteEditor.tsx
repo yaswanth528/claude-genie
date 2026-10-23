@@ -87,16 +87,19 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
         <summary>Website type</summary>
         <div className="choice-row">
           <button type="button" className={`choice ${d.siteType === "static" ? "on" : ""}`} onClick={() => set({ siteType: "static" })} aria-pressed={d.siteType === "static"}>
-            <strong>Static</strong>
-            <span>Showcase + order on WhatsApp</span>
+            <TypeSketch dynamic={false} />
+            <strong>Static · Showcase</strong>
+            <span>A beautiful catalogue. Customers send their list or ask about a product on WhatsApp.</span>
             <em>₹1,999 one-time</em>
           </button>
           <button type="button" className={`choice ${d.siteType === "dynamic" ? "on" : ""}`} onClick={() => set({ siteType: "dynamic" })} aria-pressed={d.siteType === "dynamic"}>
-            <strong>Dynamic</strong>
-            <span>Cart, checkout form, orders list</span>
+            <TypeSketch dynamic />
+            <strong>Dynamic · Online store</strong>
+            <span>Everything in Showcase, plus cart, checkout, delivery rules, order tracking and your orders list.</span>
             <em>₹1,999 + ₹3,000/yr</em>
           </button>
         </div>
+        <p className="hint small">The preview changes as you switch, so you can see the difference.</p>
       </details>
 
       <details open>
@@ -193,7 +196,8 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
                     aria-label={`Price of ${it.name}`}
                     className="price-in"
                     inputMode="decimal"
-                    placeholder="₹"
+                    placeholder={it.askPrice ? "On request" : "₹"}
+                    disabled={!!it.askPrice}
                     value={it.price ?? ""}
                     onChange={(e) => setItem(i, { price: e.target.value === "" ? null : Number(e.target.value), lowConfidence: false })}
                   />
@@ -215,6 +219,10 @@ export function SiteEditor<T extends SiteContent & { whatsapp?: string; ownerEma
                   <label className="check">
                     <input type="checkbox" checked={it.inStock !== false} onChange={(e) => setItem(i, { inStock: e.target.checked })} />
                     In stock
+                  </label>
+                  <label className="check">
+                    <input type="checkbox" checked={!!it.askPrice} onChange={(e) => setItem(i, { askPrice: e.target.checked, ...(e.target.checked ? { price: null, lowConfidence: false } : {}) })} />
+                    Price on request (customers ask you on WhatsApp)
                   </label>
                   <input aria-label={`Category of ${it.name}`} placeholder="Category (e.g. Sarees)" value={it.category ?? ""} onChange={(e) => setItem(i, { category: e.target.value || null })} />
                   <div className="prod-line">
@@ -415,6 +423,43 @@ const FESTIVAL_TEXT: Record<FestivalId, string> = {
   ugadi: "🌿 Ugadi / Gudi Padwa",
   newyear: "✨ New Year",
 };
+
+// Tiny pictures of the two website types: a calm catalogue vs a store with a cart.
+function TypeSketch({ dynamic }: { dynamic: boolean }) {
+  const r = (x: number, y: number, w: number, h: number, o = 1, rx = 1.5) => <rect x={x} y={y} width={w} height={h} rx={rx} fill="currentColor" opacity={o} />;
+  return (
+    <svg viewBox="0 0 64 44" width="64" height="44" aria-hidden="true" className="type-sketch">
+      {dynamic ? (
+        <>
+          {r(0, 0, 64, 4, 0.9, 0)}
+          {r(3, 7, 24, 3, 0.6)}
+          {r(48, 6.5, 13, 5, 1, 2.5)}
+          {r(0, 14, 64, 30, 0.12, 0)}
+          {[3, 24, 45].map((x) => (
+            <g key={x}>
+              {r(x, 17, 16, 12, 0.45)}
+              {r(x, 31, 10, 2, 0.6)}
+              {r(x, 35, 16, 4, 1, 2)}
+            </g>
+          ))}
+        </>
+      ) : (
+        <>
+          {r(3, 3, 22, 3, 0.6)}
+          {r(3, 10, 30, 5, 0.85)}
+          {r(3, 17, 22, 2, 0.4)}
+          {r(38, 3, 23, 16, 0.4)}
+          {[3, 24, 45].map((x) => (
+            <g key={x}>
+              {r(x, 24, 16, 12, 0.35)}
+              {r(x, 38, 11, 2, 0.6)}
+            </g>
+          ))}
+        </>
+      )}
+    </svg>
+  );
+}
 
 // Tiny pictures of each product layout.
 function LayoutIcon({ layout }: { layout: Layout }) {

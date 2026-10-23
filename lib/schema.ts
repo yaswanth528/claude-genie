@@ -47,6 +47,7 @@ export const SitePlanSchema = z.object({
       imagePrompt: z.string().describe("If no uploaded photo matches: a description for an illustrative product photo, plain background, no text"),
       imageQuery: z.string().describe("2-4 English words to search a stock photo library for this product, e.g. 'cotton kurti'"),
       category: z.string().nullable().describe("Product group if the owner grouped products (e.g. 'Sarees', 'Sweets'); null otherwise"),
+      askPrice: z.boolean().describe("True only if the owner said this price varies or is given on request/quotation (custom sizes, bulk orders, services); then price is null"),
       optionName: z.string().nullable().describe("If the owner said the product comes in choices: what varies, e.g. 'Size', 'Colour', 'Weight'; else null"),
       optionChoices: z.array(z.string()).describe("The choices the owner said, e.g. ['S','M','L'] or ['250 g','500 g']; empty if none"),
     }),
@@ -86,6 +87,45 @@ export const PatchSchema = z.object({
     .describe("If the request could mean more than one item, a short question for the owner; else null"),
 });
 
+// "Not happy? Say what to change": a change to the whole website from one spoken request.
+// Every field is optional; a field that's left out stays as it is.
+export const RevisionSchema = z.object({
+  summary: z.array(z.string()).describe("What you changed, as 1-5 short lines in the owner's language, e.g. 'Changed the colours to dark green'. Empty if nothing was changed."),
+  question: z.string().nullable().describe("If the request is unclear or impossible, one short question or explanation for the owner; else null"),
+  businessName: z.string().optional(),
+  headline: z.string().optional().describe("Max 8 words"),
+  subheadline: z.string().optional(),
+  about: z.string().nullable().optional(),
+  highlights: z.array(z.string()).optional().describe("Up to 3 short selling points, only facts the owner said"),
+  themeId: z.enum(THEME_IDS).optional(),
+  accent: z.number().optional().describe("0, 1 or 2: colour option within the theme"),
+  heroStyle: z.enum(["full", "split"]).optional(),
+  layout: z.enum(LAYOUTS).optional(),
+  area: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  hours: z.string().nullable().optional(),
+  festival: z.object({ id: z.enum(FESTIVALS).nullable(), message: z.string().nullable() }).optional().describe("id null removes the festival banner"),
+  newHeroPhoto: z.string().optional().describe("2-4 English words to search a new banner photo, only if the owner wants a different banner/main photo"),
+  items: z
+    .array(
+      z.object({
+        op: z.enum(["update", "add", "remove"]),
+        index: z.number().nullable().describe("Index in the current list; null for add"),
+        name: z.string().optional(),
+        price: z.number().nullable().optional(),
+        unit: z.string().nullable().optional(),
+        description: z.string().optional(),
+        category: z.string().nullable().optional(),
+        badge: z.enum(BADGES).nullable().optional(),
+        inStock: z.boolean().optional(),
+        askPrice: z.boolean().optional().describe("true = show 'Price on request' instead of a price"),
+        newPhoto: z.string().optional().describe("2-4 English words to search a new photo for this product, only if the owner wants a different photo"),
+      }),
+    )
+    .optional(),
+});
+export type Revision = z.infer<typeof RevisionSchema>;
+
 export type Item = z.infer<typeof ItemSchema>;
 export type SitePlan = z.infer<typeof SitePlanSchema>;
 export type Patch = z.infer<typeof PatchSchema>;
@@ -106,6 +146,7 @@ export type Product = Item & {
   options?: string[]; // e.g. ["S", "M", "L"]; the customer picks one
   inStock?: boolean; // false = shown as "Out of stock", can't be ordered (default true)
   badge?: Badge | null; // "Bestseller" / "New" / "Offer" tag on the product card
+  askPrice?: boolean; // "Price on request" (manufacturers, custom work): no price needed
 };
 
 // A second language for the website (e.g. Kannada), switchable by customers.

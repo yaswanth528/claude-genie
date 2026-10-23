@@ -7,6 +7,8 @@ import { Insights } from "@/components/Insights";
 import { OrderCard } from "@/components/OrderCard";
 import { PayPanel } from "@/components/PayPanel";
 import { SharePanel } from "@/components/SharePanel";
+import { ReviseMic } from "@/components/ReviseMic";
+import { SiteView } from "@/components/site/SiteView";
 import { SiteEditor } from "@/components/SiteEditor";
 import { LANGUAGES } from "@/components/useSpeech";
 import { formatPrice } from "@/lib/catalogue";
@@ -328,6 +330,17 @@ export default function EditPage({ params }: { params: Promise<{ slug: string }>
 
       {tab === "site" && form && (
         <>
+          <ReviseMic value={form} onChange={setForm} language={lang} onLanguage={setLang} />
+          {formDirty && (
+            <details className="edit-preview" open>
+              <summary>Preview of your changes (not saved yet)</summary>
+              <div className="device phone">
+                <div className="device-scroll">
+                  <SiteView site={{ ...form, whatsapp: current?.whatsapp ?? "", slug }} preview />
+                </div>
+              </div>
+            </details>
+          )}
           <SiteEditor value={form} onChange={setForm} language={lang} />
           <div className="publish-bar">
             <div className="row">

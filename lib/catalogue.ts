@@ -13,7 +13,9 @@ export function validateItems(items: Item[]): string[] {
   items.forEach((it, i) => {
     const name = it.name.trim();
     if (!name) errors.push(`Item ${i + 1} needs a name.`);
-    if (it.price === null || !Number.isFinite(it.price)) errors.push(`"${name || `Item ${i + 1}`}" needs a price.`);
+    if ((it as Product).askPrice) {
+      // "Price on request": no price needed.
+    } else if (it.price === null || !Number.isFinite(it.price)) errors.push(`"${name || `Item ${i + 1}`}" needs a price, or tick "Price on request".`);
     else if (it.price < 0) errors.push(`"${name}" has a negative price.`);
     const key = name.toLowerCase();
     if (key && seen.has(key)) errors.push(`"${name}" is listed twice.`);

@@ -3,12 +3,12 @@
 // When the site has a second language, the page holds both versions and a small script
 // switches between them; one cart is shared across both.
 import QRCode from "qrcode";
-import { formatPrice, upiLink } from "./catalogue";
+import { formatPrice, upiLink, whatsappLink } from "./catalogue";
 import { openStatus, parseHours } from "./hours";
 import { categoriesOf, localText, type LocalText } from "./localize";
 import type { Media, Site } from "./schema";
 import { jsonLd, ogImageUrl } from "./seo";
-import { badgeLabel, cssUrl, FEST_ICON, festGreeting, isFramed, SEARCH_MIN } from "./siteBits";
+import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, storeBar, storePerks } from "./siteBits";
 import { SITE_CSS } from "./siteCss";
 import { themeVars } from "./themes";
 
@@ -43,8 +43,12 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
   const idp = lang === "alt" ? "alt-" : "";
   const dynamic = site.siteType === "dynamic";
   const wa = site.whatsapp;
-  const heroType = !site.hero;
-  const heroFull = !heroType && site.theme.heroStyle === "full";
+  const mosaic = heroMosaic(site);
+  const heroType = !site.hero && !mosaic.length;
+  const heroFull = !!site.hero && site.theme.heroStyle === "full";
+  const ask = (name: string, price: number | null) => whatsappLink(wa, askText(name, price === null ? null : formatPrice(price)));
+  const quote = quoteOnly(site.items);
+  const steps = howSteps(dynamic, u, quote);
   const anyImages = site.items.some((i) => i.image);
   const cols = Math.min(4, Math.max(2, site.items.length));
   const aboutImage = site.gallery.find((m) => m.kind === "image");
@@ -68,7 +72,7 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
         ? `<div class="s-card-media${framed ? " s-framed" : ""}"${framed ? ` style="${esc(`--img:${cssUrl(it.image!.url)}`)}"` : ""} data-act="view">${layout !== "menu" ? badge : ""}${
             it.image
               ? media(it.image) + (it.image.generated ? `<span class="s-ai-tag">${esc(u.samplePhoto)}</span>` : "")
-              : `<div class="s-card-mono">${esc(initials(it.name || "?"))}</div>`
+              : `<div class="s-card-name-tile">${esc(it.name || "?")}</div>`
           }${out ? `<span class="s-out-tag">${esc(u.outOfStock)}</span>` : ""}</div>`
         : `<span class="s-card-num">${String(i + 1).padStart(2, "0")}</span>`;
       const opts = it.options?.length
@@ -80,11 +84,17 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
         ? anyImages && layout !== "menu"
           ? ""
           : `<span class="s-out-text">${esc(u.outOfStock)}</span>`
-        : `<button class="s-add" data-act="add" aria-label="Add ${esc(it.name)}">${esc(dynamic ? u.addToCart : u.add)}</button><div class="s-qty" hidden><button data-act="dec" aria-label="One less ${esc(it.name)}">−</button><span data-qty>0</span><button data-act="inc" aria-label="One more ${esc(it.name)}">+</button></div>`;
+        : it.askPrice
+          ? `<a class="s-ask-btn" href="${esc(ask(site.items[i].name, null))}" target="_blank" rel="noreferrer">${esc(u.askPriceBtn)}</a>`
+          : `<span class="s-card-actions">${
+              dynamic ? "" : `<a class="s-ask" href="${esc(ask(site.items[i].name, it.price))}" target="_blank" rel="noreferrer" aria-label="${esc(`${u.askOnWa}: ${it.name}`)}" title="${esc(u.askOnWa)}">${WA_SVG}</a>`
+            }<button class="s-add" data-act="add" aria-label="Add ${esc(it.name)}">${esc(dynamic ? u.addToCart : u.add)}</button></span><div class="s-qty" hidden><button data-act="dec" aria-label="One less ${esc(it.name)}">−</button><span data-qty>0</span><button data-act="inc" aria-label="One more ${esc(it.name)}">+</button></div>`;
       const searchText = [site.items[i].name, it.name, site.items[i].description, it.description, site.items[i].category, it.categoryLabel].join(" ").toLowerCase();
       return `<article class="s-card${out ? " is-out" : ""}" data-i="${i}" data-s="${esc(searchText)}"${site.items[i].category ? ` data-cat="${esc(site.items[i].category!)}"` : ""}>${img}<div class="s-card-body">${!anyImages || layout === "menu" ? badge : ""}<h3><button class="s-card-title" data-act="view">${esc(it.name)}</button></h3>${
         it.description ? `<p class="s-card-desc">${esc(it.description)}</p>` : ""
-      }${opts}<div class="s-card-foot"><span class="s-price">${esc(formatPrice(it.price))}${it.unit ? `<small> ${esc(it.unit)}</small>` : ""}</span>${action}</div></div></article>`;
+      }${opts}<div class="s-card-foot">${
+        it.askPrice ? `<span class="s-ask-price">${esc(u.askPrice)}</span>` : `<span class="s-price">${esc(formatPrice(it.price))}${it.unit ? `<small> ${esc(it.unit)}</small>` : ""}</span>`
+      }${action}</div></div></article>`;
     })
     .join("");
 
@@ -95,25 +105,40 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
           .join("")}</div>`
       : "";
 
-  return `<div class="site theme-${site.theme.id}" data-lang="${lang}" style="${esc(Object.entries(themeVars(site.theme.id, site.theme.accent)).map(([k, v]) => `${k}:${v}`).join(";"))}"${lang === "alt" ? " hidden" : ""}>
+  const facts = aboutFacts(L, site.items.length, categories.length, u);
+  const showSearch = site.items.length >= (dynamic ? 5 : SEARCH_MIN);
+  return `<div class="site theme-${site.theme.id} ${dynamic ? "is-store" : "is-showcase"}" data-lang="${lang}" style="${esc(Object.entries(themeVars(site.theme.id, site.theme.accent)).map(([k, v]) => `${k}:${v}`).join(";"))}"${lang === "alt" ? " hidden" : ""}>
+${dynamic ? `<div class="s-storebar">${esc(storeBar(site, u))}</div>` : ""}
 ${site.festival ? `<div class="s-festive s-fest-${site.festival.id}"><span>${FEST_ICON[site.festival.id]} ${esc(festGreeting(site.festival.id, u))}</span>${site.festival.message ? `<em>${esc(site.festival.message)}</em>` : ""}</div>` : ""}
 <header class="s-header"><div class="s-wrap s-header-row"><a href="#${idp}top" class="s-brand">${esc(L.businessName)}</a>
 <nav class="s-nav" aria-label="Sections"><a href="#${idp}products">${esc(dynamic ? u.shop : u.products)}</a>${L.about ? `<a href="#${idp}about">${esc(u.about)}</a>` : ""}${site.gallery.length ? `<a href="#${idp}gallery">${esc(u.gallery)}</a>` : ""}<a href="#${idp}contact">${esc(u.contact)}</a></nav>
 ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${esc(u.cartShort)}<span data-count></span></button>` : `<a class="s-btn s-btn-sm" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">WhatsApp</a>`}</div></header>
-<section id="${idp}top" class="s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}">${heroFull && site.hero ? media(site.hero, "s-hero-bg", true) : ""}
+<section id="${idp}top" class="s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}${mosaic.length ? " has-mosaic" : ""}">${heroFull && site.hero ? media(site.hero, "s-hero-bg", true) : ""}
 <div class="s-wrap s-hero-inner"><div class="s-hero-copy">${L.category ? `<p class="s-eyebrow">${esc(L.area ? `${L.category} · ${L.area}` : L.category)}</p>` : ""}<h1>${esc(L.headline || L.businessName)}</h1><p class="s-lead">${esc(L.subheadline)}</p>
 <div class="s-hero-cta"><a class="s-btn" href="#${idp}products">${esc(dynamic ? u.shopNow : u.seeProducts)}</a><a class="s-btn s-btn-ghost" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">${esc(u.chat)}</a></div>${
+  dynamic ? `<div class="s-perks">${storePerks(site, u).map((p) => `<span><b aria-hidden="true">${esc(p.icon)}</b> ${esc(p.text)}</span>`).join("")}</div>` : ""
+}${
   hasHours || site.reviewsUrl
     ? `<div class="s-trust">${openBadge}${site.reviewsUrl ? `<a href="${esc(site.reviewsUrl)}" target="_blank" rel="noreferrer">★ ${esc(u.reviewsShort)}</a>` : ""}</div>`
     : ""
 }</div>
-${!heroFull && site.hero ? `<div class="s-hero-media">${media(site.hero, "", true)}</div>` : ""}</div></section>
+${!heroFull && site.hero ? `<div class="s-hero-media">${media(site.hero, "", true)}</div>` : ""}${
+  mosaic.length ? `<div class="s-mosaic n${mosaic.length}" aria-hidden="true">${mosaic.map((m) => `<div>${media(m, "", true)}</div>`).join("")}</div>` : ""
+}</div></section>
 ${L.highlights.length ? `<section class="s-highlights"><div class="s-wrap s-highlights-row">${L.highlights.map((h) => `<p>${esc(h)}</p>`).join("")}</div></section>` : ""}
-<section id="${idp}products" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(dynamic ? u.shop : u.products)}</h2><p>${esc(dynamic ? u.cartHint : u.pickHint)}</p></div>${chips}
-${site.items.length >= SEARCH_MIN ? `<div class="s-search"><input type="search" data-search placeholder="${esc(u.search)}" aria-label="${esc(u.search)}"></div>` : ""}
+<section id="${idp}products" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(dynamic ? u.shop : u.products)}</h2><p>${esc(quote ? u.pickHintQuote : dynamic ? u.cartHint : u.pickHint)}</p></div>${
+  chips || showSearch
+    ? `<div class="s-toolbar">${chips}${showSearch ? `<div class="s-search"><input type="search" data-search placeholder="${esc(u.search)}" aria-label="${esc(u.search)}"></div>` : ""}</div>`
+    : ""
+}
 <div class="s-seen" data-seen hidden><p>${esc(u.recent)}</p><div class="s-seen-row" data-seen-row></div></div>
 <div class="s-grid${anyImages ? "" : " s-grid-text"} s-layout-${layout}" style="--cols:${cols}">${cards}</div><p class="s-noresults" data-noresults hidden>${esc(u.noResults)}</p></div></section>
-${L.about ? `<section id="${idp}about" class="s-section s-about"><div class="s-wrap${aboutImage ? " s-about-grid" : ""}"><div><h2>${esc(u.about)} ${esc(L.businessName)}</h2><p class="s-about-text">${esc(L.about)}</p></div>${aboutImage ? media(aboutImage, "s-about-img") : ""}</div></section>` : ""}
+<section class="s-section s-steps-wrap"><div class="s-wrap"><div class="s-section-head"><h2>${esc(steps[0].title)}</h2></div><div class="s-steps">${steps
+  .map((x) => `<div class="s-step"><h3>${esc(x.heading)}</h3><p>${esc(x.body)}</p></div>`)
+  .join("")}</div></div></section>
+${L.about ? `<section id="${idp}about" class="s-section s-about"><div class="s-wrap${aboutImage || facts.length >= 2 ? " s-about-grid" : ""}"><div><h2>${esc(u.about)} ${esc(L.businessName)}</h2><p class="s-about-text">${esc(L.about)}</p></div>${
+  aboutImage ? media(aboutImage, "s-about-img") : facts.length >= 2 ? `<dl class="s-facts">${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>` : ""
+}</div></section>` : ""}
 ${site.gallery.length ? `<section id="${idp}gallery" class="s-section"><div class="s-wrap"><div class="s-section-head"><h2>${esc(u.gallery)}</h2></div><div class="s-gallery">${site.gallery.map((m) => (m.kind === "video" ? `<video src="${esc(m.url)}" controls playsinline preload="metadata" aria-label="${esc(m.alt)}"></video>` : media(m))).join("")}</div></div></section>` : ""}
 <section id="${idp}contact" class="s-section s-contact"><div class="s-wrap s-contact-grid"><div><h2>${esc(u.visit)}</h2>${
     site.address || L.area || L.hours
@@ -121,7 +146,11 @@ ${site.gallery.length ? `<section id="${idp}gallery" class="s-section"><div clas
       : `<p class="s-muted">${esc(u.messageUs)}</p>`
   }${
     place
-      ? `<a class="s-link" href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(place)}" target="_blank" rel="noreferrer">${esc(u.maps)} ↗</a><iframe class="s-map" title="${esc(`${u.map}: ${site.businessName}`)}" src="https://maps.google.com/maps?q=${encodeURIComponent(site.address ?? place)}&amp;z=15&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`
+      ? `<a class="s-link" href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(place)}" target="_blank" rel="noreferrer">${esc(u.maps)} ↗</a>${
+          site.address
+            ? `<iframe class="s-map" title="${esc(`${u.map}: ${site.businessName}`)}" src="https://maps.google.com/maps?q=${encodeURIComponent(site.address)}&amp;z=15&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`
+            : ""
+        }`
       : ""
   }${deliveryHtml(site, u)}</div>
 <div class="s-contact-card"><p class="s-muted">WhatsApp</p><p class="s-phone">${esc(phone)}</p><a class="s-btn" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">${esc(u.messageOnWa)}</a>${
@@ -201,7 +230,7 @@ export async function renderStandalone(site: Site, appOrigin: string): Promise<s
           l!.items.map((it) => ({
             name: it.name,
             desc: it.description,
-            price: formatPrice(it.price) + (it.unit ? ` ${it.unit}` : ""),
+            price: it.askPrice ? l!.ui.askPrice : formatPrice(it.price) + (it.unit ? ` ${it.unit}` : ""),
             img: it.image?.kind === "image" ? it.image.url : null,
             credit: it.image?.generated ? [l!.ui.samplePhoto, it.image.credit?.replace(/^Photo: /, "")].filter(Boolean).join(" · ") : "",
             options: it.options ?? [],
@@ -209,6 +238,8 @@ export async function renderStandalone(site: Site, appOrigin: string): Promise<s
             add: site.siteType === "dynamic" ? l!.ui.addToCart : l!.ui.add,
             outLabel: l!.ui.outOfStock,
             badge: it.badge ? badgeLabel(it.badge, l!.ui) : "",
+            ask: it.askPrice ? whatsappLink(site.whatsapp, askText(it.name, null)) : "",
+            askLabel: l!.ui.askPriceBtn,
             badgeKind: it.badge ?? "",
           })),
         ]),
@@ -290,6 +321,7 @@ var bd=$("[data-pv-badge]",w);bd.hidden=!v.badge;bd.className=v.badge?"s-badge s
 var os=$("[data-pv-opts]",w);os.innerHTML="";v.options.forEach(function(o,j){var b=document.createElement("button");b.textContent=o;b.dataset.act="pv-opt";b.dataset.o=j;b.className=opt(i)===j?"on":"";os.appendChild(b)});
 var ac=$("[data-pv-action]",w),n=cart[i+":"+opt(i)]||0;ac.innerHTML="";
 if(v.out){var p=document.createElement("p");p.className="s-out-text";p.textContent=v.outLabel;ac.appendChild(p)}
+else if(v.ask){var aa=document.createElement("a");aa.className="s-btn s-btn-wa s-btn-block";aa.href=v.ask;aa.target="_blank";aa.rel="noreferrer";aa.textContent=v.askLabel;ac.appendChild(aa)}
 else if(n>0){ac.innerHTML='<div class="s-qty s-pv-qty"><button data-act="pv-dec" aria-label="One less">\\u2212</button><span></span><button data-act="pv-inc" aria-label="One more">+</button></div>';ac.querySelector("span").textContent=n}
 else{var bt=document.createElement("button");bt.className="s-btn s-btn-block";bt.dataset.act="pv-add";bt.textContent=v.add;ac.appendChild(bt)}
 w.hidden=false;if(seen[0]!==i){seen=[i].concat(seen.filter(function(x){return x!==i})).slice(0,8);try{localStorage.setItem(SK,JSON.stringify(seen))}catch(e){}renderSeen()}}

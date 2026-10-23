@@ -281,3 +281,24 @@
 .sheet h2 { margin: 0 0 4px; font-size: 1.4rem; }
 .sheet input { font-size: 1.2rem; }
 @media (min-width: 980px) { .sheet-wrap { align-items: center; } .sheet { border-radius: 20px; } }
+
+/* "Not happy? Say what to change" */
+.revise { display: grid; gap: 8px; margin: 16px 0 8px; padding: 18px; border-radius: 16px; background: var(--surface); border: 2px solid var(--brand); box-shadow: 0 14px 30px -22px rgba(194, 74, 46, 0.6); }
+.revise h2 { margin: 0; font-size: 1.25rem; }
+.revise .hint { margin: 0; }
+.revise.compact { margin: 8px 0 0; padding: 0; border: 0; box-shadow: none; background: none; }
+.revise textarea { min-height: 0; }
+.small-label { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+.revise-busy { color: var(--brand); font-weight: 600; animation: revise-pulse 1.2s ease-in-out infinite; }
+@keyframes revise-pulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .revise-busy { animation: none; } }
+.revise-result { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 6px; }
+.revise-result ul { margin: 0; padding-left: 20px; }
+.revise-done { color: #12693a; font-weight: 800; }
+.revise-sheet .sheet { max-height: 88vh; overflow-y: auto; }
+.edit-preview { margin: 8px 0 16px; }
+.edit-preview summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
+.edit-preview .device { transform: translateZ(0); height: 620px; max-width: 410px; border: 8px solid #1d1d1d; border-radius: 32px; }
+.edit-preview .device-scroll { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+.type-sketch { color: var(--muted); margin-bottom: 6px; }
+.choice.on .type-sketch { color: var(--brand); }

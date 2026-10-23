@@ -208,6 +208,74 @@ export const SITE_CSS = `
 .s-contact-card { background: var(--s-surface); border: 1px solid var(--s-line); border-radius: calc(var(--s-radius) * 1.5); padding: 24px; display: grid; gap: 8px; }
 .s-phone { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 8px; }
 
+/* ---------- Hero mosaic: the shop's product photos when there's no banner photo ---------- */
+.s-mosaic { display: grid; gap: 10px; grid-template-columns: 1.25fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 5 / 4; max-width: 100%; }
+.s-mosaic > * { border-radius: calc(var(--s-radius) * 1.3); overflow: hidden; background: var(--s-soft); position: relative; box-shadow: 0 24px 50px -30px rgba(0,0,0,.45); }
+.s-mosaic > :first-child { grid-row: span 2; }
+.s-mosaic.n2 > :nth-child(2) { grid-row: span 2; }
+.s-mosaic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.s-hero-split.has-mosaic .s-hero-inner { align-items: center; }
+
+/* Product without a photo: its name, set like a label, instead of initials */
+.s-card-name-tile { width: 100%; height: 100%; display: grid; place-items: center; padding: 14px; text-align: center;
+  font-family: var(--s-display); font-weight: var(--s-display-weight); font-size: clamp(1.05rem, 3.2cqi, 1.5rem); line-height: 1.15; color: var(--s-accent);
+  text-transform: var(--s-heading-case); letter-spacing: var(--s-tracking);
+  background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--s-accent) 16%, transparent), transparent 62%), var(--s-soft); }
+
+/* About: a facts card when there's no photo */
+.s-facts { display: grid; gap: 14px; padding: clamp(20px, 4cqi, 32px); border-radius: calc(var(--s-radius) * 1.5); background: var(--s-surface); border: 1px solid var(--s-line); }
+.s-facts div { display: grid; gap: 2px; }
+.s-facts dt { font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--s-muted); }
+.s-facts dd { margin: 0; font-family: var(--s-display); font-weight: var(--s-display-weight); font-size: 1.3rem; line-height: 1.25; }
+
+/* "How to order" / "Ordering is easy" */
+.s-steps { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); counter-reset: step; }
+@container site (min-width: 760px) { .s-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
+.s-step { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: start; padding: 18px; border-radius: var(--s-radius); background: var(--s-surface); border: 1px solid var(--s-line); }
+.s-step::before { counter-increment: step; content: counter(step); grid-row: span 2; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--s-accent); color: var(--s-accent-ink); }
+.s-step h3 { font-family: var(--s-body); font-weight: 800; font-size: 1.05rem; text-transform: none; letter-spacing: 0; }
+.s-step p { color: var(--s-muted); font-size: .92rem; }
+
+/* Price on request + per-product WhatsApp question (showcase) */
+.s-ask-price { font-weight: 700; color: var(--s-muted); font-size: .95rem; }
+.s-ask { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--s-line); color: #128c4a; flex-shrink: 0; text-decoration: none; }
+.site .s-ask { color: #128c4a; }
+.s-ask svg { width: 20px; height: 20px; }
+.s-ask:hover { border-color: #128c4a; background: color-mix(in srgb, #128c4a 8%, transparent); }
+.s-card-actions { display: inline-flex; align-items: center; gap: 8px; }
+.s-ask-btn { border: 1.5px solid #128c4a; color: #128c4a; background: transparent; border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 700; font-size: .88rem; text-decoration: none; }
+.site .s-ask-btn { color: #128c4a; }
+
+/* ---------- Showcase (static): calm, editorial catalogue ---------- */
+.is-showcase .s-section-head h2 { font-size: clamp(2.1rem, 5cqi, 3.4rem); }
+.is-showcase .s-section-head::before { content: ""; width: 44px; height: 3px; background: var(--s-accent); border-radius: 3px; margin-bottom: 6px; }
+.is-showcase .s-steps-wrap { padding-block: clamp(40px, 6cqi, 72px); }
+.is-showcase .s-steps-wrap + .s-about { margin-top: 0; }
+
+/* ---------- Store (dynamic): an app-like shop ---------- */
+.s-storebar { background: var(--s-ink); color: var(--s-bg); text-align: center; font-size: .84rem; font-weight: 600; padding: 7px max(16px, env(safe-area-inset-right, 0px)) 7px max(16px, env(safe-area-inset-left, 0px)); }
+.s-perks { display: flex; flex-wrap: wrap; gap: 8px; }
+.s-hero-type .s-perks { justify-content: center; }
+.s-perks span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: .84rem; font-weight: 700;
+  background: color-mix(in srgb, var(--s-accent) 10%, var(--s-surface)); color: var(--s-ink); border: 1px solid color-mix(in srgb, var(--s-accent) 22%, transparent); }
+.s-hero-full .s-perks span { background: rgba(0,0,0,.35); color: #fff; border-color: rgba(255,255,255,.25); }
+.is-store #products, .is-store [id="alt-products"] { background: var(--s-soft); }
+.s-toolbar { display: grid; gap: 10px; margin-bottom: 18px; }
+.s-toolbar .s-chips, .s-toolbar .s-search { margin: 0; }
+.is-store .s-toolbar {
+  position: sticky; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 15; padding-block: 10px;
+  margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px));
+  background: color-mix(in srgb, var(--s-soft) 94%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.is-preview.is-store .s-toolbar { top: 64px; }
+.is-store .s-card { background: var(--s-surface); border-color: transparent; box-shadow: 0 10px 30px -22px rgba(0,0,0,.45); }
+.theme-boutique.is-store .s-card { background: var(--s-surface); }
+.theme-boutique.is-store .s-card-body { padding-inline: 14px; }
+.is-store .s-add { background: var(--s-accent); color: var(--s-accent-ink); border-color: var(--s-accent); padding: 8px 16px; }
+.is-store .s-add:hover { filter: brightness(1.08); }
+.is-store .s-price { font-size: 1.2rem; }
+.is-store .s-steps-wrap { background: var(--s-bg); }
+
 /* Product tags */
 .s-badge {
   position: absolute; top: 8px; left: 8px; z-index: 2; width: fit-content;
@@ -290,7 +358,7 @@ export const SITE_CSS = `
 .s-fest-ugadi { --fest: linear-gradient(90deg, #2e6b2f, #4f8f2a 50%, #d4a017); --fest-dot: #fff3c4; }
 .s-fest-newyear { --fest: linear-gradient(90deg, #1a1446, #3b2a8a 55%, #6a3fb5); --fest-dot: #ffd54f; }
 
-.s-map { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; border: 1px solid var(--s-line); border-radius: var(--s-radius); margin-top: 18px; background: var(--s-soft); }
+.s-map { display: block; width: 100%; max-width: 100%; aspect-ratio: 16 / 10; max-height: 320px; border: 1px solid var(--s-line); border-radius: var(--s-radius); margin-top: 18px; background: var(--s-soft); }
 .s-reviews { margin-top: 4px; }
 
 /* Trust: "Open now · closes 9 pm" and the reviews link */

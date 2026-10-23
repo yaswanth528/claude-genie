@@ -5,6 +5,8 @@ import { UI_EN } from "./i18n";
 import {
   GapCheckSchema,
   PatchSchema,
+  RevisionSchema,
+  type Revision,
   SitePlanSchema,
   TranslationSchema,
   type GapCheck,
@@ -99,6 +101,7 @@ Before we build their website, list what is important and missing or unclear. On
 - a price that may be misheard (e.g. "seventy nine" vs "seven ninety nine", or a number that looks wrong for that product);
 - a product name that is garbled.
 Do NOT ask about anything optional (address, hours, delivery, photos, WhatsApp number, descriptions).
+Do NOT ask the price of something the owner said is priced on request, by quotation, or "depends on size/quantity" (manufacturers, wholesalers, custom work, services).
 Ask at most 3 questions, in the language the owner spoke, short and friendly. If nothing important is missing, return no questions.`;
 
 export async function checkGaps(transcript: string): Promise<GapCheck> {
@@ -131,7 +134,9 @@ Design:
 
 Products:
 - If the owner groups products (e.g. "in sarees we have... in kurtis we have..."), set category; otherwise leave it null.
-- If they say a product comes in sizes, colours or weights, set optionName and optionChoices. Only what they said.`;
+- If they say a product comes in sizes, colours or weights, set optionName and optionChoices. Only what they said.
+- Manufacturers, wholesalers and service businesses often quote prices per order. If the owner says the price depends or is on request, set askPrice true and price null. Never make up a price.
+- highlights: pick up to 3 real selling points from what they said (e.g. "Custom sizes", "Bulk orders welcome", "Home delivery in Jayanagar", "Open 10 am to 9 pm"). Use what they said; never invent.`;
 
 export type UploadedMedia = { url: string; kind: "image" | "video"; name: string };
 
@@ -214,4 +219,60 @@ export async function interpretEdit(items: Product[], businessName: string, requ
     PatchSchema,
     `${EDIT_RULES}\n\nBusiness: ${businessName}\nCurrent items:\n${list}\n\nOwner said: ${request}`,
   );
+}
+
+// ---------- "Not happy? Say what to change" ----------
+
+const REVISE_RULES = `You are editing a small business's website. The owner looked at it and said, in their own words, what they want changed (possibly mixed languages, possibly with speech-to-text errors).
+Return only the fields that need to change; leave everything else out.
+
+What you can change: the business name, headline, subheadline, about text, highlights, theme (look and colours), banner style, product layout, area, address, hours, festival banner, and products (update, add or remove; name, price, unit, description, category, tag, stock, "price on request", a new photo). You can also ask for a new banner photo.
+
+Themes: boutique (elegant, clothing and beauty), kitchen (warm, food), fresh (green, grocery), studio (clean, services), craft (handmade, decor), bazaar (bold, electronics and general).
+Layouts: grid (photo tiles), list (photo beside details), lookbook (big photos), menu (names and prices, no photos).
+
+Rules:
+- Do what they asked, fully, and nothing else. If they ask for something general ("make it better", "more professional", "looks empty"), you may rewrite the headline, subheadline, about and product descriptions, and pick a better theme, colours and layout for this business.
+- Facts are strict: never invent prices, products, years, awards, delivery, discounts or claims the owner didn't make. Rewriting copy means saying the same facts better.
+- Write copy in the same language as the current website text unless the owner asks for another language.
+- If they ask for something the website can't do, or it's unclear what they mean, change nothing and put a short, friendly question or explanation in "question".
+- summary: 1-5 short lines saying what you changed, in the language the owner spoke.`;
+
+export async function reviseSite(site: SiteContent, request: string): Promise<Revision> {
+  const current = {
+    businessName: site.businessName,
+    category: site.category,
+    siteType: site.siteType,
+    headline: site.headline,
+    subheadline: site.subheadline,
+    about: site.about,
+    highlights: site.highlights,
+    themeId: site.theme.id,
+    accent: site.theme.accent,
+    heroStyle: site.theme.heroStyle,
+    layout: site.theme.layout ?? "grid",
+    area: site.area,
+    address: site.address,
+    hours: site.hours,
+    festival: site.festival ?? null,
+    hasBannerPhoto: !!site.hero,
+    items: site.items.map((it, i) => ({
+      index: i,
+      name: it.name,
+      price: it.price,
+      unit: it.unit,
+      description: it.description,
+      category: it.category ?? null,
+      badge: it.badge ?? null,
+      inStock: it.inStock !== false,
+      askPrice: !!it.askPrice,
+      photo: it.image ? (it.image.generated ? "stock photo" : "owner's photo") : "none",
+    })),
+  };
+  return generateJson(RevisionSchema, `${REVISE_RULES}
+
+Current website (JSON):
+${JSON.stringify(current)}
+
+Owner said: ${request}`);
 }

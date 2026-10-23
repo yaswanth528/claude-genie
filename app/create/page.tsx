@@ -4,6 +4,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { Logo } from "@/components/Logo";
 import { MediaPicker } from "@/components/MediaPicker";
 import { MicButton } from "@/components/MicButton";
+import { ReviseMic } from "@/components/ReviseMic";
 import { PayPanel } from "@/components/PayPanel";
 import { SharePanel } from "@/components/SharePanel";
 import { SiteEditor } from "@/components/SiteEditor";
@@ -58,7 +59,8 @@ export default function CreatePage() {
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
   const [live, setLive] = useState<Live | null>(null);
-  const [confirmWa, setConfirmWa] = useState(false); // the "Where should orders come?" sheet
+  const [confirmWa, setConfirmWa] = useState(false);
+  const [reviseOpen, setReviseOpen] = useState(false); // phone: "Change by voice" sheet over the preview // the "Where should orders come?" sheet
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [recordings, setRecordings] = useState<string[]>([]);
@@ -186,6 +188,7 @@ export default function CreatePage() {
           <aside className={`review-edit ${pane === "edit" ? "show" : ""}`}>
             <h1>Your website is ready</h1>
             <p className="hint">This is a preview. Change anything you like, then continue to get your own website.</p>
+            <ReviseMic value={draft} onChange={setDraft} language={lang} onLanguage={setLang} />
             <SiteEditor value={draft} onChange={setDraft} language={lang} showWhatsapp recordings={recordings} />
             <div className="publish-bar">
               {errorBox}
@@ -222,11 +225,28 @@ export default function CreatePage() {
               <button className="btn" onClick={() => setConfirmWa(true)} disabled={busy}>
                 {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
               </button>
+              <button className="btn ghost" onClick={() => setReviseOpen(true)} aria-label="Change by voice">
+                🎤 Change
+              </button>
               <button className="btn ghost" onClick={() => setPane("edit")}>
                 Edit
               </button>
             </div>
           </section>
+          {reviseOpen && (
+            <div className="sheet-wrap revise-sheet" role="dialog" aria-modal="true" aria-label="Change your website by voice">
+              <button className="sheet-scrim" onClick={() => setReviseOpen(false)} aria-label="Close" />
+              <div className="sheet">
+                <div className="row" style={{ justifyContent: "space-between", alignItems: "center", marginTop: 0 }}>
+                  <h2>What should we change?</h2>
+                  <button className="btn ghost sm" onClick={() => setReviseOpen(false)}>
+                    See website
+                  </button>
+                </div>
+                <ReviseMic value={draft} onChange={setDraft} language={lang} onLanguage={setLang} compact />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

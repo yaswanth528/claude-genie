@@ -74,6 +74,7 @@ function product(v: unknown): Product {
     options,
     inStock: p?.inStock !== false,
     badge: BADGES.includes(p?.badge as never) ? p.badge : null,
+    askPrice: p?.askPrice === true,
   };
 }
 

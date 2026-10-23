@@ -8,7 +8,7 @@ import { deliveryFor, formatPrice, lineName, orderText, orderTotal, shortId, upi
 import { openStatus, parseHours } from "@/lib/hours";
 import { categoriesOf, localText } from "@/lib/localize";
 import type { Media, Order, SiteContent } from "@/lib/schema";
-import { badgeLabel, cssUrl, FEST_ICON, festGreeting, isFramed, SEARCH_MIN } from "@/lib/siteBits";
+import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, storeBar, storePerks } from "@/lib/siteBits";
 import { SITE_CSS } from "@/lib/siteCss";
 import { themeVars } from "@/lib/themes";
 
@@ -122,6 +122,8 @@ export function SiteView({ site, preview }: Props) {
   const seenItems = site.items.length >= 4 ? seen.filter((i) => i < site.items.length).slice(0, 6) : [];
 
   const layout = site.theme.layout ?? "grid";
+  const showSearch = site.items.length >= (dynamic ? 5 : SEARCH_MIN);
+  const ask = (name: string, price: number | null) => whatsappLink(wa, askText(name, price === null ? null : formatPrice(price)));
   const q = query.trim().toLowerCase();
   const shown = (i: number) => {
     if (filter && site.items[i].category !== filter) return false;
@@ -156,8 +158,9 @@ export function SiteView({ site, preview }: Props) {
   const count = lines.reduce((s, l) => s + l.qty, 0);
   const total = orderTotal(lines);
   const vars = themeVars(site.theme.id, site.theme.accent) as CSSProperties;
-  const heroType = !site.hero;
-  const heroFull = !heroType && site.theme.heroStyle === "full";
+  const mosaic = heroMosaic(site);
+  const heroType = !site.hero && !mosaic.length;
+  const heroFull = !!site.hero && site.theme.heroStyle === "full";
   const anyImages = site.items.some((it) => it.image);
   const visible = filter ? site.items.filter((it) => it.category === filter).length : site.items.length;
   const cols = Math.min(4, Math.max(2, visible));
@@ -177,7 +180,11 @@ export function SiteView({ site, preview }: Props) {
   const status = week && now ? openStatus(week, now, u) : null;
   const place = site.address || site.area ? `${site.businessName}, ${site.address ?? site.area}` : null;
   // The map pins the address itself: a new shop may not be on Google Maps by name yet.
-  const mapQuery = useSettled(site.address ?? place, preview ? 900 : 0);
+  // Only a real address gets a map; an area alone ("Jayanagar") is just a big blank box.
+  const mapQuery = useSettled(site.address, preview ? 900 : 0);
+  const quote = quoteOnly(site.items);
+  const steps = howSteps(dynamic, u, quote);
+  const facts = aboutFacts(L, site.items.length, categories.length, u);
 
   // Cart websites have no WhatsApp button in the header, so a round one floats in once the
   // visitor scrolls past the banner (keeping it off the first product cards).
@@ -194,7 +201,8 @@ export function SiteView({ site, preview }: Props) {
   return (
     <div className="site-box">
       <style dangerouslySetInnerHTML={{ __html: SITE_CSS }} />
-      <div className={`site theme-${site.theme.id} ${preview ? "is-preview" : ""}`} style={vars}>
+      <div className={`site theme-${site.theme.id} ${dynamic ? "is-store" : "is-showcase"} ${preview ? "is-preview" : ""}`} style={vars}>
+        {dynamic && <div className="s-storebar">{storeBar(site, u)}</div>}
         {site.festival && (
           <div className={`s-festive s-fest-${site.festival.id}`}>
             <span>
@@ -232,7 +240,7 @@ export function SiteView({ site, preview }: Props) {
           </div>
         </header>
 
-        <section ref={heroRef} id="top" className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}`}>
+        <section ref={heroRef} id="top" className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"} ${mosaic.length ? "has-mosaic" : ""}`}>
           {heroFull && site.hero && <MediaBox media={site.hero} className="s-hero-bg" eager />}
           <div className="s-wrap s-hero-inner">
             <div className="s-hero-copy">
@@ -247,6 +255,15 @@ export function SiteView({ site, preview }: Props) {
                   {u.chat}
                 </a>
               </div>
+              {dynamic && (
+                <div className="s-perks">
+                  {storePerks(site, u).map((p) => (
+                    <span key={p.text}>
+                      <b aria-hidden="true">{p.icon}</b> {p.text}
+                    </span>
+                  ))}
+                </div>
+              )}
               {(week || site.reviewsUrl) && (
                 <div className="s-trust">
                   {status && <strong className={`s-open ${status.open ? "is-open" : ""}`}>{status.text}</strong>}
@@ -261,6 +278,15 @@ export function SiteView({ site, preview }: Props) {
             {!heroFull && site.hero && (
               <div className="s-hero-media">
                 <MediaBox media={site.hero} eager />
+              </div>
+            )}
+            {mosaic.length > 0 && (
+              <div className={`s-mosaic n${mosaic.length}`} aria-hidden="true">
+                {mosaic.map((m) => (
+                  <div key={m.url}>
+                    <MediaBox media={m} eager />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -280,8 +306,10 @@ export function SiteView({ site, preview }: Props) {
           <div className="s-wrap">
             <div className="s-section-head">
               <h2>{dynamic ? u.shop : u.products}</h2>
-              <p>{dynamic ? u.cartHint : u.pickHint}</p>
+              <p>{quote ? u.pickHintQuote : dynamic ? u.cartHint : u.pickHint}</p>
             </div>
+            {(categories.length > 1 || showSearch) && (
+            <div className="s-toolbar">
             {categories.length > 1 && (
               <div className="s-chips" role="group" aria-label="Categories">
                 <button className={!filter ? "on" : ""} onClick={() => setFilter(null)} aria-pressed={!filter}>
@@ -294,10 +322,12 @@ export function SiteView({ site, preview }: Props) {
                 ))}
               </div>
             )}
-            {site.items.length >= SEARCH_MIN && (
+            {showSearch && (
               <div className="s-search">
                 <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={u.search} aria-label={u.search} />
               </div>
+            )}
+            </div>
             )}
             {seenItems.length > 0 && (
               <div className="s-seen">
@@ -338,7 +368,7 @@ export function SiteView({ site, preview }: Props) {
                             {it.image.generated && <span className="s-ai-tag">{u.samplePhoto}</span>}
                           </>
                         ) : (
-                          <div className="s-card-mono">{initials(it.name || "?")}</div>
+                          <div className="s-card-name-tile">{it.name || "?"}</div>
                         )}
                         {out && <span className="s-out-tag">{u.outOfStock}</span>}
                       </div>
@@ -368,12 +398,20 @@ export function SiteView({ site, preview }: Props) {
                         </div>
                       )}
                       <div className="s-card-foot">
-                        <span className="s-price">
-                          {formatPrice(it.price)}
-                          {it.unit && <small> {it.unit}</small>}
-                        </span>
+                        {it.askPrice ? (
+                          <span className="s-ask-price">{u.askPrice}</span>
+                        ) : (
+                          <span className="s-price">
+                            {formatPrice(it.price)}
+                            {it.unit && <small> {it.unit}</small>}
+                          </span>
+                        )}
                         {out ? (
                           (!anyImages || layout === "menu") && <span className="s-out-text">{u.outOfStock}</span>
+                        ) : it.askPrice ? (
+                          <a className="s-ask-btn" href={ask(site.items[i].name, null)} target="_blank" rel="noreferrer">
+                            {u.askPriceBtn}
+                          </a>
                         ) : n > 0 ? (
                           <div className="s-qty">
                             <button onClick={() => change(key, -1)} aria-label={`One less ${it.name}`}>
@@ -385,9 +423,16 @@ export function SiteView({ site, preview }: Props) {
                             </button>
                           </div>
                         ) : (
-                          <button className="s-add" onClick={() => change(key, 1)} aria-label={`Add ${it.name}`}>
-                            {dynamic ? u.addToCart : u.add}
-                          </button>
+                          <span className="s-card-actions">
+                            {!dynamic && (
+                              <a className="s-ask" href={ask(site.items[i].name, it.price)} target="_blank" rel="noreferrer" aria-label={`${u.askOnWa}: ${it.name}`} title={u.askOnWa}>
+                                {WA_ICON}
+                              </a>
+                            )}
+                            <button className="s-add" onClick={() => change(key, 1)} aria-label={`Add ${it.name}`}>
+                              {dynamic ? u.addToCart : u.add}
+                            </button>
+                          </span>
                         )}
                       </div>
                     </div>
@@ -399,16 +444,45 @@ export function SiteView({ site, preview }: Props) {
           </div>
         </section>
 
+        <section className="s-section s-steps-wrap">
+          <div className="s-wrap">
+            <div className="s-section-head">
+              <h2>{steps[0].title}</h2>
+            </div>
+            <div className="s-steps">
+              {steps.map((s) => (
+                <div key={s.heading} className="s-step">
+                  <h3>{s.heading}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {L.about && (
           <section id="about" className="s-section s-about">
-            <div className={`s-wrap ${aboutImage ? "s-about-grid" : ""}`}>
+            <div className={`s-wrap ${aboutImage || facts.length >= 2 ? "s-about-grid" : ""}`}>
               <div>
                 <h2>
                   {u.about} {L.businessName}
                 </h2>
                 <p className="s-about-text">{L.about}</p>
               </div>
-              {aboutImage && <MediaBox media={aboutImage} className="s-about-img" />}
+              {aboutImage ? (
+                <MediaBox media={aboutImage} className="s-about-img" />
+              ) : (
+                facts.length >= 2 && (
+                  <dl className="s-facts">
+                    {facts.map(([k, v]) => (
+                      <div key={k}>
+                        <dt>{k}</dt>
+                        <dd>{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )
+              )}
             </div>
           </section>
         )}
@@ -545,6 +619,7 @@ export function SiteView({ site, preview }: Props) {
             onOption={(j) => setChoice((c) => ({ ...c, [view]: j }))}
             onChange={(d) => change(keyOf(view, optIndex(view)), d)}
             onClose={() => setView(null)}
+            askHref={ask(site.items[view].name, null)}
           />
         )}
 
@@ -746,7 +821,9 @@ function ProductView({
   onOption,
   onChange,
   onClose,
+  askHref,
 }: {
+  askHref: string;
   item: ReturnType<typeof localText>["items"][number];
   index: number;
   ui: ReturnType<typeof localText>["ui"];
@@ -774,10 +851,14 @@ function ProductView({
         <div className="s-pv-body">
           {item.badge && <span className={`s-badge s-badge-${item.badge}`}>{badgeLabel(item.badge, ui)}</span>}
           <h2>{item.name}</h2>
-          <p className="s-price">
-            {formatPrice(item.price)}
-            {item.unit && <small> {item.unit}</small>}
-          </p>
+          {item.askPrice ? (
+            <p className="s-ask-price">{ui.askPrice}</p>
+          ) : (
+            <p className="s-price">
+              {formatPrice(item.price)}
+              {item.unit && <small> {item.unit}</small>}
+            </p>
+          )}
           {item.description && <p className="s-pv-desc">{item.description}</p>}
           {!!item.options?.length && (
             <div className="s-opts" role="radiogroup" aria-label={item.optionName ?? "Options"}>
@@ -790,6 +871,10 @@ function ProductView({
           )}
           {out ? (
             <p className="s-out-text">{ui.outOfStock}</p>
+          ) : item.askPrice ? (
+            <a className="s-btn s-btn-wa s-btn-block" href={askHref} target="_blank" rel="noreferrer">
+              {ui.askPriceBtn}
+            </a>
           ) : qty > 0 ? (
             <div className="s-qty s-pv-qty">
               <button onClick={() => onChange(-1)} aria-label={`One less ${item.name}`}>
