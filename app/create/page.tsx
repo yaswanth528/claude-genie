@@ -263,9 +263,10 @@ export default function CreatePage() {
         </div>
       </header>
 
-      <main className="cf-main">
+      <main className={`cf-main ${stage === "speak" || stage === "building" ? "wide" : ""}`}>
         {stage === "speak" && (
-          <>
+          <div className="cf-speak">
+            <div className="cf-col-a">
             <section className="cf-hero">
               <Kicker text="Step 1 of 3" />
               <h1>Tell us about your business.</h1>
@@ -293,7 +294,9 @@ export default function CreatePage() {
                 );
               })}
             </ul>
+            </div>
 
+            <div className="cf-col-b">
             <section className="cf-card">
               <div className="cf-card-head">
                 <label htmlFor="transcript">What we heard</label>
@@ -322,7 +325,8 @@ export default function CreatePage() {
               </button>
               {transcript.trim().length < 5 && <p className="cf-muted small">Speak or type a little about your shop first.</p>}
             </div>
-          </>
+            </div>
+          </div>
         )}
 
         {stage === "checking" && (

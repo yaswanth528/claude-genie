@@ -159,20 +159,30 @@
 /* ---------- React Bits pieces (components/landing/Bits.tsx) ---------- */
 .lp-hero .lp-kicker { display: inline-block; }
 .lp-h1 { font-size: clamp(3rem, 10vw, 7.2rem); line-height: 0.98; font-weight: 700; display: grid; justify-items: center; }
-.lp-h1-a, .lp-h1-b { display: block; }
-.lp-h1-b { font-size: 0.62em; letter-spacing: -0.035em; margin-top: 0.12em; }
-.lp-ticker { display: inline-grid; vertical-align: bottom; overflow: hidden; height: 1.15em; padding-bottom: 0.05em; color: var(--lp-accent); text-align: center; }
-.lp-ticker-word { grid-area: 1 / 1; white-space: nowrap; opacity: 0; transform: translateY(70%);
-  animation: lp-tick calc(var(--n) * 2.6s) cubic-bezier(0.2, 0.7, 0.2, 1) infinite; animation-delay: calc(var(--i) * 2.6s); will-change: transform, opacity; }
-/* Each word is on screen for 1/n of the cycle (n = 6 words: about 16.7%). */
-@keyframes lp-tick {
-  0% { opacity: 0; transform: translateY(70%); }
-  2.5%, 14% { opacity: 1; transform: none; }
-  16.7%, 100% { opacity: 0; transform: translateY(-70%); }
+.lp-h1-a { display: block; }
+/* Second headline line: each version sits in the same grid cell, centred on its own. */
+.lp-lines { display: grid; font-size: 0.62em; letter-spacing: -0.035em; margin-top: 0.12em; }
+.lp-line { grid-area: 1 / 1; opacity: 0; transform: translateY(0.25em);
+  animation: lp-line calc(var(--n) * 3s) ease infinite; animation-delay: calc(var(--i) * 3s); }
+.lp-line em { font-style: normal; color: var(--lp-accent); display: inline-block; white-space: nowrap; }
+.lp-line em span { display: inline-block; opacity: 0; transform: translateY(0.45em);
+  animation: lp-letter calc(var(--n) * 3s) cubic-bezier(0.2, 0.7, 0.2, 1) infinite; animation-delay: calc(var(--i) * 3s + var(--j) * 0.035s); }
+/* n = 6 lines: each owns 1/6 of the cycle (16.7%): fade in, hold, fade out. */
+@keyframes lp-line {
+  0% { opacity: 0; transform: translateY(0.25em); }
+  2.5%, 14.5% { opacity: 1; transform: none; }
+  16.6%, 100% { opacity: 0; transform: translateY(-0.2em); }
 }
-.lp-motion-off .lp-ticker-word, html:not(.lp-motion) .lp-ticker-word { animation: none; }
-html:not(.lp-motion) .lp-ticker-word:nth-child(2) { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .lp-ticker-word { animation: none !important; } .lp-ticker-word:nth-child(2) { opacity: 1 !important; transform: none !important; } }
+@keyframes lp-letter {
+  0% { opacity: 0; transform: translateY(0.45em); }
+  3.5%, 100% { opacity: 1; transform: none; }
+}
+html:not(.lp-motion) .lp-line, html:not(.lp-motion) .lp-line em span { animation: none; }
+html:not(.lp-motion) .lp-line:nth-child(2), html:not(.lp-motion) .lp-line:nth-child(2) em span { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .lp-line, .lp-line em span { animation: none !important; }
+  .lp-line:nth-child(2), .lp-line:nth-child(2) em span { opacity: 1 !important; transform: none !important; }
+}
 .lp-marquee { border-block: 1px solid rgba(0, 0, 0, 0.06); padding-block: 18px; overflow: hidden; background: var(--lp-bg); }
 .lp-marquee .lp-marquee-text, .lp-marquee.still p {
   font-size: clamp(1.6rem, 4vw, 2.8rem); font-weight: 700; letter-spacing: -0.03em; color: color-mix(in srgb, var(--lp-ink) 16%, transparent); white-space: nowrap;
@@ -183,3 +193,20 @@ html:not(.lp-motion) .lp-ticker-word:nth-child(2) { opacity: 1; transform: none;
 .lp-final .lp-inner { position: relative; z-index: 1; }
 .lp-aurora { position: absolute; inset: 0; z-index: 0; opacity: 0.6; pointer-events: none; }
 .lp-aurora > * { width: 100%; height: 100%; }
+
+/* Hero: a row of three real websites (store, showcase, menu board). Side phones only on wide screens. */
+.lp-hero-row { display: flex; justify-content: center; align-items: flex-start; }
+.lp-hero-row .lp-phone.main { position: relative; z-index: 2; }
+.lp-hero-row .lp-phone.side { display: none; }
+@media (min-width: 900px) {
+  .lp-hero-row .lp-phone.side { display: block; --w: 300px; --s: 0.713; margin-top: 64px; position: relative; z-index: 1; opacity: 0.96; }
+  .lp-hero-row .lp-phone.left { margin-right: -36px; transform: rotate(-4deg); }
+  .lp-hero-row .lp-phone.right { margin-left: -36px; transform: rotate(4deg); }
+}
+@media (min-width: 1200px) {
+  .lp-hero-row .lp-phone.side { --w: 330px; --s: 0.79; }
+  .lp-hero-row .lp-phone.left { margin-right: 8px; }
+  .lp-hero-row .lp-phone.right { margin-left: 8px; }
+}
+.lp-inner { max-width: 1240px; }
+.lp-nav-row { max-width: 1240px; }

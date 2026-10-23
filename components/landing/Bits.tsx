@@ -22,24 +22,28 @@ export function Kicker({ text }: { text: string }) {
   return <ShinyText text={text} color={ACCENT} shineColor="#ffb08a" speed={3} className="lp-kicker" />;
 }
 
-// "Speak. / Your [saree shop] is online." The word swap is pure CSS (transform + opacity only),
-// so it stays smooth on budget phones. All words share one grid cell, which keeps the slot as wide
-// as the longest word: the line never reflows while words change.
+// "Speak. / Your [saree shop] is online." The whole second line swaps, so every version is
+// centred on its own (no gaps around short words); the shop word's letters rise one after another.
+// Pure CSS, transform and opacity only, so it stays smooth on budget phones.
 export function HeroTitle() {
   return (
     <h1 className="lp-h1">
       <span className="lp-h1-a">Speak.</span>
-      <span className="lp-h1-b">
-        Your{" "}
-        <span className="lp-ticker" style={{ ["--n" as string]: SHOP_TYPES.length }}>
-          <span className="sr-only">shop</span>
-          {SHOP_TYPES.map((w, i) => (
-            <span key={w} className="lp-ticker-word" style={{ ["--i" as string]: i }} aria-hidden="true">
-              {w}
-            </span>
-          ))}
-        </span>{" "}
-        is online.
+      <span className="lp-lines" style={{ ["--n" as string]: SHOP_TYPES.length }}>
+        <span className="sr-only">Your shop is online.</span>
+        {SHOP_TYPES.map((w, i) => (
+          <span key={w} className="lp-line" style={{ ["--i" as string]: i }} aria-hidden="true">
+            Your{" "}
+            <em>
+              {Array.from(w).map((ch, j) => (
+                <span key={j} style={{ ["--j" as string]: j }}>
+                  {ch === " " ? " " : ch}
+                </span>
+              ))}
+            </em>{" "}
+            is online.
+          </span>
+        ))}
       </span>
     </h1>
   );

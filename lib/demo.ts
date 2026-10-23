@@ -43,3 +43,36 @@ export const DEMO: SiteContent & { whatsapp: string } = {
     item("Cotton kurti", 799, { category: "Kurtis", optionName: "Size", options: ["S", "M", "L", "XL"] }),
   ],
 };
+
+// Two more looks for the home page's row of phones: an online store and a menu board.
+export const DEMO_STORE: SiteContent & { whatsapp: string } = {
+  ...DEMO,
+  category: "Snacks & bakery",
+  siteType: "dynamic",
+  theme: { id: "kitchen", accent: 0, heroStyle: "split", layout: "grid" },
+  headline: "Fresh snacks, made every morning",
+  subheadline: "Samosas, pav bhaji and cakes. Order online, we deliver nearby.",
+  hours: "8 am - 10 pm",
+  items: [
+    item("Samosa (2 pcs)", 40, { category: "Snacks", badge: "bestseller", image: photo("photo-1601050690597-df0568f70950", "Samosa") }),
+    item("Pav bhaji", 120, { category: "Snacks", image: photo("photo-1606491956689-2ea866880c84", "Pav bhaji") }),
+    item("Strawberry cake", 650, { category: "Cakes", badge: "new", image: photo("photo-1589119908995-c6837fa14848", "Strawberry cake") }),
+    item("Plum cake", 450, { category: "Cakes" }),
+  ],
+};
+
+export const DEMO_MENU: SiteContent & { whatsapp: string } = {
+  ...DEMO,
+  category: "Sweets & namkeen",
+  theme: { id: "kitchen", accent: 2, heroStyle: "split", layout: "menu" },
+  headline: "Sweets for every occasion",
+  subheadline: "Made fresh in small batches. Order a box on WhatsApp.",
+  hours: "9 am - 9 pm",
+  items: [
+    item("Mysore pak", 400, { unit: "per kg", category: "Sweets", badge: "bestseller" }),
+    item("Kaju katli", 900, { unit: "per kg", category: "Sweets" }),
+    item("Badam halwa", 600, { unit: "per kg", category: "Sweets" }),
+    item("Mixture", 240, { unit: "per kg", category: "Namkeen" }),
+    item("Khara boondi", 220, { unit: "per kg", category: "Namkeen", badge: "new" }),
+  ],
+};

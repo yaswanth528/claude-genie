@@ -3,7 +3,7 @@ import { FeatureTile, FinalGlow, Greatest, HeroSub, HeroTitle, Kicker, MotionPro
 import { Reveal } from "@/components/landing/Reveal";
 import { Logo } from "@/components/Logo";
 import { SiteView } from "@/components/site/SiteView";
-import { DEMO } from "@/lib/demo";
+import { DEMO, DEMO_MENU, DEMO_STORE } from "@/lib/demo";
 import { PRICES, YEARLY } from "@/lib/prices";
 import { whatsappLoginReady } from "@/lib/whatsapp";
 import "./landing.css";
@@ -11,12 +11,12 @@ import "./landing.css";
 const rs = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
 // A real SiteGenie website, drawn at true phone size and scaled into a frame.
-function Phone({ dynamic = false, tilt }: { dynamic?: boolean; tilt?: "left" | "right" }) {
+function Phone({ dynamic = false, tilt, site = DEMO, className = "" }: { dynamic?: boolean; tilt?: "left" | "right"; site?: typeof DEMO; className?: string }) {
   return (
-    <div className={`lp-phone ${tilt ? `tilt-${tilt}` : ""}`} aria-hidden="true">
+    <div className={`lp-phone ${tilt ? `tilt-${tilt}` : ""} ${className}`} aria-hidden="true">
       <div className="lp-phone-screen">
         <div className="lp-phone-inner">
-          <SiteView site={{ ...DEMO, siteType: dynamic ? "dynamic" : "static" }} preview />
+          <SiteView site={site === DEMO ? { ...DEMO, siteType: dynamic ? "dynamic" : "static" } : site} preview />
         </div>
       </div>
     </div>
@@ -76,7 +76,11 @@ export default function Home() {
             </a>
           </div>
           <div className="lp-hero-device" data-reveal>
-            <Phone />
+            <div className="lp-hero-row">
+              <Phone site={DEMO_STORE} className="side left" />
+              <Phone className="main" />
+              <Phone site={DEMO_MENU} className="side right" />
+            </div>
           </div>
         </section>
 
