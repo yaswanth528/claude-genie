@@ -251,3 +251,5 @@
 @media (min-width: 980px) { .rv .sheet { border-radius: 26px; } }
 .rv .sheet h2 { letter-spacing: -0.03em; font-size: 1.5rem; }
 .rv .sheet .btn:not(.ghost) { background: var(--cf-accent); min-height: 50px; padding-inline: 24px; }
+.rv .rv-bar-cta { display: none; }
+@media (min-width: 980px) { .rv .rv-bar-cta { display: inline-flex; } }
