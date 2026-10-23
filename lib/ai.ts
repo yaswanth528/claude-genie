@@ -30,7 +30,9 @@ function client() {
 
 // Flash-Lite answered as accurately as 3.8 Flash on our product-list tests at about a third of the latency.
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-const TRANSCRIBE_MODEL = process.env.GEMINI_TRANSCRIBE_MODEL || MODEL;
+// Transcription uses full Flash: in our tests Flash-Lite wrote short Kannada or Tamil in Hindi
+// script whenever another language was selected; 3.5 Flash got every case right in 2-5 s.
+const TRANSCRIBE_MODEL = process.env.GEMINI_TRANSCRIBE_MODEL || "gemini-3.5-flash";
 const IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-nano-banana-2.1";
 // "low" works on every current text model. "minimal" is rejected by 3.8 Flash, and on Lite it
 // dropped spoken items from transcripts in our tests, so we don't use it.
@@ -77,8 +79,19 @@ export function supportedAudioType(mime: string): string | null {
 }
 
 export async function transcribeAudio(base64: string, mimeType: string, language: string): Promise<string> {
+  try {
+    return await transcribeWith(TRANSCRIBE_MODEL, base64, mimeType, language);
+  } catch (err) {
+    // Busy or over the free limit: fall back to the everyday model rather than failing.
+    if (TRANSCRIBE_MODEL === MODEL) throw err;
+    console.error(`Transcription with ${TRANSCRIBE_MODEL} failed, using ${MODEL}:`, (err as Error).message);
+    return transcribeWith(MODEL, base64, mimeType, language);
+  }
+}
+
+async function transcribeWith(model: string, base64: string, mimeType: string, language: string): Promise<string> {
   const interaction = await client().interactions.create({
-    model: TRANSCRIBE_MODEL,
+    model,
     input: [
       {
         type: "text",
