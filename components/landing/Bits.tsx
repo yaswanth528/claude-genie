@@ -102,7 +102,7 @@ export function FeatureTile({ title, body, wide, dark }: { title: string; body: 
 export function FinalGlow() {
   return (
     <div className="lp-aurora" aria-hidden="true">
-      <Aurora colorStops={[ACCENT, AMBER, ACCENT_2]} amplitude={0.9} blend={0.55} speed={0.6} height={0.5} direction="bottom" mouseInteraction={false} />
+      <Aurora colorStops={[ACCENT, AMBER, ACCENT_2]} amplitude={0.8} blend={0.6} speed={0.5} height={0.36} direction="bottom" mouseInteraction={false} />
     </div>
   );
 }

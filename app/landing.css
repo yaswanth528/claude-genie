@@ -143,7 +143,7 @@
 /* Final call */
 .lp-final { background: var(--lp-dark); color: var(--lp-on-dark); text-align: center; padding-block: clamp(96px, 14vw, 180px);
   background-image: radial-gradient(60% 80% at 50% 120%, rgba(194, 74, 46, 0.55), transparent 70%); }
-.lp-final .lp-sub { color: var(--lp-on-dark-muted); }
+.lp-final .lp-sub { color: #d6d6db; }
 
 .lp-footer { background: var(--lp-dark); color: var(--lp-on-dark-muted); font-size: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-block: 26px calc(26px + env(safe-area-inset-bottom, 0px)); }
 .lp-footer-row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -173,5 +173,5 @@
 .lp-greatest { display: inline-block; }
 .lp-final { position: relative; overflow: hidden; isolation: isolate; }
 .lp-final .lp-inner { position: relative; z-index: 1; }
-.lp-aurora { position: absolute; inset: 0; z-index: 0; opacity: 0.85; pointer-events: none; }
+.lp-aurora { position: absolute; inset: 0; z-index: 0; opacity: 0.6; pointer-events: none; }
 .lp-aurora > * { width: 100%; height: 100%; }
