@@ -153,7 +153,7 @@ export default function CreatePage() {
 
   if (stage === "review" && draft)
     return (
-      <div className="review">
+      <div className="review rv">
         <header className="review-bar">
           <Logo />
           <div className="seg mobile-only" role="tablist">
@@ -172,21 +172,27 @@ export default function CreatePage() {
               Desktop
             </button>
           </div>
+          <button className="cf-pill sm rv-bar-cta desktop-only" onClick={() => setConfirmWa(true)} disabled={busy}>
+            Continue · ₹{PRICES[draft.siteType].toLocaleString("en-IN")}
+          </button>
         </header>
         <div className="review-body">
           <aside className={`review-edit ${pane === "edit" ? "show" : ""}`}>
-            <h1>Your website is ready</h1>
-            <p className="hint">This is a preview. Change anything you like, then continue to get your own website.</p>
+            <div className="rv-head">
+              <Kicker text="Step 2 of 3" />
+              <h1>Your website is ready.</h1>
+              <p className="hint">This is a preview. Change anything you like, then continue to get your own website.</p>
+            </div>
             <ReviseMic value={draft} onChange={setDraft} language={lang} onLanguage={setLang} />
             <SiteEditor value={draft} onChange={setDraft} language={lang} showWhatsapp recordings={recordings} />
             <div className="publish-bar">
               {errorBox}
               <div className="row">
-                <button className="btn" onClick={() => setConfirmWa(true)} disabled={busy}>
+                <button className="cf-pill" onClick={() => setConfirmWa(true)} disabled={busy}>
                   {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
                 </button>
                 <button
-                  className="btn ghost"
+                  className="cf-pill ghost"
                   disabled={busy}
                   onClick={() => window.confirm("Go back and build again? Changes you made here will be lost.") && setStage("speak")}
                 >
@@ -211,13 +217,13 @@ export default function CreatePage() {
               </div>
             </div>
             <div className="preview-cta mobile-only">
-              <button className="btn" onClick={() => setConfirmWa(true)} disabled={busy}>
+              <button className="cf-pill sm" onClick={() => setConfirmWa(true)} disabled={busy}>
                 {busy ? "Saving…" : `Continue · ₹${PRICES[draft.siteType].toLocaleString("en-IN")}`}
               </button>
-              <button className="btn ghost" onClick={() => setReviseOpen(true)} aria-label="Change by voice">
+              <button className="cf-pill ghost sm" onClick={() => setReviseOpen(true)} aria-label="Change by voice">
                 🎤 Change
               </button>
-              <button className="btn ghost" onClick={() => setPane("edit")}>
+              <button className="cf-pill ghost sm" onClick={() => setPane("edit")}>
                 Edit
               </button>
             </div>
