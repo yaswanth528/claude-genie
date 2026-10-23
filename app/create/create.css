@@ -168,3 +168,4 @@
   .cf-orb { transform: none; }
   .cf-build-screen > *, .b-card { transition: none; }
 }
+@media (max-width: 759px) { .cf-build { gap: 22px; padding-top: 24px; } .cf-build-phone { width: 190px; border-radius: 36px; padding: 8px; } .cf-build-screen { border-radius: 29px; } .cf-build-copy { text-align: center; justify-items: center; } .cf-steps { text-align: left; } }
