@@ -9,9 +9,11 @@ import ScrollVelocity from "@/components/bits/ScrollVelocity/ScrollVelocity";
 import ShinyText from "@/components/bits/ShinyText/ShinyText";
 import SpotlightCard from "@/components/bits/SpotlightCard/SpotlightCard";
 
-const ACCENT = "#ff7a1a";
-const ACCENT_2 = "#ffb347";
-const AMBER = "#ffd27a";
+// Kesari Sunrise
+const ACCENT = "#f45d1e"; // saffron
+const ACCENT_2 = "#ff7aa2"; // lotus
+const AMBER = "#ffb020"; // marigold
+const LILAC = "#8b7cff";
 const SHOP_TYPES = ["saree shop", "bakery", "kirana store", "salon", "sweet shop", "box factory"];
 
 export function MotionProvider({ children }: { children: ReactNode }) {
@@ -19,7 +21,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 }
 
 export function Kicker({ text }: { text: string }) {
-  return <ShinyText text={text} color={ACCENT} shineColor="#fff1dc" speed={3} className="lp-kicker" />;
+  return <ShinyText text={text} color={ACCENT} shineColor="#ffc04d" speed={3} className="lp-kicker" />;
 }
 
 // "Speak. / Your [saree shop] is online." The whole second line swaps, so every version is
@@ -76,7 +78,7 @@ export function ShopMarquee() {
 
 export function Greatest({ children }: { children: ReactNode }) {
   return (
-    <GradientText colors={[ACCENT, ACCENT_2, AMBER, ACCENT]} animationSpeed={6} className="lp-greatest">
+    <GradientText colors={[ACCENT, ACCENT_2, LILAC, AMBER, ACCENT]} animationSpeed={6} className="lp-greatest">
       {children}
     </GradientText>
   );
@@ -86,7 +88,7 @@ export function FeatureTile({ title, body, wide, dark }: { title: string; body: 
   return (
     <SpotlightCard
       theme={dark ? "dark" : "light"}
-      spotlightColor={dark ? ACCENT_2 : ACCENT}
+      spotlightColor={dark ? AMBER : LILAC}
       intensity={dark ? 0.35 : 0.5}
       spotlightSize={dark ? 340 : 260}
       ambient={dark}
@@ -101,7 +103,7 @@ export function FeatureTile({ title, body, wide, dark }: { title: string; body: 
 export function FinalGlow() {
   return (
     <div className="lp-aurora" aria-hidden="true">
-      <Aurora colorStops={["#c2410c", ACCENT, ACCENT_2]} amplitude={0.8} blend={0.6} speed={0.5} height={0.36} direction="bottom" mouseInteraction={false} />
+      <Aurora colorStops={[ACCENT_2, AMBER, LILAC]} amplitude={0.8} blend={0.6} speed={0.5} height={0.36} direction="bottom" mouseInteraction={false} />
     </div>
   );
 }

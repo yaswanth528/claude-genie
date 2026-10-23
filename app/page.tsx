@@ -43,7 +43,7 @@ export default function Home() {
       <Reveal />
       <header className="lp-nav">
         <div className="lp-nav-row">
-          <Logo tone="light" />
+          <Logo />
           <nav aria-label="Sections">
             <a href="#how">How it works</a>
             <a href="#designs">Designs</a>

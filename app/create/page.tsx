@@ -32,7 +32,7 @@ const SAY: { label: string; heard: RegExp | null }[] = [
   { label: "Delivery or anything special", heard: /deliver|home/i },
 ];
 
-const Kicker = ({ text }: { text: string }) => <ShinyText text={text} color="#ff7a1a" shineColor="#fff1dc" speed={3} className="cf-kicker" />;
+const Kicker = ({ text }: { text: string }) => <ShinyText text={text} color="#f45d1e" shineColor="#ffc04d" speed={3} className="cf-kicker" />;
 
 export default function CreatePage() {
   const [stage, setStage] = useState<Stage>("speak");
@@ -155,7 +155,7 @@ export default function CreatePage() {
     return (
       <div className="review rv">
         <header className="review-bar">
-          <Logo tone="light" />
+          <Logo />
           <div className="seg mobile-only" role="tablist">
             <button role="tab" aria-selected={pane === "edit"} className={pane === "edit" ? "on" : ""} onClick={() => setPane("edit")}>
               Edit
@@ -251,7 +251,7 @@ export default function CreatePage() {
     <div className="cf">
       <header className="cf-nav">
         <div className="cf-nav-row">
-          <Logo tone="light" />
+          <Logo />
           <ol className="cf-track" aria-label="Steps">
             {["Speak", "Check", "Go live"].map((label, i) => (
               <li key={label} className={i < stepNow ? "done" : i === stepNow ? "now" : ""} aria-current={i === stepNow ? "step" : undefined}>
