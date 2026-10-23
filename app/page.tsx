@@ -1,126 +1,247 @@
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
 import Link from "next/link";
+import { Reveal } from "@/components/landing/Reveal";
 import { Logo } from "@/components/Logo";
+import { SiteView } from "@/components/site/SiteView";
+import { DEMO } from "@/lib/demo";
+import { PRICES, YEARLY } from "@/lib/prices";
 import { whatsappLoginReady } from "@/lib/whatsapp";
+import "./landing.css";
 
-// Images in ./images are copied to public/images (scripts/sync-images.mjs). Brand files
-// (SiteGenie-*) are used as the logo/icon; anything else shows up in the gallery.
-function galleryImages(): string[] {
-  try {
-    return readdirSync(join(process.cwd(), "public", "images"))
-      .filter((f) => /\.(png|jpe?g|webp|gif|svg|avif)$/i.test(f) && !f.startsWith("SiteGenie-"))
-      .sort();
-  } catch {
-    return [];
-  }
+const rs = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+
+// A real SiteGenie website, drawn at true phone size and scaled into a frame.
+function Phone({ dynamic = false, tilt }: { dynamic?: boolean; tilt?: "left" | "right" }) {
+  return (
+    <div className={`lp-phone ${tilt ? `tilt-${tilt}` : ""}`} aria-hidden="true">
+      <div className="lp-phone-screen">
+        <div className="lp-phone-inner">
+          <SiteView site={{ ...DEMO, siteType: dynamic ? "dynamic" : "static" }} preview />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default function Home() {
-  const rest = galleryImages();
+const FEATURES: { title: string; body: string; wide?: boolean; dark?: boolean }[] = [
+  { title: "Change it by talking.", body: "“Make it look more professional.” “Silk saree is sold out.” Say it, see it, undo it.", wide: true, dark: true },
+  { title: "Orders on WhatsApp.", body: "Customers tap once. The order lands in your chat, ready to confirm." },
+  { title: "UPI, built in.", body: "GPay, PhonePe or Paytm. Money goes straight to you." },
+  { title: "Open now.", body: "Your hours become a live “Open now · closes 9 pm” badge." },
+  { title: "Two languages.", body: "Customers switch between English and Kannada, Hindi or more." },
+  { title: "Festival ready.", body: "Diwali, Eid, Pongal, Christmas. One tap puts your offer on top.", wide: true },
+  { title: "Looks great when shared.", body: "Your link shows your photo and name in WhatsApp chats." },
+  { title: "Price on request.", body: "Made to order? Customers ask for a quote instead." },
+];
 
+export default function Home() {
   return (
-    <>
-      <header className="wrap nav">
-        <Logo />
-        <div className="row tight" style={{ marginTop: 0 }}>
-          {whatsappLoginReady() && (
-            <Link href="/login" className="btn ghost sm">
-              Log in
+    <div className="lp">
+      <Reveal />
+      <header className="lp-nav">
+        <div className="lp-nav-row">
+          <Logo />
+          <nav aria-label="Sections">
+            <a href="#how">How it works</a>
+            <a href="#designs">Designs</a>
+            <a href="#pricing">Pricing</a>
+          </nav>
+          <div className="lp-nav-cta">
+            {whatsappLoginReady() && (
+              <Link href="/login" className="lp-link">
+                Log in
+              </Link>
+            )}
+            <Link href="/create" className="lp-pill sm">
+              Make my website
             </Link>
-          )}
-          <Link href="/create" className="btn">
-            Make my website
-          </Link>
+          </div>
         </div>
       </header>
 
-      <main className="wrap">
-        <section className="hero">
-          <div>
-            <h1>
-              Speak for 20 seconds. <em>Get your website.</em>
-            </h1>
-            <p className="lead">
-              Tell us about your shop in your own language. Add photos if you have them. You get a beautiful website
-              with your products, prices and WhatsApp ordering, or a full cart and checkout.
-            </p>
-            <Link href="/create" className="btn">
-              Try it free
+      <main>
+        <section className="lp-hero">
+          <p className="lp-kicker" data-reveal>
+            SiteGenie
+          </p>
+          <h1 data-reveal>
+            Speak.
+            <br />
+            Your shop is online.
+          </h1>
+          <p className="lp-sub" data-reveal>
+            Talk about your shop for 30 seconds, in your language. Get a beautiful website with your products, prices and ordering.
+          </p>
+          <div className="lp-ctas" data-reveal>
+            <Link href="/create" className="lp-pill">
+              Make my website
             </Link>
+            <a href="#how" className="lp-pill ghost">
+              See how it works
+            </a>
           </div>
-          <div className="hero-visual">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/SiteGenie-icon-4K.png" alt="" width={420} height={386} />
-          </div>
-        </section>
-
-        <section className="section">
-          <h2>How it works</h2>
-          <div className="steps">
-            <div className="card">
-              <div className="num">1</div>
-              <h3>Speak</h3>
-              <p>Say your business name, what you sell and the prices. Kannada, Hindi, English or a mix is fine. Add photos or videos if you like.</p>
-            </div>
-            <div className="card">
-              <div className="num">2</div>
-              <h3>Check</h3>
-              <p>AI designs a website for your kind of business. See it live, fix any price, change the look. Nothing goes live until you publish.</p>
-            </div>
-            <div className="card">
-              <div className="num">3</div>
-              <h3>Share</h3>
-              <p>Put the link in your WhatsApp status or Instagram bio. Orders arrive on your WhatsApp, ready to confirm.</p>
-            </div>
+          <div className="lp-hero-device" data-reveal>
+            <Phone />
           </div>
         </section>
 
-        <section className="section">
-          <h2>Change prices by voice</h2>
-          <div className="card">
-            <p>
-              Say “change the cotton kurti price to 849”. You see a before and after, and the page updates only when
-              you approve it. Changed your mind? Undo the last change in one tap. No freelancer, no fee per change.
+        <section className="lp-dark" id="how">
+          <div className="lp-inner">
+            <p className="lp-kicker" data-reveal>
+              How it works
             </p>
+            <h2 data-reveal>
+              You talk.
+              <br />
+              <span className="lp-dim">We build.</span>
+            </h2>
+            <div className="lp-flow">
+              <div className="lp-flow-step" data-reveal>
+                <span className="lp-num">01</span>
+                <h3>Speak</h3>
+                <p>Your shop’s name, what you sell and the prices. Kannada, Hindi, English, or a mix.</p>
+                <div className="lp-wave" aria-hidden="true">
+                  {Array.from({ length: 28 }, (_, i) => (
+                    <i key={i} style={{ animationDelay: `${(i % 7) * 0.12}s` }} />
+                  ))}
+                </div>
+              </div>
+              <div className="lp-flow-step" data-reveal>
+                <span className="lp-num">02</span>
+                <h3>Check</h3>
+                <p>A designed website appears in about a minute. Fix a price, pick a look, or just say what to change.</p>
+                <div className="lp-chips" aria-hidden="true">
+                  <span>Theme</span>
+                  <span>Photos</span>
+                  <span>Prices</span>
+                  <span>Hours</span>
+                </div>
+              </div>
+              <div className="lp-flow-step" data-reveal>
+                <span className="lp-num">03</span>
+                <h3>Share</h3>
+                <p>Your own link for WhatsApp status and Instagram. Orders come straight to your WhatsApp.</p>
+                <div className="lp-link-demo" aria-hidden="true">
+                  <span>●</span> yourshop.pages.dev
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {rest.length > 0 && (
-          <section className="section">
-            <h2>See it in action</h2>
-            <div className="gallery">
-              {rest.map((src) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={src} src={`/images/${src}`} alt="" loading="lazy" />
+        <section className="lp-designs" id="designs">
+          <div className="lp-inner">
+            <p className="lp-kicker" data-reveal>
+              Two designs
+            </p>
+            <h2 data-reveal>
+              Showcase is great.
+              <br />
+              <span className="lp-accent">Online store is greatest.</span>
+            </h2>
+            <div className="lp-duo">
+              <div className="lp-duo-col" data-reveal>
+                <Phone tilt="left" />
+                <h3>Showcase</h3>
+                <p>A beautiful catalogue. Customers send their list or ask about a product on WhatsApp.</p>
+                <p className="lp-price">{rs(PRICES.static)} one-time</p>
+              </div>
+              <div className="lp-duo-col best" data-reveal>
+                <Phone dynamic tilt="right" />
+                <h3>Online store</h3>
+                <p>Cart, checkout, delivery rules and order tracking. Your orders, organised.</p>
+                <p className="lp-price">
+                  {rs(PRICES.static)} + {rs(YEARLY)}/yr
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="lp-features">
+          <div className="lp-inner">
+            <h2 data-reveal>
+              Everything a shop needs.
+              <br />
+              <span className="lp-dim">Nothing it doesn’t.</span>
+            </h2>
+            <div className="lp-bento">
+              {FEATURES.map((f) => (
+                <div key={f.title} className={`lp-tile ${f.wide ? "wide" : ""} ${f.dark ? "dark" : ""}`} data-reveal>
+                  <h3>{f.title}</h3>
+                  <p>{f.body}</p>
+                </div>
               ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
 
-        <section className="section">
-          <h2>Pricing</h2>
-          <div className="pricing">
-            <div className="card">
-              <span className="tag">Static website</span>
-              <h3>Showcase</h3>
-              <div className="price">₹1,999</div>
-              <p>One-time. Your products, photos, about and contact, with ordering on WhatsApp. Unlimited voice changes. No yearly fee.</p>
+        <section className="lp-pricing" id="pricing">
+          <div className="lp-inner">
+            <p className="lp-kicker" data-reveal>
+              Pricing
+            </p>
+            <h2 data-reveal>Simple. No surprises.</h2>
+            <div className="lp-plans">
+              <div className="lp-plan" data-reveal>
+                <h3>Showcase</h3>
+                <p className="lp-plan-price">{rs(PRICES.static)}</p>
+                <p className="lp-plan-note">one-time</p>
+                <ul>
+                  <li>Your own website link</li>
+                  <li>Products, photos, hours and map</li>
+                  <li>Orders on WhatsApp</li>
+                  <li>Unlimited changes by voice</li>
+                </ul>
+                <Link href="/create" className="lp-pill ghost block">
+                  Start with Showcase
+                </Link>
+              </div>
+              <div className="lp-plan best" data-reveal>
+                <span className="lp-badge">Most complete</span>
+                <h3>Online store</h3>
+                <p className="lp-plan-price">{rs(PRICES.static)}</p>
+                <p className="lp-plan-note">+ {rs(YEARLY)} a year for online orders</p>
+                <ul>
+                  <li>Everything in Showcase</li>
+                  <li>Cart and checkout</li>
+                  <li>Delivery areas, charges, minimum order</li>
+                  <li>Order tracking and your orders list</li>
+                </ul>
+                <Link href="/create" className="lp-pill block">
+                  Start with Online store
+                </Link>
+              </div>
             </div>
-            <div className="card">
-              <span className="tag">Dynamic website</span>
-              <h3>Online store</h3>
-              <div className="price">₹1,999 + ₹3,000/yr</div>
-              <p>Everything in Showcase, plus a cart, a checkout form with delivery address, and an orders list for you.</p>
+            <p className="lp-fine" data-reveal>
+              Try it free. You only pay when you put your website live. Prices are a proposal and may change.
+            </p>
+          </div>
+        </section>
+
+        <section className="lp-final">
+          <div className="lp-inner">
+            <h2 data-reveal>Your shop deserves a website.</h2>
+            <p className="lp-sub" data-reveal>
+              It takes less time than making tea.
+            </p>
+            <div className="lp-ctas" data-reveal>
+              <Link href="/create" className="lp-pill light">
+                Make my website
+              </Link>
             </div>
           </div>
-          <p className="hint">Custom domain optional, paid separately. Prices are a proposal and may change.</p>
         </section>
       </main>
 
-      <footer className="wrap footer">
-        SiteGenie · Voice-to-Page for small businesses · <Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link>
+      <footer className="lp-footer">
+        <div className="lp-inner lp-footer-row">
+          <span>SiteGenie · Voice-to-Page for small businesses</span>
+          <span>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+          </span>
+        </div>
       </footer>
-    </>
+    </div>
   );
 }
