@@ -82,8 +82,9 @@ export async function transcribeAudio(base64: string, mimeType: string, language
     input: [
       {
         type: "text",
-        text: `Transcribe this recording of a shop owner describing their business, products and prices. They mostly speak ${language}, possibly mixed with English or Hindi.
-Write exactly what was said, in the script of the language spoken. Write every price as digits (e.g. 799). Output only the transcript, no commentary. If there is no speech, output nothing.`,
+        text: `Transcribe this recording. A small shop owner in India is either describing their business (products, prices, area, hours) or asking for a change to their website (for example "change the price of kaju katli to 950" or "make the colours green").
+First work out which language is actually spoken: usually Kannada, Hindi, Tamil, Telugu, English, or a mix. The owner picked ${language}, but treat that only as a hint; if they speak another language, transcribe that language.
+Write exactly what was said, in the native script of the language spoken (Kannada in ಕನ್ನಡ script, Hindi in देवनागरी, Tamil in தமிழ், Telugu in తెలుగు); English words stay in English. Write every number and price as digits (e.g. 950). Output only the transcript, no commentary. If there is no speech, output nothing.`,
       },
       { type: "audio", data: base64, mime_type: mimeType },
     ],
