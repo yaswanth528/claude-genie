@@ -143,8 +143,8 @@ Writing — be warm and short:
 Design:
 - Pick the theme that fits the business type, the colour option that suits it, and a hero style.
 - Uploaded photos are numbered from 0 in the order given. Match photos to the products they show, pick the best banner, and put good leftovers in the gallery. Never use one photo twice.
-- For any product without a matching photo, write imagePrompt: a realistic product photo of exactly that item (Indian context), soft natural light, clean simple background, no text, no people's faces.
-- heroImagePrompt: a wide, inviting photo that captures this kind of shop in India, no text or logos.
+- For any product without a matching photo, write imagePrompt: a realistic product photo of exactly that item (Indian context), soft natural light, clean simple background, no text, no brand names, logos or packaging labels, no people's faces.
+- heroImagePrompt: a wide, inviting photo that captures this kind of shop in India: its own kind of goods, unbranded. No text, no logos, no brand names, no branded packaging, and never another company's products.
 
 Products:
 - If the owner groups products (e.g. "in sarees we have... in kurtis we have..."), set category; otherwise leave it null.

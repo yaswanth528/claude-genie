@@ -3,9 +3,11 @@
 // only, no key; best for Indian items like mysore pak or masala dosa), Unsplash
 // (UNSPLASH_ACCESS_KEY), Pixabay (PIXABAY_API_KEY), Pexels (PEXELS_API_KEY). For products,
 // stock photos must name the product; if none does, a Cloudflare Workers AI image (FLUX,
-// free daily allowance) is made, and only then the closest stock photo is used. A banner
-// the owner didn't give is made with AI first (it only has to set the mood), then stock.
-// With none available the site uses its photo-free design.
+// free daily allowance) is made, and only then the closest stock photo is used. Stock
+// photos that mention a well-known brand are skipped. A banner the owner didn't give is
+// only ever made with AI, never a stock photo: a random photo can show another company's
+// brand on the shop's own front page. With no AI image the site uses its own product
+// photos or its type-only banner.
 //
 // Matching is deterministic (no AI calls, so it stays fast on a free Gemini key): each
 // source returns several candidates and we keep the one whose description/tags best
@@ -57,8 +59,13 @@ function score(candidate: string, o: Opts): number {
   return want.filter((w) => have.has(w)).length + 2 * name.filter((w) => have.has(w)).length;
 }
 
+// Brands that show up in stock photos of snacks, drinks, phones and clothes. A shop's
+// website must never look like it sells (or is) another company's brand.
+const BRANDS =
+  /\b(cheetos|doritos|lays|lay's|pringles|kurkure|haldiram'?s?|bikaji|coca[- ]?cola|coke|pepsi|sprite|fanta|thums ?up|red ?bull|nestle|maggi|kitkat|kit kat|cadbury|dairy ?milk|oreo|parle|britannia|amul|mother ?dairy|starbucks|mcdonald'?s?|kfc|domino'?s|pizza ?hut|burger ?king|nike|adidas|reebok|zara|h&m|gucci|louis ?vuitton|chanel|iphone|samsung|xiaomi|redmi|oneplus|oppo|vivo|realme|sony|ikea|flipkart|heinz|kellogg'?s?|nutella|hershey'?s?|m&m'?s|snickers|ferrero)\b/i;
+
 async function pick(cands: Candidate[], o: Opts): Promise<Media | null> {
-  const fresh = cands.filter((c) => !o.used?.has(c.id));
+  const fresh = cands.filter((c) => !o.used?.has(c.id) && !BRANDS.test(c.text));
   if (!fresh.length) return null;
   // Highest score wins; ties keep the source's own ranking.
   const ranked = fresh.map((c, i) => ({ c, s: score(c.text, o), i })).sort((a, b) => b.s - a.s || a.i - b.i).map((x) => x.c);
@@ -292,7 +299,10 @@ async function fromCloudflare(o: Opts): Promise<Media | null> {
     const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: (o.aspect === "16:9" ? `${o.prompt}, wide landscape banner, no text, no logos` : o.prompt).slice(0, 2000), steps: 4 }),
+      body: JSON.stringify({
+        prompt: `${o.prompt}${o.aspect === "16:9" ? ", wide landscape banner" : ""}, unbranded, no text, no logos, no brand names, no labels on packaging`.slice(0, 2000),
+        steps: 4,
+      }),
       signal: AbortSignal.timeout(25000),
     });
     if (!res.ok) {
@@ -314,7 +324,8 @@ async function fromCloudflare(o: Opts): Promise<Media | null> {
 export async function findPicture(o: Opts): Promise<Media | null> {
   const gemini = await fromGemini(o);
   if (gemini) return gemini;
-  if (o.aspect !== "1:1" || !o.name?.trim()) return (await fromCloudflare(o)) ?? (await fromUnsplash(o)) ?? (await fromPixabay(o)) ?? (await fromPexels(o));
+  // Banners: AI only (see the note at the top); never a stock photo.
+  if (o.aspect !== "1:1" || !o.name?.trim()) return fromCloudflare(o);
   // Products: a real photo that names the product, then an AI image, then the closest stock photo.
   const p: Opts = { ...o, needName: true, spare: [] };
   const found = (await fromWikimedia(p)) ?? (await fromUnsplash(p)) ?? (await fromPixabay(p)) ?? (await fromPexels(p)) ?? (await fromCloudflare(o));
