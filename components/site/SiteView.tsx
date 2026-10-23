@@ -8,7 +8,7 @@ import { deliveryFor, formatPrice, lineName, orderText, orderTotal, shortId, upi
 import { openStatus, parseHours } from "@/lib/hours";
 import { categoriesOf, localText } from "@/lib/localize";
 import type { Media, Order, SiteContent } from "@/lib/schema";
-import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, spotlightIndex, storeBar, storePerks } from "@/lib/siteBits";
+import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, spotlightIndex, storeBar, storePerks, coverFits, fullHeroHeight } from "@/lib/siteBits";
 import { SITE_CSS } from "@/lib/siteCss";
 import { themeVars } from "@/lib/themes";
 
@@ -199,6 +199,25 @@ export function SiteView({ site, preview }: Props) {
     return () => io.disconnect();
   }, [dynamic]);
 
+  // "Big photo" with the owner's own photo fills the banner only if it's big enough;
+  // otherwise (and until we know) it's shown whole, never enlarged.
+  const ownBig = heroFull && isFramed(site.hero);
+  const bgRef = useRef<HTMLImageElement>(null);
+  const [ownFits, setOwnFits] = useState(false);
+  useEffect(() => {
+    const im = bgRef.current, sec = heroRef.current;
+    if (!ownBig || !im || !sec) return;
+    const check = () => setOwnFits(coverFits(im.naturalWidth, im.naturalHeight, sec.clientWidth, fullHeroHeight(!!preview, window.innerHeight)));
+    check();
+    im.addEventListener("load", check);
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(check);
+    ro?.observe(sec);
+    return () => {
+      im.removeEventListener("load", check);
+      ro?.disconnect();
+    };
+  }, [ownBig, site.hero?.url, preview]);
+
   return (
     <div className="site-box">
       <style dangerouslySetInnerHTML={{ __html: SITE_CSS }} />
@@ -241,8 +260,18 @@ export function SiteView({ site, preview }: Props) {
           </div>
         </header>
 
-        <section ref={heroRef} id="top" className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"} ${mosaic.length ? "has-mosaic" : ""}`}>
-          {heroFull && site.hero && <MediaBox media={site.hero} className={`s-hero-bg ${site.hero.generated ? "is-stock" : ""}`} eager />}
+        <section
+          ref={heroRef}
+          id="top"
+          className={`s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"} ${mosaic.length ? "has-mosaic" : ""} ${!heroFull && site.hero ? "has-media" : ""} ${ownBig ? `is-owner ${ownFits ? "" : "is-small"}` : ""}`}
+          style={ownBig ? ({ "--img": cssUrl(site.hero!.url) } as CSSProperties) : undefined}
+        >
+          {ownBig ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img ref={bgRef} className="s-hero-bg" src={site.hero!.url} alt="" />
+          ) : (
+            heroFull && site.hero && <MediaBox media={site.hero} className={`s-hero-bg ${site.hero.generated ? "is-stock" : ""}`} eager />
+          )}
           <div className="s-wrap s-hero-inner">
             <div className="s-hero-copy">
               {L.category && <p className="s-eyebrow">{L.area ? `${L.category} · ${L.area}` : L.category}</p>}
@@ -276,6 +305,11 @@ export function SiteView({ site, preview }: Props) {
                 </div>
               )}
             </div>
+            {ownBig && (
+              <div className="s-hero-media s-framed s-hero-own" style={{ "--img": cssUrl(site.hero!.url) } as CSSProperties}>
+                <MediaBox media={site.hero!} eager />
+              </div>
+            )}
             {!heroFull && site.hero && (
               <div
                 className={`s-hero-media ${isFramed(site.hero) ? "s-framed" : site.hero.generated ? "is-stock" : ""}`}

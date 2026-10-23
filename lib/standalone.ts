@@ -8,7 +8,7 @@ import { openStatus, parseHours } from "./hours";
 import { categoriesOf, localText, type LocalText } from "./localize";
 import type { Media, Site } from "./schema";
 import { jsonLd, ogImageUrl } from "./seo";
-import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, spotlightIndex, storeBar, storePerks } from "./siteBits";
+import { aboutFacts, askText, badgeLabel, cssUrl, FEST_ICON, festGreeting, heroMosaic, howSteps, isFramed, quoteOnly, SEARCH_MIN, spotlightIndex, storeBar, storePerks, coverFits, fullHeroHeight } from "./siteBits";
 import { SITE_CSS } from "./siteCss";
 import { themeVars } from "./themes";
 
@@ -46,6 +46,9 @@ function body(site: Site, L: LocalText, appOrigin: string, lang: "base" | "alt",
   const mosaic = heroMosaic(site);
   const heroType = !site.hero && !mosaic.length;
   const heroFull = !!site.hero && site.theme.heroStyle === "full";
+  // "Big photo" with the owner's own photo: shown whole until the page script checks it can fill the banner.
+  const ownBig = heroFull && isFramed(site.hero);
+  const ownVar = ownBig ? ` style="${esc(`--img:${cssUrl(site.hero!.url)}`)}"` : "";
   const ask = (name: string, price: number | null) => whatsappLink(wa, askText(name, price === null ? null : formatPrice(price)));
   const quote = quoteOnly(site.items);
   const steps = howSteps(dynamic, u, quote);
@@ -114,7 +117,9 @@ ${site.festival ? `<div class="s-festive s-fest-${site.festival.id}"><span>${FES
 <header class="s-header"><div class="s-wrap s-header-row"><a href="#${idp}top" class="s-brand">${esc(L.businessName)}</a>
 <nav class="s-nav" aria-label="Sections"><a href="#${idp}products">${esc(dynamic ? u.shop : u.products)}</a>${L.about ? `<a href="#${idp}about">${esc(u.about)}</a>` : ""}${site.gallery.length ? `<a href="#${idp}gallery">${esc(u.gallery)}</a>` : ""}<a href="#${idp}contact">${esc(u.contact)}</a></nav>
 ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${esc(u.cartShort)}<span data-count></span></button>` : `<a class="s-btn s-btn-sm" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">WhatsApp</a>`}</div></header>
-<section id="${idp}top" class="s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}${mosaic.length ? " has-mosaic" : ""}">${heroFull && site.hero ? media(site.hero, site.hero.generated ? "s-hero-bg is-stock" : "s-hero-bg", true) : ""}
+<section id="${idp}top" class="s-hero ${heroType ? "s-hero-type" : heroFull ? "s-hero-full" : "s-hero-split"}${mosaic.length ? " has-mosaic" : ""}${!heroFull && site.hero ? " has-media" : ""}${ownBig ? " is-owner is-small" : ""}"${ownVar}>${
+  ownBig ? `<img class="s-hero-bg" src="${esc(site.hero!.url)}" alt="">` : heroFull && site.hero ? media(site.hero, site.hero.generated ? "s-hero-bg is-stock" : "s-hero-bg", true) : ""
+}
 <div class="s-wrap s-hero-inner"><div class="s-hero-copy">${L.category ? `<p class="s-eyebrow">${esc(L.area ? `${L.category} · ${L.area}` : L.category)}</p>` : ""}<h1>${esc(L.headline || L.businessName)}</h1><p class="s-lead">${esc(L.subheadline)}</p>
 <div class="s-hero-cta"><a class="s-btn" href="#${idp}products">${esc(dynamic ? u.shopNow : u.seeProducts)}</a><a class="s-btn s-btn-ghost" href="https://wa.me/${wa}" target="_blank" rel="noreferrer">${esc(u.chat)}</a></div>${
   dynamic ? `<div class="s-perks">${storePerks(site, u).map((p) => `<span><b aria-hidden="true">${esc(p.icon)}</b> ${esc(p.text)}</span>`).join("")}</div>` : ""
@@ -123,7 +128,7 @@ ${langButton}${dynamic ? `<button class="s-btn s-btn-sm" data-act="open-cart">${
     ? `<div class="s-trust">${openBadge}${site.reviewsUrl ? `<a href="${esc(site.reviewsUrl)}" target="_blank" rel="noreferrer">★ ${esc(u.reviewsShort)}</a>` : ""}</div>`
     : ""
 }</div>
-${!heroFull && site.hero ? `<div class="s-hero-media${isFramed(site.hero) ? " s-framed" : site.hero.generated ? " is-stock" : ""}"${isFramed(site.hero) ? ` style="${esc(`--img:${cssUrl(site.hero.url)}`)}"` : ""}>${media(site.hero, "", true)}</div>` : ""}${
+${ownBig ? `<div class="s-hero-media s-framed s-hero-own"${ownVar}>${media(site.hero!, "", true)}</div>` : ""}${!heroFull && site.hero ? `<div class="s-hero-media${isFramed(site.hero) ? " s-framed" : site.hero.generated ? " is-stock" : ""}"${isFramed(site.hero) ? ` style="${esc(`--img:${cssUrl(site.hero.url)}`)}"` : ""}>${media(site.hero, "", true)}</div>` : ""}${
   mosaic.length ? `<div class="s-mosaic n${mosaic.length}" aria-hidden="true">${mosaic.map((m) => `<div>${media(m, "", true)}</div>`).join("")}</div>` : ""
 }</div></section>
 ${L.highlights.length ? `<section class="s-highlights"><div class="s-wrap s-highlights-row">${L.highlights.map((h) => `<p>${esc(h)}</p>`).join("")}</div></section>` : ""}
@@ -288,7 +293,7 @@ ${body(site, base, appOrigin, "base", upiQrSvg)}
 ${alt ? body(site, alt, appOrigin, "alt", upiQrSvg) : ""}
 </div>
 <script type="application/json" id="sg-config">${JSON.stringify(config).replace(/</g, "\\u003c")}</script>
-<script>var sgOpenStatus=(${openStatus.toString()});${SCRIPT}</script>
+<script>var sgOpenStatus=(${openStatus.toString()}),sgCoverFits=(${coverFits.toString()}),sgHeroH=(${fullHeroHeight.toString()});${SCRIPT}</script>
 </body></html>`;
 }
 
@@ -353,7 +358,7 @@ if(a==="add"||a==="inc")bump(i+":"+opt(i),1);else if(a==="dec")bump(i+":"+opt(i)
 else if(a==="opt"){choice[i]=+b.dataset.o;render()}
 else if(a==="cat"){F.cat=b.dataset.cat;$$('[data-act="cat"]',R).forEach(function(x){x.classList.toggle("on",x===b)});filt(R)}
 else if(a==="view-seen"){openView(+b.dataset.i)}
-else if(a==="lang"){lang=lang==="alt"?"base":"alt";render();filt(root())}
+else if(a==="lang"){lang=lang==="alt"?"base":"alt";render();filt(root());heroFit()}
 else if(a==="view"){openView(i)}
 else if(a==="close-pv"){$("[data-pv]",R).hidden=true;pv=-1}
 else if(a==="pv-opt"){choice[pv]=+b.dataset.o;openView(pv);render()}
@@ -371,5 +376,8 @@ var o=r.d.order;done(text(o.lines,o.customer,o.id,r.d.link),o.id,r.d.link)})
 function openTick(){if(!C.hours)return;$$("[data-open]").forEach(function(el){var r=el.closest(".site"),w=(r&&C.openWords[r.dataset.lang])||C.openWords.base,st=sgOpenStatus(C.hours,Date.now(),w);el.hidden=!st;if(st){el.textContent=st.text;el.classList.toggle("is-open",st.open)}})}
 try{openTick();setInterval(openTick,60000)}catch(e){}
 document.addEventListener("input",function(e){if(e.target.matches&&e.target.matches("[data-search]")){F.q=e.target.value.trim().toLowerCase();$$("[data-search]").forEach(function(x){if(x!==e.target)x.value=e.target.value});filt(root())}});
+// "Big photo" with the owner's own photo: let it fill the banner only when it's big enough.
+function heroFit(){$$(".s-hero-full.is-owner").forEach(function(sec){var im=$(".s-hero-bg",sec);if(!im||!im.naturalWidth||!sec.clientWidth)return;sec.classList.toggle("is-small",!sgCoverFits(im.naturalWidth,im.naturalHeight,sec.clientWidth,sgHeroH(false,innerHeight)))})}
+$$(".s-hero-full.is-owner .s-hero-bg").forEach(function(im){im.addEventListener("load",heroFit)});window.addEventListener("resize",heroFit);
 renderSeen();
-render()})();`;
+render();heroFit()})();`;

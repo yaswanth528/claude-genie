@@ -102,6 +102,27 @@ export const SITE_CSS = `
 .site .s-hero-media.s-framed img { object-fit: scale-down; }
 .s-hero-split .s-hero-media { width: 100%; max-width: 1100px; }
 @container site (min-width: 760px) { .s-hero-split .s-hero-media { aspect-ratio: 16 / 9; } }
+/* "Side by side" with a banner photo: words on the left, the photo on the right (stacked on phones). */
+@container site (min-width: 860px) {
+  .s-hero-split.has-media { text-align: left; }
+  .s-hero-split.has-media .s-hero-inner { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); justify-items: stretch; align-items: center; gap: clamp(32px, 5cqi, 72px); }
+  .s-hero-split.has-media .s-hero-copy { justify-items: start; }
+  .s-hero-split.has-media :is(.s-hero-cta, .s-perks, .s-trust) { justify-content: flex-start; }
+  .s-hero-split.has-media h1 { font-size: clamp(2.5rem, 6.4cqi, 5.2rem); }
+  .s-hero-split.has-media .s-hero-media { aspect-ratio: 4 / 4.4; max-height: 78vh; }
+}
+
+/* "Big photo" with the owner's own photo that is too small or the wrong shape to fill the
+   banner: a blurred copy fills it, and the photo itself is shown whole beside the words. */
+.s-hero-own { display: none; }
+.s-hero-full.is-small { align-items: center; }
+.s-hero-full.is-small .s-hero-bg { filter: blur(30px) saturate(1.25) brightness(.85); scale: 1.2; }
+.s-hero-full.is-small .s-hero-own { display: block; width: 100%; aspect-ratio: 4 / 3.4; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .6); }
+.s-hero-full.is-small .s-hero-inner { display: grid; gap: clamp(24px, 4cqi, 56px); align-items: center; }
+@container site (min-width: 860px) {
+  .s-hero-full.is-small .s-hero-inner { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); }
+  .s-hero-full.is-small .s-hero-own { aspect-ratio: 4 / 4.4; max-height: 70vh; }
+}
 .s-hero-media img, .s-hero-media video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .s-hero-mono, .s-card-mono {
   width: 100%; height: 100%; display: grid; place-items: center;

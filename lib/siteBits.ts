@@ -69,6 +69,17 @@ export function howSteps(dynamic: boolean, u: UiText, quote = false): { title: s
   }));
 }
 
+// "Big photo" with the owner's own photo: it may fill the banner only if that needs no
+// enlarging at all and keeps at least 55% of the photo in view. Otherwise the
+// banner shows it whole on a blurred copy of itself. Also inlined in the standalone page.
+export function coverFits(nw: number, nh: number, bw: number, bh: number): boolean {
+  if (!nw || !nh || !bw || !bh) return false;
+  const s = Math.max(bw / nw, bh / nh);
+  return s <= 1 && (bw * bh) / (nw * nh * s * s) >= 0.55;
+}
+// The full banner's height (see .s-hero-full in siteCss): the box a photo has to fill.
+export const fullHeroHeight = (preview: boolean, viewportH: number) => (preview ? 560 : Math.min(760, Math.max(520, viewportH * 0.82)));
+
 // No banner photo: show the shop's own product photos instead (owner's photos first).
 export function heroMosaic(s: Shop): Media[] {
   if (s.hero) return [];
