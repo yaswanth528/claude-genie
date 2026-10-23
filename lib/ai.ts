@@ -43,14 +43,14 @@ type Part = { type: "text"; text: string } | { type: "image"; data: string; mime
 // in our tests and run ~40% faster; larger models don't accept "minimal".
 const jsonThinking = (model: string) => ({ thinking_level: model.includes("lite") ? ("minimal" as const) : ("low" as const) });
 
-async function generateJson<T extends z.ZodType>(schema: T, input: string | Part[], model = MODEL): Promise<z.infer<T>> {
+async function generateJson<T extends z.ZodType>(schema: T, input: string | Part[], model = MODEL, think?: "low"): Promise<z.infer<T>> {
   const { $schema: _drop, ...jsonSchema } = z.toJSONSchema(schema) as Record<string, unknown>;
   const interaction = await client().interactions.create({
     model,
     input,
     response_format: { type: "text", mime_type: "application/json", schema: jsonSchema },
     // Light thinking keeps the build quick; the owner reviews everything before it goes live.
-    generation_config: jsonThinking(model),
+    generation_config: think ? { thinking_level: think } : jsonThinking(model),
   });
   if (!interaction.output_text) throw new Error("No response from the model");
   const parsed = schema.safeParse(JSON.parse(interaction.output_text));
@@ -271,10 +271,11 @@ export async function reviseSite(site: SiteContent, request: string): Promise<Re
       photo: it.image ? (it.image.generated ? "stock photo" : "owner's photo") : "none",
     })),
   };
+  // A little thinking here: with "minimal" the model ignored the no-invented-claims rule.
   return generateJson(RevisionSchema, `${REVISE_RULES}
 
 Current website (JSON):
 ${JSON.stringify(current)}
 
-Owner said: ${request}`);
+Owner said: ${request}`, MODEL, "low");
 }
