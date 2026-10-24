@@ -157,7 +157,7 @@ async function fromWikimedia(o: Opts): Promise<Media | null> {
         iiprop: "url|mime|extmetadata",
         iiurlwidth: "900",
       })}`,
-      { headers: { "User-Agent": "SiteGenie/1.0 (https://claude-genie-five.vercel.app)" }, signal: AbortSignal.timeout(8000) },
+      { headers: { "User-Agent": "SiteGenie/1.0 (https://sitegenie-ai.vercel.app)" }, signal: AbortSignal.timeout(8000) },
     );
     if (!res.ok) {
       console.error("Wikimedia search failed:", res.status);
@@ -178,7 +178,7 @@ async function fromWikimedia(o: Opts): Promise<Media | null> {
           id: `commons:${p.pageid}`,
           text,
           use: async () => {
-            const img = await fetch(info.thumburl!, { headers: { "User-Agent": "SiteGenie/1.0 (https://claude-genie-five.vercel.app)" } });
+            const img = await fetch(info.thumburl!, { headers: { "User-Agent": "SiteGenie/1.0 (https://sitegenie-ai.vercel.app)" } });
             if (!img.ok) return null;
             const type = img.headers.get("content-type") ?? "image/jpeg";
             const url = await saveMedia(Buffer.from(await img.arrayBuffer()), type, "generated");
